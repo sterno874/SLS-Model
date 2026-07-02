@@ -6,21 +6,39 @@
 <title>REGAL Survival &amp; HR Explorer</title>
 <style>
   :root{
-    --bg:#f6f7f9; --card:#ffffff; --ink:#1c2330; --muted:#5b6472;
+    --bg:#eef1f5; --card:#ffffff; --ink:#141b26; --muted:#5b6472;
     --bat:#d64545; --gps:#2f6fed; --pool:#8a8f99;
     --good:#1f9d55; --warn:#d98a00; --bad:#d64545;
-    --line:#e3e6ea; --accent:#2f6fed; --data:#1f9d55;
+    --line:#dde2e8; --accent:#2f6fed; --data:#1f9d55;
+    --panel:#f8fafc; --shadow:0 1px 3px rgba(20,27,38,.06);
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:var(--bg);color:var(--ink);line-height:1.45}
-  header{padding:20px 22px 6px}
-  h1{font-size:20px;margin:0 0 4px}
-  .sub{color:var(--muted);font-size:13px;max-width:1000px}
-  .wrap{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:14px 18px 10px}
+  header{padding:20px 22px 6px;background:linear-gradient(180deg,#fff 0%,var(--bg) 100%)}
+  h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13px;max-width:1100px;line-height:1.55}
+  .wrap{display:grid;grid-template-columns:minmax(320px,380px) 1fr;gap:16px;padding:14px 18px 10px;align-items:start}
   @media (max-width:920px){.wrap{grid-template-columns:1fr}}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 10px;font-weight:700}
+  .ctrl-group{margin:14px 0;padding:12px 12px 4px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  .ctrl-group>h3{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;font-weight:700}
+  .ctrl-group .ctrl:last-child{margin-bottom:8px}
+  .howworks{margin:0 18px 12px;border:1px solid #c9daf8;border-radius:12px;background:#f5f8fe;overflow:hidden}
+  .howworks>summary{padding:11px 14px;cursor:pointer;font-size:13px;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px}
+  .howworks>summary::-webkit-details-marker{display:none}
+  .howworks>summary::before{content:"▸";color:var(--accent);font-size:11px;transition:transform .15s}
+  .howworks[open]>summary::before{transform:rotate(90deg)}
+  .howworks-body{padding:0 14px 14px;font-size:13px;line-height:1.6;color:var(--ink)}
+  .howworks-body p{margin:0 0 10px}
+  .math-detail{margin-top:8px;border:1px dashed var(--line);border-radius:8px;background:#fff}
+  .math-detail>summary{padding:8px 10px;cursor:pointer;font-size:12px;font-weight:700;color:var(--accent)}
+  .math-detail-body{padding:0 10px 10px;font-size:12px;line-height:1.55;color:var(--muted)}
+  .formula{margin:8px 0;padding:8px 10px;border-radius:8px;background:#eef3fe;border-left:3px solid var(--accent);font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+  .chart-sub{font-size:12px;color:var(--muted);margin:-4px 0 10px;line-height:1.45}
+  .source-line a{color:var(--accent);text-decoration:none}
+  .source-line a:hover{text-decoration:underline}
   .bandkey{font-size:11px;color:var(--muted);background:#f4f6f8;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5}
   .bandkey b{color:var(--ink)}
   .swatch{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle;margin:0 3px}
@@ -36,20 +54,20 @@
   .seg.imp{background:repeating-linear-gradient(45deg,rgba(214,69,69,.32),rgba(214,69,69,.32) 3px,rgba(214,69,69,.12) 3px,rgba(214,69,69,.12) 6px);border-left:1px solid var(--bad)}
   .marker{position:absolute;top:-1px;height:18px;width:2px;background:#111;opacity:.55}
   .disabled{opacity:.4;pointer-events:none}
-  .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-  .pgrp{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 3px}
+  .presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:6px;margin-bottom:6px}
+  .pgrp{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 3px;font-weight:700}
   .pgrp-hint{font-size:11px;color:var(--muted);margin:-2px 0 8px;line-height:1.45}
-  button.p{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer;text-align:left;line-height:1.35}
-  button.p:hover{border-color:var(--accent);color:var(--accent)}
-  button.p.p-def{border-color:var(--accent);background:#eef3fe;font-weight:700}
+  button.p{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;text-align:left;line-height:1.35;min-height:44px}
+  button.p:hover{border-color:var(--accent);color:var(--accent);box-shadow:var(--shadow)}
+  button.p.p-def{border-color:var(--accent);background:#eef3fe;font-weight:700;box-shadow:inset 0 0 0 1px rgba(47,111,237,.15)}
   button.p .p-sub{display:block;font-size:10px;font-weight:400;color:var(--muted);margin-top:2px}
   .chk{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;margin:8px 0 12px;padding:8px;background:#eef3fe;border-radius:8px}
   canvas{width:100%;height:auto;display:block}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
   @media (max-width:520px){.grid2{grid-template-columns:1fr}}
-  .stat{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:12px}
-  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
-  .stat .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stat{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:12px;min-height:72px;display:flex;flex-direction:column;justify-content:center}
+  .stat .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;line-height:1.35;margin-bottom:4px}
+  .stat .v{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
   .stat .v small{font-size:12px;color:var(--muted);font-weight:500}
   .bat .v{color:var(--bat)} .gps .v{color:var(--gps)}
   /* HR gauge */
@@ -92,10 +110,13 @@
   .vrow input[type=range]{flex:1;max-width:200px;accent-color:var(--accent)}
   .vrow .vv{min-width:96px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   .bignum{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
-  .modenav{display:flex;gap:6px;margin-bottom:12px}
-  .modebtn{flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);line-height:1.35}
-  .modebtn.active{color:var(--accent);border-color:var(--accent);background:#eef3fe}
-  .modebtn .m-sub{display:block;font-size:10px;font-weight:500;color:var(--muted);margin-top:2px}
+  .modenav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+  .modebtn{border:2px solid var(--line);background:#fff;border-radius:8px;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);line-height:1.35;text-align:left}
+  .modebtn.active{color:var(--accent);border-color:var(--accent);background:#eef3fe;box-shadow:var(--shadow)}
+  .modebtn .m-sub{display:block;font-size:10px;font-weight:500;color:var(--muted);margin-top:3px}
+  .mc-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+  .mc-toolbar button.p{min-height:auto}
+  .tag.f{background:#eef3fe;color:#1a4fb8} .tag.m{background:#f3f0ff;color:#5b3ea8} .tag.a{background:#fff4e0;color:#8a5a00}
   .invbox{margin:0 0 14px;padding:10px 12px;border-radius:10px;border:1px solid #c9daf8;background:#eef3fe;font-size:12.5px;line-height:1.55}
   .invbox b{color:var(--ink)}
   .invout{margin:0 0 14px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;font-size:12.5px}
@@ -118,6 +139,26 @@
 </header>
 
 <div id="tab-gps" class="tabpage">
+  <details class="howworks">
+    <summary>How this works — KM curves, event matching, HR &amp; Monte Carlo</summary>
+    <div class="howworks-body">
+      <p><span class="tag f">Fact</span> SELLAS reports <b>pooled</b> death counts (60 → 72 → 78, still &lt;80) from an ITT trial — not which arm each death belongs to. <span class="tag m">Model</span> We draw survival curves for BAT (Weibull + long-survivor tail) and GPS (mixture-cure plateau + uncured exponential, optional onset delay), add a shared post-enrollment transplant tail, and check whether expected deaths match those anchors.</p>
+      <p><b>What the chart shows:</b> Kaplan–Meier–style overall-survival curves from randomization — not patient-level resimulation. Pooled = 50/50 average of both arms.</p>
+      <p><b>Hazard ratio (HR):</b> Pike/O–E ratio of observed vs expected deaths in each arm up to month 58 — an approximate log-rank HR, not the final stratified Cox from the SAP. Win threshold HR &lt; 0.636 comes from the design paper (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>).</p>
+      <p><b>Monte Carlo P(win):</b> Sample prior uncertainty on each slider → weight draws by Poisson likelihood of the event increments → score significance via stratified log-rank Z at 80 deaths (or cutoff). P(win) = fraction of posterior weight with Z ≥ 2.01 — a <em>model output</em>, not a company forecast.</p>
+      <p><b>CW inverse:</b> Fix event anchors + GPS cure fraction; solve for implied BAT median/tail and GPS uncured mOS. HR and mOS are derived — still non-identifiable along the GPS-cure ↔ BAT-heterogeneity ridge (<a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">critique thread</a>).</p>
+      <details class="math-detail">
+        <summary>Show math</summary>
+        <div class="math-detail-body">
+          <div class="formula">Expected deaths @ T = Σ<sub>enrollment</sub> N<sub>arm</sub> · w<sub>enroll</sub> · (1 − S(T − enroll)) · (1 − censor/2)</div>
+          <div class="formula">HR ≈ (O<sub>GPS</sub>/E<sub>GPS</sub>) ÷ (O<sub>BAT</sub>/E<sub>BAT</sub>) &nbsp;·&nbsp; Z = (Σ w(O−E)) / √(Σ w²V) · √η<sub>strat</sub></div>
+          <div class="formula">MC weight ∝ Pois(60|λ<sub>46</sub>) · Pois(12|λ<sub>58</sub>−λ<sub>46</sub>) · Pois(6|λ<sub>63</sub>−λ<sub>58</sub>) · P(Δ≤1 @ m65)</div>
+          <div class="formula">Binding interim: weight × P(continue) · win = conditional power with ρ = √(60/80)</div>
+        </div>
+      </details>
+      <p style="margin:8px 0 0;font-size:12px;color:var(--muted)">Full derivation: click <b>Methodology</b> below. Tags: <span class="tag f">fact</span> primary source · <span class="tag m">model</span> simulation · <span class="tag a">assumption</span> undisclosed slider.</p>
+    </div>
+  </details>
   <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-gps')">📐 Methodology — REGAL / GPS math</button></div>
   <div class="methodpanel" id="m-gps" hidden>
     <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.
@@ -197,6 +238,8 @@
 
     <label class="chk" id="autofitWrap"><input type="checkbox" id="autofit"/> Auto-fit GPS cure fraction to hit 72 events @ m58 (the DD's "1 degree of freedom" method)</label>
 
+    <div class="ctrl-group" id="grpBat">
+      <h3>BAT arm (control)</h3>
     <div class="ctrl" id="invBatCapWrap" hidden>
       <label>BAT 3-year OS cap (biology) <span id="vBatCap">17%</span></label>
       <input type="range" id="batcap" min="12" max="22" step="1" value="17"/>
@@ -207,57 +250,66 @@
       <label>BAT median — excl. long-survivors <span id="vBat">10.0 m</span><span class="derived-tag" id="batDerivedTag" hidden>implied</span></label>
       <input type="range" id="bat" min="6" max="20" step="0.5" value="10"/>
       <div class="bands" id="band-bat"></div>
-      <small>Median of the non-tail component. The TRUE BAT arm median (incl. the long-survivor fraction) is shown at right and is higher when that slider is &gt;0. Historical CR2: ~6–11m.</small>
+      <small class="source-line">Median of non-tail BAT component (from randomization). Design assumes 8.0m (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>); ven-era CR2 ~8–12m (<a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">Stahl 2021</a>).</small>
     </div>
 
     <div class="ctrl" id="batcWrap">
       <label>BAT long-survivor fraction <span id="vBatc">14%</span><span class="derived-tag" id="batcDerivedTag" hidden>implied</span></label>
       <input type="range" id="batc" min="0" max="30" step="1" value="14"/>
       <div class="bands" id="band-batc"></div>
-      <small>Favorable-risk BAT patients who survive years. Published CR2: ~5–15%. This is the main "escape hatch" toward a losing HR.</small>
+      <small>Favorable-risk BAT patients who survive years. Published CR2 transplant-ineligible: ~5–15% long-term (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3011608/" target="_blank" rel="noopener">Kurosawa 2010</a>). Main lever toward a losing HR.</small>
+    </div>
     </div>
 
+    <div class="ctrl-group" id="grpGps">
+      <h3>GPS arm (vaccine)</h3>
     <div class="ctrl" id="gpscWrap">
       <label>GPS cure fraction <span id="vGpsc">22%</span></label>
       <input type="range" id="gpsc" min="0" max="75" step="1" value="22"/>
       <div class="bands" id="band-gpsc"></div>
-      <small>GPS patients on a permanent plateau. Highly uncertain — Phase 2 CR2 showed 0% plateau; Phase 2 CR1 showed ~47%.</small>
+      <small class="source-line">GPS patients on permanent plateau. Phase 2 CR2: no plateau (<a href="https://pubmed.ncbi.nlm.nih.gov/?term=Brayer+WT1+vaccination+AML+MDS+pilot+synthetic+analog+peptides" target="_blank" rel="noopener">Brayer 2015</a>); CR1 ~47% 3-yr (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>). Highly uncertain.</small>
     </div>
 
     <div class="ctrl" id="gpsuWrap">
       <label>GPS uncured median OS <span id="vGpsu">32.0 m</span><span class="derived-tag" id="gpsuDerivedTag" hidden>implied</span></label>
       <input type="range" id="gpsu" min="6" max="40" step="0.5" value="32"/>
       <div class="bands" id="band-gpsu"></div>
-      <small>Survival of non-cured GPS patients. Phase 2 CR2 whole-arm was 21m. Note: the m63 data pulls this to the high end.</small>
+      <small>Survival of non-cured GPS patients. Phase 2 CR2 whole-arm mOS 16.3 mo (<a href="https://pubmed.ncbi.nlm.nih.gov/?term=Brayer+WT1+vaccination+AML+MDS+pilot+synthetic+analog+peptides" target="_blank" rel="noopener">Brayer 2015</a>). m63 events pull fits high.</small>
     </div>
 
     <div class="ctrl">
       <label>GPS onset delay <span id="vDelay">1.5 m</span></label>
       <input type="range" id="delay" min="0" max="6" step="0.5" value="1.5"/>
       <div class="bands" id="band-delay"></div>
-      <small>Months before GPS separates from BAT (immune ramp-up).</small>
+      <small>Months before GPS separates from BAT (immune ramp-up). GPS primes over ~3 mo per protocol (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
+    </div>
     </div>
 
+    <div class="ctrl-group" id="grpTrial">
+      <h3>Trial parameters</h3>
     <div class="ctrl">
       <label>Transplant after enrollment <span id="vXtx">6%</span></label>
       <input type="range" id="xtx" min="0" max="25" step="1" value="6"/>
       <div class="bands" id="band-xtx"></div>
-      <small>% of EACH arm transplanted post-enrollment (eligibility is judged only at entry, so this is allowed). Transplanted CR2 patients get ~45% long-term survival — a shared tail that lifts both arms and shrinks the GPS gap.</small>
+      <small>% of EACH arm transplanted post-enrollment (eligibility at entry only). Transplanted CR2 ~40–50% long-term (<a href="https://pubmed.ncbi.nlm.nih.gov/?term=Forman+Rowe+myth+second+remission+acute+leukemia+adult" target="_blank" rel="noopener">Forman &amp; Rowe 2013</a>). Shared tail shrinks GPS gap.</small>
     </div>
 
     <div class="ctrl">
       <label style="display:flex;justify-content:space-between">OS handling <span style="color:var(--muted);font-weight:400">🔒 locked</span></label>
       <div style="font-size:13px;padding:6px 8px;background:#f4f6f8;border:1px solid var(--line);border-radius:8px;color:var(--muted)"><b style="color:var(--ink)">ITT — death from any cause</b> (transplant survival counts, not censored)</div>
-      <small>Fixed: REGAL's primary endpoint is verified as ITT OS from randomization [1][2]. Not an assumption, so not adjustable.</small>
+      <small class="source-line">Fixed: REGAL primary = ITT OS from randomization (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
     </div>
 
     <div class="ctrl">
       <label>Censoring / dropout <span id="vCens">12%</span></label>
       <input type="range" id="cens" min="0" max="30" step="1" value="12"/>
       <div class="bands" id="band-cens"></div>
-      <small>Lost-to-follow-up before an event → fewer observed events, so true survival is worse than the counts imply (optimistic-bias correction). Phase 2 GPS ~15%. Differential dropout by arm would bias HR — not captured.</small>
+      <small class="source-line">Lost-to-follow-up before death. Phase 2 GPS ~15% (<a href="https://www.onclive.com/view/maintenance-galinpepimut-s-appears-effective-and-safe-in-aml-in-second-cr" target="_blank" rel="noopener">Brayer/OncLive</a>). Differential dropout by arm not modeled.</small>
+    </div>
     </div>
 
+    <div class="ctrl-group" id="grpAdv">
+      <h3>Advanced</h3>
     <details>
       <summary>Advanced: enrollment shape</summary>
       <div class="ctrl" style="margin-top:8px">
@@ -294,13 +346,15 @@
         <input type="range" id="zfut" min="0" max="1.2" step="0.05" value="0.4"/>
         <small>How clearly the interim had to beat futility. 0 = essentially none; higher = the interim ruled out weaker worlds. REGAL's exact futility rule is not public.</small>
       </div>
-      <small style="color:var(--muted)">Binding-vs-non-binding efficacy is toggled in the Monte Carlo panel below. The interim/final OBF boundary Z-values (2.34 / 2.01), the 0.636 threshold, N, the event counts, and 80-event trigger are <b>locked facts</b>, not adjustable.</small>
+      <small style="color:var(--muted)">Binding-vs-non-binding efficacy is toggled in the Monte Carlo panel. OBF Z-values (2.34 / 2.01), 0.636 threshold, N=127, event counts, and 80-event trigger are <b>locked facts</b> (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
     </details>
+    </div>
   </div>
 
   <!-- OUTPUT -->
   <div class="card">
     <h2>Survival curves (from randomization)</h2>
+    <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: GPS (mixture-cure), BAT (Weibull + tail), pooled 50/50 average. Vertical dashed line = 36 months. Medians and HR below are derived from these curves — not unblinded trial data.</div>
     <canvas id="chart" width="920" height="430"></canvas>
 
     <div class="grid2">
@@ -344,7 +398,7 @@
   <div class="card">
     <h2 id="mcPanelTitle">Monte Carlo — final-HR distribution</h2>
     <div id="mcPanelHint" style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (60 by m46, +12, +6, and still &lt;80), so every scenario is anchored <em>in proportion to how well it explains the exact numbers, with counting noise modeled</em> — not accepted/rejected by an arbitrary window. "Win" is now a proper <b>stratified log-rank significance test</b> (probabilistic, NPH-aware — a late-loaded effect is penalized), and the interim is handled correctly: with "binding efficacy" checked, worlds are soft-weighted by P(continuing without an early stop) and scored by their <em>conditional</em> power — which banks early wins and is power-neutral (not the crude hard cliff). A mild futility pass and a stratification efficiency haircut are applied. Move any slider to shift a prior, then re-run. Approximate-Bayesian posterior — only as good as the priors. <b>Tip:</b> click "Set neutral (literature) priors" for the balanced base case (~65–68% win); the fitting presets (Base/Bull/etc.) center the priors on a strong-effect scenario, so their MC will read more optimistic.</div>
-    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px" class="mc-toolbar">
       <button class="p" id="mcRun" style="font-weight:700;padding:8px 14px">▶ Run 200k draws</button>
       <button class="p" id="mcNeutral">Set neutral (literature) priors</button>
       <label style="font-size:12.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="mcFloor" checked> binding efficacy interim (soft-condition on no early stop)</label>
@@ -394,7 +448,8 @@
     <ol style="font-size:12.5px;line-height:1.7;margin:0;padding-left:20px">
       <li><b>REGAL design paper</b> — Jamy O, Cicic D. <i>Future Oncol</i> 2025 (PMC11760237). Design assumptions (BAT 8.0m vs GPS 12.6m, HR 0.636, 80 deaths, 90% power), O'Brien-Fleming interim, GPS dosing, Phase 1/2 summaries. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">pmc.ncbi.nlm.nih.gov/articles/PMC11760237</a></li>
       <li><b>ClinicalTrials.gov NCT04229979</b> — eligibility (transplant-ineligible at entry; FLT3/IDH-maintainable excluded), N=127, OS = death from any cause (ITT), BAT options, start 8 Feb 2021. <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">clinicaltrials.gov/study/NCT04229979</a></li>
-      <li><b>SELLAS interim (60 events)</b> — 23 Jan 2025; IDMC "continue without modification." <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Jan 2025)</a></li>
+      <li><b>SELLAS interim (60 events)</b> — 23 Jan 2025; IDMC "continue without modification." <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">globenewswire.com (Jan 2025)</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia/default.aspx" target="_blank" rel="noopener">IR</a></li>
+      <li><b>SELLAS IDMC (Aug 2025)</b> — second "continue without modification" after 60-event interim. <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Interim-Analysis-of-REGAL-Phase-3-Study/default.aspx" target="_blank" rel="noopener">IR (Aug 2025)</a></li>
       <li><b>SELLAS 72-event update</b> — 29 Dec 2025; remains blinded. <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank">globenewswire.com (Dec 2025)</a></li>
       <li><b>SELLAS 78-event / Q1 2026</b> — 12 May 2026; 78 events as of 11 May 2026, cash ~$107M. <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank">globenewswire.com (May 2026)</a></li>
       <li><b>QUAZAR AML-001</b> — oral azacitidine maintenance; CR1-<i>placebo</i> median OS 14.8m (a healthier population → BAT ceiling). <a href="https://www.cancernetwork.com/view/phase-3-quazar-aml-001-trial-finds-oral-azacitidine-extends-survival-in-older-adults-with-aml" target="_blank">CancerNetwork</a> · <a href="https://onlinelibrary.wiley.com/doi/10.1002/ajh.26847" target="_blank">Am J Hematol (long-term)</a></li>
@@ -405,7 +460,8 @@
       <li><b>REGAL enrollment &amp; discontinuation milestones</b> — first patient Feb 2021; 105 pts (ex-China) by Nov 2023; full enrollment ~Apr 2024; 66 patients had discontinued <i>treatment</i> by Mar 2024 (blinded; relapse-driven, not OS censoring). <a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank">Apr 2024 IDMC/enrollment PR</a></li>
       <li><b>SELLAS Nov 14, 2022 update</b> — blinded pooled mOS "approximately two-fold longer than originally anticipated" (design pooled 10.3m → ~20m). <a href="https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Nov 2022)</a></li>
       <li><b>AVALON — Todisco et al. <i>Cancer</i> 2023</b> — Italian real-world Ven+HMA cohort (190 pts incl. relapsed/refractory AML); R/R median OS in the single digits, durable survival gated on transplant. <a href="https://acsjournals.onlinelibrary.wiley.com/doi/10.1002/cncr.34608" target="_blank">Cancer 2023</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/41224500/" target="_blank">2025 transplant-bridge subanalysis</a></li>
-      <li><b>Community due-diligence framing — "Confident Web"</b> (u/Confident-Web-7118). Detailed REGAL DD on r/wallstreetbets and r/pennystocks / Stocktwits: cure-fraction mixture model on GPS, event-deceleration argument (72 @ m58), lead-time/IRM tables, non-binding interim framing, Bayes-factor claims. <a href="https://www.reddit.com/r/wallstreetbets/search/?q=Confident-Web-7118+SLS" target="_blank" rel="noopener">Reddit search ↗</a> · secondary summary <a href="https://247wallst.com/investing/2026/03/20/sellas-stock-up-346-in-a-year-as-cancer-vaccine-trial-nears-its-final-8-deaths/" target="_blank" rel="noopener">24/7 Wall St. ↗</a>. Incorporated as forward preset + CW inverse mode (not established fact).</li>
+      <li><b>Community due-diligence framing — "Confident Web"</b> (u/Confident-Web-7118). Detailed REGAL DD on r/wallstreetbets and r/pennystocks: cure-fraction mixture model, event-deceleration, lead-time tables, non-binding interim framing. <a href="https://www.reddit.com/r/wallstreetbets/search/?q=Confident-Web-7118+SLS" target="_blank" rel="noopener">Reddit search ↗</a> · <a href="https://247wallst.com/investing/2026/03/20/sellas-stock-up-346-in-a-year-as-cancer-vaccine-trial-nears-its-final-8-deaths/" target="_blank" rel="noopener">24/7 Wall St. ↗</a>. Incorporated as forward preset + CW inverse mode (<span class="tag a">assumption</span>, not established fact).</li>
+      <li><b>Independent critique of Confident Web DD</b> (u/uhdisj41) — identifiability ridge, Bayes-factor inflation, BAT-tail biology. <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">Reddit critique ↗</a>. Informed the "Critique (~⅔)" preset.</li>
       <li><b>Interim &amp; design-power computation (this analysis)</b> — Lan–DeMets O'Brien-Fleming, one-sided α=0.025, looks at t=0.75 &amp; 1.0: interim Z=2.34, final Z=2.01 (HR≤0.638 to win). Schoenfeld check: 90% power at HR 0.636 needs ~205 events, so 80 events at 0.636 ≈ 50% power ⇒ 0.636 is the significance BAR, the ~90%-power alternative is ~0.48.</li>
     </ol>
     <h2 style="margin-top:18px">Statistical methods (primary sources)</h2>
@@ -427,6 +483,21 @@
 
 <!-- ================= TAB 2 : SLS-009 ================= -->
 <div id="tab-sls009" class="tabpage" hidden>
+  <details class="howworks">
+    <summary>How this works — r/r fold-improvement &amp; Phase 3 power</summary>
+    <div class="howworks-body">
+      <p><span class="tag f">Fact</span> SLS-009 Phase 2 is <b>single-arm</b> (+ Aza/Ven) in post-venetoclax r/r AML-MR — no randomized control. <span class="tag m">Model</span> We compare reported mOS (8.9 mo) to a historical benchmark (~2.5–2.8 mo) using exponential survival curves.</p>
+      <p><b>OS fold-improvement</b> = arm median ÷ benchmark median (e.g. 8.9 ÷ 2.8 ≈ 3.2×). Under constant hazard, <b>HR-equivalent</b> = benchmark ÷ arm (inverse of fold). This is a shorthand — not a randomized log-rank HR.</p>
+      <p><b>Phase 3 power (Monte Carlo):</b> Hypothetical frontline trial SLS-009+Aza/Ven vs Aza/Ven alone. Sample projected medians, compute HR-equiv = control ÷ treatment, estimate P(significant) via Schoenfeld-style Z at assumed event count (default 250 deaths). <span class="tag a">Assumption</span> — event count and effect size are user-set priors.</p>
+      <details class="math-detail">
+        <summary>Show math</summary>
+        <div class="math-detail-body">
+          <div class="formula">S(t) = exp(−ln2 · t / mOS) &nbsp;·&nbsp; fold = mOS<sub>arm</sub> / mOS<sub>bench</sub></div>
+          <div class="formula">HR<sub>equiv</sub> = mOS<sub>bench</sub> / mOS<sub>arm</sub> &nbsp;·&nbsp; Z ≈ −ln(HR) · √(D/4) &nbsp;·&nbsp; P(win) ≈ Φ(Z − 1.96)</div>
+        </div>
+      </details>
+    </div>
+  </details>
   <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-sls')">📐 Methodology — SLS-009 math</button></div>
   <div class="methodpanel" id="m-sls" hidden>
     <b>Different trial, different math.</b> SLS-009 (tambiciclib; a selective CDK9 inhibitor, licensed from GenFleet) is in a <b>single-arm Phase 2</b> with azacitidine + venetoclax — no randomized control, so efficacy is judged against a <b>historical benchmark</b>.
@@ -449,17 +520,18 @@
         <button class="p" data-sls="bull" title="Frontline option-value case: strong r/r + optimistic Ph3 frontline projections.">Bull (frontline)<span class="p-sub">Commercial upside</span></button>
       </div>
       <h2 style="margin-top:10px">Relapsed / refractory AML-MR (Phase 2)</h2>
-      <div class="ctrl"><label>SLS-009+AZA/VEN median OS <span id="v_slsos">8.9 m</span></label><input type="range" id="sls_os" min="4" max="16" step="0.1" value="8.9"><div class="bands" id="band2-sls_os"></div><small>Anchor 8.9m (least-pretreated Ph2). Source: SELLAS Dec-2024 PR &amp; ASH 2025.</small></div>
-      <div class="ctrl"><label>Historical post-venetoclax benchmark OS <span id="v_slsbench">2.8 m</span></label><input type="range" id="sls_bench" min="1.5" max="6" step="0.1" value="2.8"><div class="bands" id="band2-sls_bench"></div><small>~2.5m post-Ven-failure (reported); 2.8m drift-adjusted central case. Red &gt;4.5m (rarely exceeded). Source: post-venetoclax-failure literature (Maiti/DiNardo); SELLAS benchmark.</small></div>
-      <div class="ctrl"><label>Overall response rate (ORR) <span id="v_slsorr">46 %</span></label><input type="range" id="sls_orr" min="20" max="70" step="1" value="46"><div class="bands" id="band2-sls_orr"></div><small>46% all / 58% 1 prior line. Source: SELLAS ASH 2024/2025.</small></div>
+      <div class="ctrl"><label>SLS-009+AZA/VEN median OS <span id="v_slsos">8.9 m</span></label><input type="range" id="sls_os" min="4" max="16" step="0.1" value="8.9"><div class="bands" id="band2-sls_os"></div><small class="source-line"><span class="tag f">Reported</span> 8.9m least-pretreated. <a href="https://www.globenewswire.com/news-release/2024/12/09/2993773/0/en/SELLAS-Announces-Positive-Overall-Survival-and-Overall-Response-Rate-Data-from-the-Phase-2-Trial-of-SLS009-in-r-r-AML.html" target="_blank" rel="noopener">Dec 2024 PR</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx" target="_blank" rel="noopener">ASH 2025</a></small></div>
+      <div class="ctrl"><label>Historical post-venetoclax benchmark OS <span id="v_slsbench">2.8 m</span></label><input type="range" id="sls_bench" min="1.5" max="6" step="0.1" value="2.8"><div class="bands" id="band2-sls_bench"></div><small class="source-line">~2.5m reported benchmark; 2.8m drift-adjusted central case. Post-Ven failure: <a href="https://pubmed.ncbi.nlm.nih.gov/34782794/" target="_blank" rel="noopener">Maiti et al. 2022</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">Stahl 2021</a></small></div>
+      <div class="ctrl"><label>Overall response rate (ORR) <span id="v_slsorr">46 %</span></label><input type="range" id="sls_orr" min="20" max="70" step="1" value="46"><div class="bands" id="band2-sls_orr"></div><small class="source-line"><span class="tag f">Reported</span> 46% all / 58% 1 prior line. <a href="https://ashpublications.org/blood/article/146/Supplement%201/3423/552036/" target="_blank" rel="noopener">Blood 2025 abstract</a></small></div>
       <h2 style="margin-top:16px">Frontline (newly diagnosed) — Phase 2b → 3</h2>
-      <div class="ctrl"><label>Aza/Ven baseline mOS <span id="v_flbase">14.7 m</span></label><input type="range" id="fl_base" min="10" max="20" step="0.1" value="14.7"><div class="bands" id="band2-fl_base"></div><small>◆14.7m known. Source: DiNardo VIALE-A, NEJM 2020.</small></div>
-      <div class="ctrl"><label>+SLS-009 frontline mOS (projected) <span id="v_flsls">20 m</span></label><input type="range" id="fl_sls" min="14" max="30" step="0.5" value="20"><div class="bands" id="band2-fl_sls"></div><small>Projection. Red &gt;28m. Source: SELLAS / Confident Web estimate.</small></div>
-      <div class="ctrl"><label>TP53-mut Aza/Ven baseline <span id="v_tpbase">5.3 m</span></label><input type="range" id="tp_base" min="3" max="8" step="0.1" value="5.3"><div class="bands" id="band2-tp_base"></div><small>◆~5.3m. Source: VIALE-A TP53 subgroup.</small></div>
-      <div class="ctrl"><label>TP53-mut +SLS-009 (projected) <span id="v_tpsls">13 m</span></label><input type="range" id="tp_sls" min="8" max="20" step="0.5" value="13"><div class="bands" id="band2-tp_sls"></div><small>Projection. Source: SELLAS / Confident Web estimate.</small></div>
+      <div class="ctrl"><label>Aza/Ven baseline mOS <span id="v_flbase">14.7 m</span></label><input type="range" id="fl_base" min="10" max="20" step="0.1" value="14.7"><div class="bands" id="band2-fl_base"></div><small class="source-line"><span class="tag f">Verified</span> 14.7m VIALE-A. <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2012971" target="_blank" rel="noopener">DiNardo, NEJM 2020</a></small></div>
+      <div class="ctrl"><label>+SLS-009 frontline mOS (projected) <span id="v_flsls">20 m</span></label><input type="range" id="fl_sls" min="14" max="30" step="0.5" value="20"><div class="bands" id="band2-fl_sls"></div><small class="source-line"><span class="tag a">Projection</span> — not observed. SELLAS / community DD estimate.</small></div>
+      <div class="ctrl"><label>TP53-mut Aza/Ven baseline <span id="v_tpbase">5.3 m</span></label><input type="range" id="tp_base" min="3" max="8" step="0.1" value="5.3"><div class="bands" id="band2-tp_base"></div><small class="source-line"><span class="tag f">Verified</span> ~5.3m VIALE-A TP53 subgroup. <a href="https://pubmed.ncbi.nlm.nih.gov/32023337/" target="_blank" rel="noopener">PubMed</a></small></div>
+      <div class="ctrl"><label>TP53-mut +SLS-009 (projected) <span id="v_tpsls">13 m</span></label><input type="range" id="tp_sls" min="8" max="20" step="0.5" value="13"><div class="bands" id="band2-tp_sls"></div><small class="source-line"><span class="tag a">Projection</span> — early signal only.</small></div>
     </div>
     <div class="card">
       <h2>SLS-009 vs historical benchmark (r/r)</h2>
+      <div class="chart-sub"><span class="tag m">Model</span> Exponential OS curves: treatment (reported mOS) vs historical benchmark. Fold-improvement and HR-equivalent assume constant hazard — a simplification for single-arm vs external control.</div>
       <canvas id="slsChart" width="920" height="360"></canvas>
       <div class="grid2">
         <div class="stat"><div class="k">OS fold-improvement</div><div class="v" id="oFold">–</div></div>
@@ -475,7 +547,7 @@
   <div style="padding:0 18px 6px"><div class="card">
     <h2>Monte Carlo — SLS-009</h2>
     <div class="sub" style="margin-bottom:8px">Propagates the prior uncertainty (each slider = center, its 1σ band = spread) through the r/r effect and a hypothetical frontline Phase 3 (SLS-009+Aza/Ven vs Aza/Ven, log-rank at the assumed event count). Approximate — the r/r arm is single-arm-vs-historical, so its "signal" ≠ a randomized win.</div>
-    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px" class="mc-toolbar">
       <button class="p" id="mcSlsRun" style="font-weight:700;padding:8px 14px">▶ Run 20k draws</button>
       <label style="font-size:12.5px;display:flex;gap:6px;align-items:center">assumed frontline Ph3 deaths <input type="range" id="sls_flev" min="150" max="400" step="10" value="250" style="width:90px"><b id="v_slsflev">250</b></label>
       <span id="mcSlsStatus" style="font-size:12px;color:var(--muted)">click to run</span>
@@ -500,13 +572,32 @@
     <ol style="font-size:12.5px;line-height:1.7;margin:10px 0 0;padding-left:20px">
       <li>SELLAS Phase 2 SLS009 r/r AML — <a href="https://www.globenewswire.com/news-release/2024/12/09/2993773/0/en/SELLAS-Announces-Positive-Overall-Survival-and-Overall-Response-Rate-Data-from-the-Phase-2-Trial-of-SLS009-in-r-r-AML.html" target="_blank">OS/ORR PR (Dec 2024)</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx" target="_blank">ASH 2025</a></li>
       <li>ASH abstracts — <a href="https://ashpublications.org/blood/article/144/Supplement%201/2877/531059/" target="_blank">Blood 2024 (Ph2a)</a> · <a href="https://ashpublications.org/blood/article/146/Supplement%201/3423/552036/" target="_blank">Blood 2025</a> · <a href="https://www.onclive.com/view/cdk9-inhibitor-sls009-displays-activity-in-relapsed-refractory-aml" target="_blank">OncLive</a></li>
-      <li>Frontline control (Aza+Ven): DiNardo et al., VIALE-A, <i>NEJM</i> 2020 (mOS 14.7m). <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2012971" target="_blank">NEJM</a></li>
+      <li>Post-venetoclax failure benchmark — <a href="https://pubmed.ncbi.nlm.nih.gov/34782794/" target="_blank" rel="noopener">Maiti et al., Blood Adv 2022</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">Stahl, Blood Adv 2021</a></li>
+      <li>Frontline control (Aza+Ven): DiNardo et al., VIALE-A, <i>NEJM</i> 2020 (mOS 14.7m). <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2012971" target="_blank" rel="noopener">NEJM</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/32023337/" target="_blank" rel="noopener">PubMed</a></li>
+      <li>SEC 8-K exhibit (Phase 2 data) — <a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000004/sls-202603198xkexhibit991.htm" target="_blank" rel="noopener">SEC filing</a></li>
     </ol>
   </div></div>
 </div><!-- /tab-sls009 -->
 
 <!-- ================= TAB 3 : VALUATION ================= -->
 <div id="tab-value" class="tabpage" hidden>
+  <details class="howworks">
+    <summary>How this works — EV formula, risk adjustment &amp; comparables</summary>
+    <div class="howworks-body">
+      <p><span class="tag a">Assumption-heavy</span> Back-of-envelope buyout math — not a DCF or price target.</p>
+      <p><b>Peak sales:</b> At steady state, patients on therapy = annual new starts × penetration × average years on drug. Longer survival ⇒ larger prevalent pool. <code>Peak revenue = starts/yr × penetration × years × price</code>.</p>
+      <p><b>Enterprise value:</b> <code>EV = total peak sales × multiple + risk-adjusted WT1 platform</code>. Multiple (~4–8×) reflects oncology M&amp;A convention (Venclexta ~$2.6B sales; Gilead–Forty Seven ~$4.9B pre-approval). Per share = EV ÷ fully-diluted shares.</p>
+      <p><b>Risk adjustment (Monte Carlo):</b> Optionally multiply each engine's peak by P(approval) from Tabs 1–2 — user-set priors, not regulatory forecasts.</p>
+      <details class="math-detail">
+        <summary>Show math</summary>
+        <div class="math-detail-body">
+          <div class="formula">Peak<sub>GPS</sub> = (CR2 + CR1 starts/yr) × pen × years × price</div>
+          <div class="formula">Peak<sub>SLS</sub> = (frontline + r/r pool) × pen × years × price</div>
+          <div class="formula">EV = (Peak<sub>GPS</sub> + Peak<sub>SLS</sub>) × multiple + platform &nbsp;·&nbsp; $/sh = EV / shares</div>
+        </div>
+      </details>
+    </div>
+  </details>
   <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-val')">📐 Methodology — valuation math</button></div>
   <div class="methodpanel" id="m-val" hidden>
     <b>Peak-sales × multiple, with a survival-driven prevalence pool.</b>
@@ -529,8 +620,8 @@
         <button class="p" data-val="cw" title="Confident Web DD TAM/penetration — optimistic but below prior max assumptions.">Confident Web<span class="p-sub">Community DD optimistic</span></button>
       </div>
       <h2 style="margin-top:10px">GPS engine (AML CR2 + CR1 maintenance)</h2>
-      <div class="ctrl"><label>New CR2, transplant-ineligible / yr (US) <span id="vv_cr2">2,800</span></label><input type="range" id="v_cr2" min="1000" max="6000" step="100" value="2800"><div class="bands" id="band2-v_cr2"></div><small>Confident Web est. (US). Source: derived from SEER AML incidence ~20.8K/yr.</small></div>
-      <div class="ctrl"><label>New CR1, transplant-ineligible / yr (US) <span id="vv_cr1">5,500</span></label><input type="range" id="v_cr1" min="2000" max="12000" step="250" value="5500"><div class="bands" id="band2-v_cr1"></div><small>Confident Web est. Source: SEER/ACS incidence; &gt;60% relapse.</small></div>
+      <div class="ctrl"><label>New CR2, transplant-ineligible / yr (US) <span id="vv_cr2">2,800</span></label><input type="range" id="v_cr2" min="1000" max="6000" step="100" value="2800"><div class="bands" id="band2-v_cr2"></div><small class="source-line"><span class="tag a">Estimate</span> ~3K/yr (Confident Web). Derived from <a href="https://seer.cancer.gov/statfacts/html/amyl.html" target="_blank" rel="noopener">SEER ~20.8K AML/yr</a>.</small></div>
+      <div class="ctrl"><label>New CR1, transplant-ineligible / yr (US) <span id="vv_cr1">5,500</span></label><input type="range" id="v_cr1" min="2000" max="12000" step="250" value="5500"><div class="bands" id="band2-v_cr1"></div><small class="source-line"><span class="tag a">Estimate</span> ~6K/yr. <a href="https://seer.cancer.gov/statfacts/html/amyl.html" target="_blank" rel="noopener">SEER</a> · &gt;60% relapse.</small></div>
       <div class="ctrl"><label>Penetration <span id="vv_gpen">45 %</span></label><input type="range" id="v_gpen" min="10" max="80" step="1" value="45"><div class="bands" id="band2-v_gpen"></div><small>Monopoly maintenance → high. Red &gt;70%. Source: assumption.</small></div>
       <div class="ctrl"><label>Annual price / patient <span id="vv_gprice">$145 K</span></label><input type="range" id="v_gprice" min="100" max="300" step="5" value="145"><div class="bands" id="band2-v_gprice"></div><small>Orphan-oncology range. Source: US oncology pricing comps.</small></div>
       <div class="ctrl"><label>Avg years on therapy (↑ with survival) <span id="vv_gyears">2.8 yr</span></label><input type="range" id="v_gyears" min="1" max="5" step="0.1" value="2.8"><div class="bands" id="band2-v_gyears"></div><small>Prevalence driver. Ties to GPS survival (Tab 1). Source: derived.</small></div>
@@ -542,8 +633,8 @@
       <div class="ctrl"><label>Avg years on therapy <span id="vv_syears">1.4 yr</span></label><input type="range" id="v_syears" min="0.7" max="3" step="0.1" value="1.4"><div class="bands" id="band2-v_syears"></div><small>Shorter than GPS (active disease). Source: derived.</small></div>
       <h2 style="margin-top:16px">Platform &amp; valuation</h2>
       <div class="ctrl"><label>Risk-adjusted WT1 platform value <span id="vv_platform">$2.5 B</span></label><input type="range" id="v_platform" min="0" max="15" step="0.5" value="2.5"><div class="bands" id="band2-v_platform"></div><small>Other WT1+ indications (early). Source: WT1 breadth — Cheever 2009 (NCI #1 antigen).</small></div>
-      <div class="ctrl"><label>Multiple (× peak sales) <span id="vv_mult">5.0×</span></label><input type="range" id="v_mult" min="2" max="10" step="0.5" value="5"><div class="bands" id="band2-v_mult"></div><small>Oncology M&amp;A ~4–8× peak. Red &gt;8×. Source: biotech M&amp;A convention.</small></div>
-      <div class="ctrl"><label>Fully-diluted shares <span id="vv_shares">222 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="222"><div class="bands" id="band2-v_shares"></div><small>◆~217–225M incl. warrants. Source: SELLAS SEC filings.</small></div>
+      <div class="ctrl"><label>Multiple (× peak sales) <span id="vv_mult">5.0×</span></label><input type="range" id="v_mult" min="2" max="10" step="0.5" value="5"><div class="bands" id="band2-v_mult"></div><small class="source-line"><span class="tag a">Convention</span> Oncology M&amp;A ~4–8× peak. Comp: <a href="https://www.sec.gov/Archives/edgar/data/882095/000110465920027988/a20-11253_1ex99d1.htm" target="_blank" rel="noopener">Gilead–Forty Seven ~$4.9B</a>.</small></div>
+      <div class="ctrl"><label>Fully-diluted shares <span id="vv_shares">222 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="222"><div class="bands" id="band2-v_shares"></div><small class="source-line"><span class="tag f">Verified</span> ~217–225M incl. warrants. <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001390478&amp;type=10-K" target="_blank" rel="noopener">SELLAS SEC filings</a></small></div>
     </div>
     <div class="card">
       <h2>Result</h2>
@@ -554,7 +645,7 @@
         <div class="stat"><div class="k">Prevalent GPS pool (on therapy)</div><div class="v" id="oPool">–</div></div>
       </div>
       <div style="margin-top:14px;padding:14px;border-radius:12px;background:#eef3fe;border:1px solid #cfe0fb;text-align:center">
-        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">Enterprise value (peak×mult + platform)</div>
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">Enterprise value <span class="tag m">model output</span></div>
         <div class="bignum" style="color:var(--accent)" id="oEV">–</div>
         <div style="font-size:13px;margin-top:2px">≈ <b id="oPS">–</b> / share &nbsp;·&nbsp; buyout range <b id="oBuy">–</b></div>
       </div>
@@ -565,7 +656,7 @@
   <div style="padding:0 18px 6px"><div class="card">
     <h2>Monte Carlo — Valuation</h2>
     <div class="sub" style="margin-bottom:8px">Propagates every input's prior uncertainty (slider = center, 1σ band = spread) through the peak-sales × multiple model. Optionally risk-adjusts each engine's revenue by its probability of approval (defaults from Tabs 1 &amp; 2).</div>
-    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px" class="mc-toolbar">
       <button class="p" id="mcValRun" style="font-weight:700;padding:8px 14px">▶ Run 20k draws</button>
       <label style="font-size:12.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="v_riskadj" checked> risk-adjust by P(approval)</label>
       <label style="font-size:12.5px;display:flex;gap:5px;align-items:center">P(GPS) <input type="range" id="v_pgps" min="30" max="95" step="1" value="65" style="width:70px"><b id="v_vpgps">65%</b></label>
@@ -589,15 +680,18 @@
     </div>
     <ol style="font-size:12.5px;line-height:1.7;margin:10px 0 0;padding-left:20px">
       <li>AML incidence — <a href="https://seer.cancer.gov/statfacts/html/amyl.html" target="_blank">SEER Stat Facts</a> · <a href="https://www.cancer.org/cancer/types/acute-myeloid-leukemia/about/key-statistics.html" target="_blank">ACS Key Statistics</a></li>
-      <li>Venetoclax sales — <a href="https://www.pharmacompass.com/sales-forecast/venetoclax" target="_blank">PharmaCompass</a> (AbbVie filings)</li>
+      <li>Venetoclax sales — AbbVie annual reports · <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K" target="_blank" rel="noopener">AbbVie SEC</a></li>
+      <li>Gilead–Forty Seven acquisition — <a href="https://www.sec.gov/Archives/edgar/data/882095/000110465920027988/a20-11253_1ex99d1.htm" target="_blank" rel="noopener">SEC EX-99.1</a> · <a href="https://www.gilead.com/news/news-details/2020/gilead-to-acquire-forty-seven-for-49-billion" target="_blank" rel="noopener">Gilead PR</a></li>
+      <li>Onureg / QUAZAR AML-001 — <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2001094" target="_blank" rel="noopener">Wei et al., NEJM 2020</a></li>
+      <li>SELLAS share count — <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001390478&amp;type=10-K" target="_blank" rel="noopener">SELLAS 10-K / 10-Q</a></li>
       <li>WT1 antigen ranking — Cheever et al., "The prioritization of cancer antigens," <i>Clin Cancer Res</i> 2009. <a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank">PubMed</a></li>
       <li>TAM pools &amp; peak-sales framing — Confident Web (u/Confident-Web-7118) DD, incorporated as adjustable estimates.</li>
     </ol>
     <h2 style="margin-top:16px">Comparables &amp; reality checks</h2>
     <div class="fgrid">
       <div><b>Venetoclax (Venclexta):</b> ~$2.6B 2024 sales — the closest proof an AML combo drug can be a blockbuster <span class="tag v">verified</span></div>
-      <div><b>Oral azacitidine (Onureg):</b> AML maintenance (non-transplant) — the closest analog to GPS's setting — has had only <b>modest</b> uptake (well under $1B), a caution on GPS peak-sales assumptions <span class="tag" style="background:#eef1f4;color:#69707c">context</span></div>
-      <div><b>Gilead–Forty Seven (2020):</b> ~$4.9B for magrolimab (CD47, AML/MDS) — a heme-onc M&amp;A benchmark (asset later struggled) <span class="tag v">verified</span></div>
+      <div><b>Oral azacitidine (Onureg):</b> AML maintenance — closest analog to GPS setting — <b>modest</b> uptake despite QUAZAR win (mOS 24.7 vs 14.8 mo placebo). <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2001094" target="_blank" rel="noopener">QUAZAR NEJM</a> · <a href="https://www.onuregpro.com/efficacy" target="_blank" rel="noopener">Onureg</a> <span class="tag" style="background:#eef1f4;color:#69707c">context</span></div>
+      <div><b>Gilead–Forty Seven (2020):</b> ~$4.9B for magrolimab (CD47, AML/MDS). <a href="https://www.sec.gov/Archives/edgar/data/882095/000110465920027988/a20-11253_1ex99d1.htm" target="_blank" rel="noopener">SEC EX-99.1</a> · <a href="https://investors.gilead.com/news/news-details/2023/Gilead-To-Discontinue-Phase-3-ENHANCE-Study-of-Magrolimab-Plus-Azacitidine-in-Higher-Risk-MDS/default.aspx" target="_blank" rel="noopener">Ph3 discontinued 2023</a> <span class="tag v">verified</span></div>
       <div><b>Multiple convention:</b> oncology assets ~4–8× peak sales; breakthrough/first-in-class toward the top <span class="tag u">convention</span></div>
       <div><b>Buyout ≠ peak sales realized:</b> acquirers pay for <em>risk-adjusted</em> peak; a pre-approval asset is discounted for the remaining trial/commercial risk <span class="tag u">caveat</span></div>
       <div><b>Prevalence dynamic is real but bounded:</b> the pool only grows to (annual starts × years on therapy) at steady state — it is not unlimited compounding <span class="tag u">caveat</span></div>
@@ -751,7 +845,7 @@ function setRegalMode(mode){
   $("invDerived").hidden=mode!=="inverse";
   $("invBatCapWrap").hidden=mode!=="inverse";
   $("autofitWrap").hidden=mode==="inverse";
-  $("bandkeyForward").hidden=mode!=="inverse";
+  $("bandkeyForward").hidden=mode==="inverse";
   ["presetLabel","presetInterim","presetEdgeLabel","presetEdge"].forEach(id=>{const e=$(id);if(e)e.hidden=mode==="inverse";});
   $("presetInvGrp").hidden=mode!=="inverse";
   $("presetInv").hidden=mode!=="inverse";
