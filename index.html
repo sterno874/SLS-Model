@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>REGAL Survival &amp; HR Explorer</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1c2330; --muted:#5b6472;
+    --bat:#d64545; --gps:#2f6fed; --pool:#8a8f99;
+    --good:#1f9d55; --warn:#d98a00; --bad:#d64545;
+    --line:#e3e6ea; --accent:#2f6fed; --data:#1f9d55;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.45}
+  header{padding:20px 22px 6px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;max-width:1000px}
+  .wrap{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:14px 18px 10px}
+  @media (max-width:920px){.wrap{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:0 0 10px}
+  .bandkey{font-size:11px;color:var(--muted);background:#f4f6f8;border-radius:8px;padding:8px 10px;margin-bottom:12px;line-height:1.5}
+  .bandkey b{color:var(--ink)}
+  .swatch{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:middle;margin:0 3px}
+  .ctrl{margin-bottom:16px}
+  .ctrl label{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:3px}
+  .ctrl label span{color:var(--accent);font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:var(--accent);margin:2px 0 3px}
+  .ctrl small{color:var(--muted);font-size:11px}
+  .bands{position:relative;height:16px;margin-top:2px}
+  .strip{position:absolute;left:0;right:0;height:6px;border-radius:3px;background:#eef0f3;overflow:hidden;cursor:help}
+  .strip.sigma{top:0} .strip.data{top:9px;background:#edf1f5}
+  .seg{position:absolute;top:0;bottom:0}
+  .seg.imp{background:repeating-linear-gradient(45deg,rgba(214,69,69,.32),rgba(214,69,69,.32) 3px,rgba(214,69,69,.12) 3px,rgba(214,69,69,.12) 6px);border-left:1px solid var(--bad)}
+  .marker{position:absolute;top:-1px;height:18px;width:2px;background:#111;opacity:.55}
+  .disabled{opacity:.4;pointer-events:none}
+  .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .pgrp{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 3px}
+  button.p{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer}
+  button.p:hover{border-color:var(--accent);color:var(--accent)}
+  .chk{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;margin:8px 0 12px;padding:8px;background:#eef3fe;border-radius:8px}
+  canvas{width:100%;height:auto;display:block}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  @media (max-width:520px){.grid2{grid-template-columns:1fr}}
+  .stat{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:12px}
+  .stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+  .stat .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stat .v small{font-size:12px;color:var(--muted);font-weight:500}
+  .bat .v{color:var(--bat)} .gps .v{color:var(--gps)}
+  /* HR gauge */
+  .gauge{margin-top:14px}
+  .gauge .track{position:relative;height:26px;border-radius:6px;overflow:hidden;
+    background:linear-gradient(90deg,#e8f6ee 0%,#e8f6ee 63.6%,#fdeaea 63.6%,#fdeaea 100%)}
+  .gauge .interim{position:absolute;top:0;bottom:0;background:rgba(47,111,237,.14);border-left:1px dashed #2f6fed;border-right:1px dashed #2f6fed}
+  .gauge .thresh{position:absolute;top:0;bottom:0;width:2px;background:var(--bad)}
+  .gauge .hrmark{position:absolute;top:-3px;height:32px;width:3px;background:#111;border-radius:2px}
+  .gauge .labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;color:#fff}
+  .b-good{background:var(--good)} .b-warn{background:var(--warn)} .b-bad{background:var(--bad)}
+  .consist{margin-top:14px;padding:12px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;font-size:13px}
+  .consist .row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+  .verdict{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:14px;font-weight:600}
+  .v-win{background:#e8f6ee;color:#12692f;border:1px solid #bfe6cd}
+  .v-lose{background:#fdeaea;color:#8f2020;border:1px solid #f4c7c7}
+  .v-none{background:#fff4e0;color:#8a5a00;border:1px solid #f2dca6}
+  .note{font-size:12px;color:var(--muted);margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
+  details{margin-top:6px}
+  summary{cursor:pointer;font-size:12px;color:var(--muted)}
+  .facts{padding:14px 18px 40px}
+  .facts .card{max-width:100%}
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 26px;font-size:12.5px}
+  @media (max-width:760px){.fgrid{grid-template-columns:1fr}}
+  .fgrid div{padding:5px 0;border-bottom:1px solid #f0f2f4}
+  .fgrid b{color:var(--ink)} .tag{font-size:10px;padding:1px 6px;border-radius:10px;background:#eef1f4;color:#69707c;margin-left:4px}
+  .tag.v{background:#e8f6ee;color:#12692f} .tag.u{background:#fdeef0;color:#9a3b3b}
+  .tabnav{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .tabbtn{border:1px solid var(--line);background:#fff;border-radius:10px 10px 0 0;padding:9px 16px;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent}
+  .tabbtn.active{color:var(--accent);border-color:var(--line);border-bottom:2px solid var(--accent);background:#fbfcfe}
+  .tabbtn:hover{color:var(--ink)}
+  .tabpage[hidden]{display:none}
+  .methodbtn{border:1px solid var(--accent);background:#eef3fe;color:var(--accent);border-radius:8px;padding:7px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+  .methodpanel{margin:10px 18px 0;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:#fbfcfd;font-size:12.5px;line-height:1.6}
+  .methodpanel[hidden]{display:none}
+  .methodpanel code{background:#eef1f4;padding:1px 5px;border-radius:4px;font-size:12px}
+  .methodpanel h4{margin:12px 0 4px;font-size:13px}
+  .vrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 0;border-bottom:1px solid #f0f2f4;font-size:13px}
+  .vrow input[type=range]{flex:1;max-width:200px;accent-color:var(--accent)}
+  .vrow .vv{min-width:96px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+  .bignum{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<header>
+  <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
+  <div class="sub" style="margin-bottom:2px">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
+  <div class="tabnav">
+    <button class="tabbtn active" data-tab="gps">1 · REGAL / GPS (Phase 3)</button>
+    <button class="tabbtn" data-tab="sls009">2 · SLS-009 (Phase 2)</button>
+    <button class="tabbtn" data-tab="value">3 · Valuation &amp; WT1 platform</button>
+    <button class="tabbtn" data-tab="explain">4 · Explain (ELI5 → PhD)</button>
+  </div>
+</header>
+
+<div id="tab-gps" class="tabpage">
+  <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-gps')">📐 Methodology — REGAL / GPS math</button></div>
+  <div class="methodpanel" id="m-gps" hidden>
+    <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.
+    <h4>1 · Survival &amp; events</h4>
+    BAT arm = Weibull (shape <code>k</code>, k=1 → exponential) + a long-survivor "cure" fraction; GPS arm = mixture-cure (plateau <code>c</code> + uncured exponential) with an optional onset delay; optional post-enrollment transplant tail (ITT) added to both. Expected deaths by calendar month <code>T</code> = Σ over the enrollment S-curve of <code>(1 − S(T − enroll))</code>, ×(1 − censoring/2).
+    <h4>2 · Hazard ratio &amp; significance</h4>
+    HR via the Pike/O–E estimator. Significance via the proper <b>stratified log-rank score</b> <code>Z = (Σ w·(O−E))/√(Σ w²·V) · √(strat-efficiency)</code> computed from the curves — so a late-loaded effect is correctly penalized (unweighted <code>w=1</code>; Fleming-Harrington <code>w=1−S_pool</code>). Win = <code>Z ≥ 2.01</code> (the O'Brien-Fleming final boundary). Schoenfeld: 90% power at HR 0.636 needs ~205 events, so 0.636 at 80 events is the ~50%-power <em>bar</em>.
+    <h4>3 · Monte-Carlo posterior</h4>
+    Sample priors (slider = center, 1σ band = spread) → weight each draw by the <b>Poisson likelihood</b> of the observed event increments (60, +12, +6, still &lt;80) → for a binding efficacy interim, soft-condition on "no early stop" (weight = P(continue); win = conditional power via the Brownian-motion correlation √(t₁/t₂)) — power-neutral, banks early wins. P(win) = Σ(w·p_win)/Σ(w).
+    <div style="color:var(--muted);margin-top:8px">Poke holes: the arm split is unidentifiable (blinded); priors do heavy lifting; the log-rank z is an expectation, not a patient-level resimulation; stratification/futility/test-weighting are undisclosed (adjustable). Full citations in References below.</div>
+  </div>
+
+<div class="wrap">
+  <!-- CONTROLS -->
+  <div class="card">
+    <h2>Scenario controls</h2>
+
+    <div class="pgrp">Core cases</div>
+    <div class="presets">
+      <button class="p" data-preset="base">Base (likely)</button>
+      <button class="p" data-preset="bull">Bull / DD cure</button>
+      <button class="p" data-preset="bear">Bear (near-miss)</button>
+    </div>
+    <div class="pgrp">Special / edge cases</div>
+    <div class="presets">
+      <button class="p" data-preset="noeffect">No effect (fits too!)</button>
+      <button class="p" data-preset="fail">What failure needs</button>
+      <button class="p" data-preset="delay">Vaccine delay 4m</button>
+      <button class="p" data-preset="backload">Backloaded enroll</button>
+    </div>
+
+    <div class="bandkey">
+      <span class="swatch" style="background:rgba(47,111,237,.55)"></span><b>Upper strip</b> = prior plausibility from the literature (1σ darkest → 3σ lightest). <br>
+      <span class="swatch" style="background:var(--data)"></span><b>Lower strip</b> = values that still fit the announced 60/72/78-event timeline, <em>given your other sliders</em>. Black tick = current value.<br>
+      <span class="swatch" style="background:repeating-linear-gradient(45deg,rgba(214,69,69,.4),rgba(214,69,69,.4) 2px,rgba(214,69,69,.15) 2px,rgba(214,69,69,.15) 4px)"></span><b>Red hatch</b> = biologically <em>implausible</em> (no supporting dataset). Not marked "impossible" — biology has outliers, and transplant crossover can legitimately extend a tail.<br>
+      <b style="color:var(--accent)">👆 Hover any band</b> for the reasoning + numbered sources (see References at the bottom).
+    </div>
+
+    <label class="chk"><input type="checkbox" id="autofit"/> Auto-fit GPS cure fraction to hit 72 events @ m58 (the DD's "1 degree of freedom" method)</label>
+
+    <div class="ctrl">
+      <label>BAT median — excl. long-survivors <span id="vBat">9.0 m</span></label>
+      <input type="range" id="bat" min="6" max="20" step="0.5" value="9"/>
+      <div class="bands" id="band-bat"></div>
+      <small>Median of the non-tail component. The TRUE BAT arm median (incl. the long-survivor fraction) is shown at right and is higher when that slider is &gt;0. Historical CR2: ~6–11m.</small>
+    </div>
+
+    <div class="ctrl">
+      <label>BAT long-survivor fraction <span id="vBatc">12%</span></label>
+      <input type="range" id="batc" min="0" max="30" step="1" value="12"/>
+      <div class="bands" id="band-batc"></div>
+      <small>Favorable-risk BAT patients who survive years. Published CR2: ~5–15%. This is the main "escape hatch" toward a losing HR.</small>
+    </div>
+
+    <div class="ctrl" id="gpscWrap">
+      <label>GPS cure fraction <span id="vGpsc">28%</span></label>
+      <input type="range" id="gpsc" min="0" max="75" step="1" value="28"/>
+      <div class="bands" id="band-gpsc"></div>
+      <small>GPS patients on a permanent plateau. Highly uncertain — Phase 2 CR2 showed 0% plateau; Phase 2 CR1 showed ~47%.</small>
+    </div>
+
+    <div class="ctrl">
+      <label>GPS uncured median OS <span id="vGpsu">40.0 m</span></label>
+      <input type="range" id="gpsu" min="6" max="40" step="0.5" value="40"/>
+      <div class="bands" id="band-gpsu"></div>
+      <small>Survival of non-cured GPS patients. Phase 2 CR2 whole-arm was 21m. Note: the m63 data pulls this to the high end.</small>
+    </div>
+
+    <div class="ctrl">
+      <label>GPS onset delay <span id="vDelay">1.0 m</span></label>
+      <input type="range" id="delay" min="0" max="6" step="0.5" value="1"/>
+      <div class="bands" id="band-delay"></div>
+      <small>Months before GPS separates from BAT (immune ramp-up).</small>
+    </div>
+
+    <div class="ctrl">
+      <label>Transplant after enrollment <span id="vXtx">0%</span></label>
+      <input type="range" id="xtx" min="0" max="25" step="1" value="0"/>
+      <div class="bands" id="band-xtx"></div>
+      <small>% of EACH arm transplanted post-enrollment (eligibility is judged only at entry, so this is allowed). Transplanted CR2 patients get ~45% long-term survival — a shared tail that lifts both arms and shrinks the GPS gap.</small>
+    </div>
+
+    <div class="ctrl">
+      <label style="display:flex;justify-content:space-between">OS handling <span style="color:var(--muted);font-weight:400">🔒 locked</span></label>
+      <div style="font-size:13px;padding:6px 8px;background:#f4f6f8;border:1px solid var(--line);border-radius:8px;color:var(--muted)"><b style="color:var(--ink)">ITT — death from any cause</b> (transplant survival counts, not censored)</div>
+      <small>Fixed: REGAL's primary endpoint is verified as ITT OS from randomization [1][2]. Not an assumption, so not adjustable.</small>
+    </div>
+
+    <div class="ctrl">
+      <label>Censoring / dropout <span id="vCens">0%</span></label>
+      <input type="range" id="cens" min="0" max="30" step="1" value="0"/>
+      <div class="bands" id="band-cens"></div>
+      <small>Lost-to-follow-up before an event → fewer observed events, so true survival is worse than the counts imply (optimistic-bias correction). Phase 2 GPS ~15%. Differential dropout by arm would bias HR — not captured.</small>
+    </div>
+
+    <details>
+      <summary>Advanced: enrollment shape</summary>
+      <div class="ctrl" style="margin-top:8px">
+        <label>Enrollment midpoint (trial month) <span id="vMid">25 m</span></label>
+        <input type="range" id="mid" min="15" max="32" step="1" value="25"/>
+        <div class="bands" id="band-mid"></div>
+      </div>
+      <div class="ctrl">
+        <label>Enrollment steepness <span id="vK">0.15</span></label>
+        <input type="range" id="k" min="0.08" max="0.30" step="0.01" value="0.15"/>
+        <div class="bands" id="band-k"></div>
+      </div>
+      <small>First patient = trial month 0 (Feb 2021). Enrollment done ~m38 (Apr 2024), N=127.</small>
+    </details>
+
+    <details>
+      <summary>Method &amp; structural assumptions (all adjustable — none of these are disclosed)</summary>
+      <div class="ctrl" style="margin-top:8px">
+        <label style="display:flex;gap:6px;align-items:center;font-weight:600"><input type="checkbox" id="fhTest"> Fleming-Harrington late-weighted test (FH 0,1)</label>
+        <small>OFF = unweighted stratified log-rank (what the design paper describes). ON = up-weights late events — rescues power for a late-loaded effect. REGAL's actual test-weighting is NOT public.</small>
+      </div>
+      <div class="ctrl">
+        <label>BAT hazard shape (Weibull k) <span id="vBatk">1.00</span></label>
+        <input type="range" id="batk" min="0.7" max="1.3" step="0.05" value="1"/>
+        <small>1.0 = constant hazard (exponential). &lt;1 = declining hazard (biologically favored for AML; fattens the BAT tail).</small>
+      </div>
+      <div class="ctrl">
+        <label>Stratification efficiency <span id="vStratF">0.90</span></label>
+        <input type="range" id="stratF" min="0.80" max="1.00" step="0.01" value="0.90"/>
+        <small>Info retained by the 16-cell stratified log-rank vs unstratified (sparse-strata power cost). 1.0 = no loss.</small>
+      </div>
+      <div class="ctrl">
+        <label>Interim futility strictness (z) <span id="vZfut">0.40</span></label>
+        <input type="range" id="zfut" min="0" max="1.2" step="0.05" value="0.4"/>
+        <small>How clearly the interim had to beat futility. 0 = essentially none; higher = the interim ruled out weaker worlds. REGAL's exact futility rule is not public.</small>
+      </div>
+      <small style="color:var(--muted)">Binding-vs-non-binding efficacy is toggled in the Monte Carlo panel below. The interim/final OBF boundary Z-values (2.34 / 2.01), the 0.636 threshold, N, the event counts, and 80-event trigger are <b>locked facts</b>, not adjustable.</small>
+    </details>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="card">
+    <h2>Survival curves (from randomization)</h2>
+    <canvas id="chart" width="920" height="430"></canvas>
+
+    <div class="grid2">
+      <div class="stat bat"><div class="k">BAT arm median OS (incl. survivors)</div><div class="v" id="oBatMed">–</div></div>
+      <div class="stat gps"><div class="k">GPS arm median OS</div><div class="v" id="oGpsMed">–</div></div>
+      <div class="stat bat"><div class="k">BAT 3-year OS</div><div class="v" id="oBat3">–</div></div>
+      <div class="stat gps"><div class="k">GPS 3-year OS</div><div class="v" id="oGps3">–</div></div>
+      <div class="stat"><div class="k">RMST gain, GPS−BAT (48-mo horizon)</div><div class="v" id="oRmst">–</div></div>
+      <div class="stat"><div class="k">Projected 80th event</div><div class="v" id="o80">–</div></div>
+    </div>
+
+    <div class="gauge">
+      <div class="k" style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Approx. hazard ratio (GPS vs BAT) — <b id="oHRnum" style="color:var(--ink)">–</b></div>
+      <div class="track" id="hrtrack">
+        <div class="interim" id="hrInterim"></div>
+        <div class="thresh" id="hrThresh"></div>
+        <div class="hrmark" id="hrMark"></div>
+      </div>
+      <div class="labels"><span>0.0</span><span>0.55 floor · 0.636 win</span><span>1.0 (no effect)</span></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">Red hatch (HR&lt;0.55) = would have crossed the O'Brien-Fleming efficacy boundary (Z=2.34) at the 60-death interim; REGAL did NOT stop, so its observed interim HR (Dec 2024) was <b>above ~0.55</b>. Red line 0.636 = final win threshold (boundary Z=2.01). The topline most plausibly lands ~0.45–0.64 — a near-threshold result, not 0.13–0.35. (Curves can diverge further by 80 deaths, so the model HR here — a later timepoint — may sit below the interim floor.)</div>
+      <div id="oPower" style="font-size:12.5px;margin-top:8px;padding:8px 10px;border-radius:8px;background:#fafbfc;border:1px solid var(--line)"></div>
+    </div>
+
+    <div class="consist">
+      <div style="font-weight:700;margin-bottom:4px">Consistency with announced numbers</div>
+      <div class="row"><span>Events @ m46 (announced 60)</span><span><b id="e1">–</b> &nbsp;<span id="b1" class="badge">–</span></span></div>
+      <div class="row"><span>Events @ m58 (announced 72)</span><span><b id="e2">–</b> &nbsp;<span id="b2" class="badge">–</span></span></div>
+      <div class="row"><span>Events @ m63 (announced 78) <small style="color:var(--muted)">out-of-sample</small></span><span><b id="e3">–</b> &nbsp;<span id="b3" class="badge">–</span></span></div>
+      <div class="row"><span>Events @ m65 (must be &lt;80 — today)</span><span><b id="e4">–</b> &nbsp;<span id="b4" class="badge">–</span></span></div>
+      <div class="row"><span>Pooled median OS (announced &gt;13.5m)</span><span><b id="pm">–</b> &nbsp;<span id="bpm" class="badge">–</span></span></div>
+      <div class="row" style="color:var(--muted);font-size:12px"><span>Patients with ≥36-mo follow-up @ m63</span><span id="fu36">–</span></div>
+    </div>
+
+    <div class="verdict" id="verdict">–</div>
+    <div class="note" id="note"></div>
+  </div>
+</div>
+
+<!-- MONTE CARLO -->
+<div style="padding:0 18px 6px">
+  <div class="card">
+    <h2>Monte Carlo — final-HR distribution</h2>
+    <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (60 by m46, +12, +6, and still &lt;80), so every scenario is anchored <em>in proportion to how well it explains the exact numbers, with counting noise modeled</em> — not accepted/rejected by an arbitrary window. "Win" is now a proper <b>stratified log-rank significance test</b> (probabilistic, NPH-aware — a late-loaded effect is penalized), and the interim is handled correctly: with "binding efficacy" checked, worlds are soft-weighted by P(continuing without an early stop) and scored by their <em>conditional</em> power — which banks early wins and is power-neutral (not the crude hard cliff). A mild futility pass and a stratification efficiency haircut are applied. Move any slider to shift a prior, then re-run. Approximate-Bayesian posterior — only as good as the priors. <b>Tip:</b> click "Set neutral (literature) priors" for the balanced base case (~65–68% win); the fitting presets (Base/Bull/etc.) center the priors on a strong-effect scenario, so their MC will read more optimistic.</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+      <button class="p" id="mcRun" style="font-weight:700;padding:8px 14px">▶ Run 200k draws</button>
+      <button class="p" id="mcNeutral">Set neutral (literature) priors</button>
+      <label style="font-size:12.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="mcFloor" checked> binding efficacy interim (soft-condition on no early stop)</label>
+      <label style="font-size:12.5px;display:flex;gap:6px;align-items:center">analysis cutoff month <input type="range" id="cutoff" min="66" max="84" step="1" value="72" style="width:90px"><b id="vCut">72</b></label>
+      <span id="mcStatus" style="font-size:12px;color:var(--muted)">not run yet — click to run</span>
+    </div>
+    <div id="mcStats" style="font-size:14px;font-weight:600;margin-bottom:8px"></div>
+    <div id="mcHist"></div>
+  </div>
+</div>
+
+<!-- FACTS -->
+<div class="facts">
+  <div class="card">
+    <h2>Known facts &amp; the bet <span style="font-weight:400;text-transform:none;letter-spacing:0"><span class="tag v">verified</span> from PRs/filings · <span class="tag u">unknown</span> not disclosed</span></h2>
+    <div class="fgrid">
+      <div><b>Trial:</b> REGAL Phase 3, N=127 actual (~63–64/arm), AML CR2/CRp2, transplant-ineligible, <b>open-label</b>, start 8 Feb 2021 <span class="tag v">verified</span></div>
+      <div><b>Primary endpoint:</b> OS = death from ANY cause since randomization → <b>ITT, transplant NOT censored</b>; final analysis at 80 events <span class="tag v">verified</span></div>
+      <div><b>BAT arm (weak by design):</b> investigator's choice of observation/HMA/venetoclax/LDAC; FLT3- &amp; IDH-maintainable patients EXCLUDED (removes favorable long-survivors from both arms) <span class="tag v">verified</span></div>
+      <div><b>Design:</b> HR &lt; 0.636 = the significance BAR (minimum detectable effect, ~50% power by construction), NOT the design alternative; the true powered alternative is ~0.48–0.53. 80 deaths, 1-sided α=0.025 <span class="tag v">verified</span></div>
+      <div><b>Test:</b> Lan-DeMets O'Brien-Fleming alpha spending (interim boundary Z≈2.34, final Z≈2.01) + <b>unweighted stratified Cox / log-rank</b> primary. NO evidence of a weighted (Fleming-Harrington) test — this matters for a late-loaded effect <span class="tag v">verified</span></div>
+      <div><b>Interim design:</b> O'Brien-Fleming, reviewed efficacy + futility + safety <span class="tag v">verified</span></div>
+      <div><b>Enrollment:</b> first patient Feb 2021; 126 completed ~Apr 2024 <span class="tag v">verified</span></div>
+      <div><b>Event timeline:</b> 60 (Dec'24) · 72 (26 Dec'25) · 78 (11 May'26) · &lt;80 (1 Jul'26) <span class="tag v">verified</span></div>
+      <div><b>Interim (60 deaths):</b> O'Brien-Fleming EFFICACY boundary (binding in registrational designs) NOT crossed → not stopped early ⇒ interim HR did not go below ~0.55; futility also cleared. "Continue w/o modification" Jan'25 &amp; Aug'25 <span class="tag v">verified</span></div>
+      <div><b>Computed OBF boundaries:</b> interim Z=2.34 → stop-early needed HR≤0.55; final Z=2.01 → win needs HR≤0.638 (=design's 0.636). Not stopping at 60 deaths ⇒ observed interim HR &gt;~0.55, so topline ~0.45–0.64 is the plausible zone <span class="tag" style="background:#eef1f4;color:#69707c">derived</span></div>
+      <div><b>Blinding:</b> open-label at sites (arm is known); sponsor blinded to aggregate results. OS is objective, but open-label allows differential dropout / transplant referral <span class="tag v">verified</span></div>
+      <div><b>Follow-up @ interim:</b> median 13.5 mo (range 1 to &gt;3 yr); pooled median OS &gt;13.5 mo; &lt;50% deceased <span class="tag v">verified</span></div>
+      <div><b>Nov 2022 blinded pooled read:</b> SELLAS said pooled mOS "~two-fold longer than originally anticipated" (design pooled 10.3 → ~20m). Our fits land ~18–19m — independent corroboration that pooled survival is high <span class="tag v">verified</span></div>
+      <div><b>Lead-time / left-truncation:</b> OS is from randomization; the ≤6-mo CR2→randomization window + &gt;6-mo life-expectancy entry lift the from-rand median ~1–3 mo above from-CR2 literature. Shifts absolute medians, NOT the HR. Bias mechanism: Suissa 2008 (immortal time); REGAL-specific framing: Confident Web <span class="tag" style="background:#eef1f4;color:#69707c">derived</span></div>
+      <div><b>Dosing:</b> pivotal core = 15 injections over 52 wks (per protocol/figure); Y2 q2mo &amp; Y3 q3mo maintenance added by later amendment (not "indefinite monthly") <span class="tag v">verified</span></div>
+      <div><b>Phase 2 CR2 (Brayer, n=10 — closest analog):</b> GPS median OS 16.3 vs 5.4 mo (p=.02); PFS 10.5 vs 4.3 mo NS (p=.19); NO plateau. DD's "21 mo" overstates it <span class="tag v">verified</span></div>
+      <div><b>Phase 2 CR1:</b> ~47% 3-yr "ghost plateau"; immune-response rate ~64% <span class="tag v">verified</span></div>
+      <div><b>Historical BAT (Kurosawa, CR2 transplant-ineligible):</b> 3-yr OS 14% overall (19% intermediate, higher favorable-CBF, lower poor-risk); ven-era median ~8–12m <span class="tag v">verified</span></div>
+      <div><b>Enrollment (back-loaded):</b> first pt Feb 2021 · 105 (ex-China) by Nov 2023 (~m33) · full N=127 by ~Apr 2024 (~m38) — late enrollees have short follow-up <span class="tag v">verified</span></div>
+      <div><b>Discontinuations:</b> 66 pts stopped TREATMENT by Mar 2024 (blinded) — mostly relapse-driven, NOT OS censoring (survival follow-up continues) <span class="tag v">verified</span></div>
+      <div><b>Cash:</b> ~$107M (Mar 2026) + $7.5M warrants; ~$7M/qtr burn — runway past readout <span class="tag v">verified</span></div>
+      <div><b>Arm-level split of the 72–78 deaths:</b> unknown (blinded) — the crux <span class="tag u">unknown</span></div>
+      <div><b>% censored / differential dropout:</b> not disclosed (Phase 2 GPS CR2 was ~15%); could bias KM/HR <span class="tag u">unknown</span></div>
+      <div><b>Actual BAT median in-trial:</b> unknown; could exceed historical if enrolled population is healthier <span class="tag u">unknown</span></div>
+      <div><b>Real stratified Cox HR &amp; p-value:</b> unknown until 80th event + unblinding <span class="tag u">unknown</span></div>
+    </div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:10px">The bet in one line: the announced event pace implies pooled survival well above historical CR2, so a <b>real benefit is more likely than not — but not established</b>: a no-effect world with a ~25–30% shared long-survivor tail also fits (HR=1.0). The <b>magnitude (HR) and the arm split are unidentifiable from outside the blind</b>; a large undisclosed BAT tail, heavy differential censoring (event model ignores censoring, which biases the implied benefit optimistic), or events never reaching 80 (power) are the ways a "win" shrinks or evaporates. Threshold to win (0.636) is modest.</div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>References (sources for every band &amp; fact)</h2>
+    <ol style="font-size:12.5px;line-height:1.7;margin:0;padding-left:20px">
+      <li><b>REGAL design paper</b> — Jamy O, Cicic D. <i>Future Oncol</i> 2025 (PMC11760237). Design assumptions (BAT 8.0m vs GPS 12.6m, HR 0.636, 80 deaths, 90% power), O'Brien-Fleming interim, GPS dosing, Phase 1/2 summaries. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">pmc.ncbi.nlm.nih.gov/articles/PMC11760237</a></li>
+      <li><b>ClinicalTrials.gov NCT04229979</b> — eligibility (transplant-ineligible at entry; FLT3/IDH-maintainable excluded), N=127, OS = death from any cause (ITT), BAT options, start 8 Feb 2021. <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">clinicaltrials.gov/study/NCT04229979</a></li>
+      <li><b>SELLAS interim (60 events)</b> — 23 Jan 2025; IDMC "continue without modification." <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Jan 2025)</a></li>
+      <li><b>SELLAS 72-event update</b> — 29 Dec 2025; remains blinded. <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank">globenewswire.com (Dec 2025)</a></li>
+      <li><b>SELLAS 78-event / Q1 2026</b> — 12 May 2026; 78 events as of 11 May 2026, cash ~$107M. <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank">globenewswire.com (May 2026)</a></li>
+      <li><b>QUAZAR AML-001</b> — oral azacitidine maintenance; CR1-<i>placebo</i> median OS 14.8m (a healthier population → BAT ceiling). <a href="https://www.cancernetwork.com/view/phase-3-quazar-aml-001-trial-finds-oral-azacitidine-extends-survival-in-older-adults-with-aml" target="_blank">CancerNetwork</a> · <a href="https://onlinelibrary.wiley.com/doi/10.1002/ajh.26847" target="_blank">Am J Hematol (long-term)</a></li>
+      <li><b>GPS Phase 2 CR2 (Brayer et al. 2015)</b> — n=10; GPS median OS 16.3 vs 5.4m (p=.02); PFS 10.5 vs 4.3m NS; no plateau. <a href="https://www.onclive.com/view/maintenance-galinpepimut-s-appears-effective-and-safe-in-aml-in-second-cr" target="_blank">OncLive summary</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Brayer+WT1+vaccination+AML+MDS+pilot+synthetic+analog+peptides" target="_blank">PubMed (Brayer 2015)</a></li>
+      <li><b>Forman SJ, Rowe JM. "The myth of the second remission of acute leukemia in the adult."</b> <i>Blood</i> 2013 — 5-yr OS from first relapse ~10%; AML no-prior-transplant post-relapse ~12%; CR2-transplant cure ~40–50% (selected minority). <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Forman+Rowe+myth+second+remission+acute+leukemia+adult" target="_blank">PubMed (Forman &amp; Rowe, Blood 2013)</a></li>
+      <li><b>Kurosawa S et al. <i>Haematologica</i> 2010</b> — 158 AML in CR2 <i>ineligible</i> for transplant: 3-yr OS 14% overall (19% intermediate-risk; 78%/53% favorable CBF; lower poor-risk). The exact-population BAT anchor. <a href="https://haematologica.org/article/view/5781" target="_blank">Haematologica</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3011608/" target="_blank">PMC3011608</a></li>
+      <li><b>Stahl M et al. — venetoclax-era R/R AML salvage</b> — modern CR2/salvage OS medians ~8–12m by mutation (NPM1/FLT3/TP53); durable survival still gated on transplant. <a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank">Blood Adv 2021</a></li>
+      <li><b>REGAL enrollment &amp; discontinuation milestones</b> — first patient Feb 2021; 105 pts (ex-China) by Nov 2023; full enrollment ~Apr 2024; 66 patients had discontinued <i>treatment</i> by Mar 2024 (blinded; relapse-driven, not OS censoring). <a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank">Apr 2024 IDMC/enrollment PR</a></li>
+      <li><b>SELLAS Nov 14, 2022 update</b> — blinded pooled mOS "approximately two-fold longer than originally anticipated" (design pooled 10.3m → ~20m). <a href="https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Nov 2022)</a></li>
+      <li><b>AVALON — Todisco et al. <i>Cancer</i> 2023</b> — Italian real-world Ven+HMA cohort (190 pts incl. relapsed/refractory AML); R/R median OS in the single digits, durable survival gated on transplant. <a href="https://acsjournals.onlinelibrary.wiley.com/doi/10.1002/cncr.34608" target="_blank">Cancer 2023</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/41224500/" target="_blank">2025 transplant-bridge subanalysis</a></li>
+      <li><b>Community due-diligence framing — "Confident Web"</b> (u/Confident-Web-7118, r/pennystocks &amp; Stocktwits SLS DD). Source for the REGAL-specific lead-time/left-truncation (IRM) argument, the fitted-scenario / IRM tables, and the binding-vs-weighted-test discussion incorporated as scenarios here (not as established fact). The underlying statistics are primary-sourced below.</li>
+      <li><b>Interim &amp; design-power computation (this analysis)</b> — Lan–DeMets O'Brien-Fleming, one-sided α=0.025, looks at t=0.75 &amp; 1.0: interim Z=2.34, final Z=2.01 (HR≤0.638 to win). Schoenfeld check: 90% power at HR 0.636 needs ~205 events, so 80 events at 0.636 ≈ 50% power ⇒ 0.636 is the significance BAR, the ~90%-power alternative is ~0.48.</li>
+    </ol>
+    <h2 style="margin-top:18px">Statistical methods (primary sources)</h2>
+    <ol style="font-size:12.5px;line-height:1.7;margin:0;padding-left:20px">
+      <li><b>Log-rank / score test</b> (our U/√V significance): Mantel 1966; Peto &amp; Peto, <i>JRSS A</i> 1972. <b>Cox PH model:</b> Cox, <i>JRSS B</i> 1972.</li>
+      <li><b>Events-for-power (Schoenfeld):</b> D = (z<sub>α</sub>+z<sub>β</sub>)² / [r(1−r)(ln HR)²]. Schoenfeld, <i>Biometrika</i> 1981 &amp; <i>Biometrics</i> 1983. <a href="https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank" target="_blank">calculator</a></li>
+      <li><b>α-spending &amp; group-sequential boundaries:</b> O'Brien &amp; Fleming, <i>Biometrics</i> 1979; Lan &amp; DeMets, <i>Biometrika</i> 1983.</li>
+      <li><b>Conditional power &amp; sequential-statistic correlation √(t₁/t₂)</b> (Brownian-motion score process): Jennison &amp; Turnbull, <i>Group Sequential Methods with Applications to Clinical Trials</i> (2000); Proschan &amp; Hunsberger, <i>Biometrics</i> 1995.</li>
+      <li><b>RMST</b> (NPH-robust effect measure): Uno et al., <i>J Clin Oncol</i> 2014. <a href="https://www.ahajournals.org/doi/10.1161/CIRCULATIONAHA.119.040680" target="_blank">RMST vs HR</a></li>
+      <li><b>Weighted log-rank / late-effect penalty (Fleming-Harrington):</b> Fleming &amp; Harrington, <i>Counting Processes and Survival Analysis</i> (1991); for cancer-vaccine delayed effects: Hasegawa, <i>Pharm Stat</i> 2014. <a href="https://pubmed.ncbi.nlm.nih.gov/24497461/" target="_blank">PubMed</a></li>
+      <li><b>Mixture-cure / plateau models:</b> Boag, <i>JRSS B</i> 1949; Berkson &amp; Gage, <i>JASA</i> 1952.</li>
+      <li><b>Lead-time / left-truncation (immortal-time) bias</b> (the CR2→randomization window): Suissa, <i>Am J Epidemiol</i> 2008; Suissa, <i>Pharmacoepidemiol Drug Saf</i> 2007. <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank">AJE 2008</a></li>
+      <li><b>Approximate Bayesian Computation</b> (our likelihood-weighting of the event counts): Beaumont, Zhang &amp; Balding, <i>Genetics</i> 2002; Sisson, Fan &amp; Beaumont, <i>Handbook of ABC</i> (2018).</li>
+    </ol>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px">Tags: <span class="tag v">verified</span> = stated in a primary source above · <span class="tag" style="background:#eef1f4;color:#69707c">derived</span> = computed here · <span class="tag u">unknown</span> = not disclosed (blinded).</div>
+  </div>
+</div>
+</div><!-- /tab-gps -->
+
+<!-- ================= TAB 2 : SLS-009 ================= -->
+<div id="tab-sls009" class="tabpage" hidden>
+  <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-sls')">📐 Methodology — SLS-009 math</button></div>
+  <div class="methodpanel" id="m-sls" hidden>
+    <b>Different trial, different math.</b> SLS-009 (tambiciclib; a selective CDK9 inhibitor, licensed from GenFleet) is in a <b>single-arm Phase 2</b> with azacitidine + venetoclax — no randomized control, so efficacy is judged against a <b>historical benchmark</b>.
+    <h4>Effect measures</h4>Both arms modeled as exponential OS. <b>Fold-improvement</b> = arm median ÷ benchmark median. Under exponential survival the <b>HR-equivalent</b> = benchmark median ÷ arm median (constant hazard ratio). Months gained = difference of medians.
+    <h4>Regulatory path (heuristic)</h4>Accelerated approval in r/r AML rests on ORR + a clear OS signal vs a dismal benchmark. The "approvability" bar rises with ORR and OS fold-improvement — a judgment aid, <em>not</em> a validated model.
+    <h4>Frontline (the bigger prize)</h4>Newly-diagnosed control is Aza/Ven (VIALE-A mOS 14.7m); a Phase 3 there would use a stratified log-rank like REGAL. We show median-OS uplift only.
+    <div style="color:var(--muted);margin-top:8px">Poke holes: single-arm-vs-historical is confounded by selection; ORR ≠ OS; the ~2.5-mo benchmark and 8.9-mo arm are small Phase-2 cohorts; frontline figures are projections.</div>
+  </div>
+  <div style="padding:0 18px"><div class="sub">SLS-009 + AZA/VEN in relapsed/refractory AML-MR after prior venetoclax — Phase 2, single-arm vs historical. Green-tagged numbers are the reported Phase-2 readouts; move the sliders to stress them.</div></div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="bandkey"><span class="swatch" style="background:rgba(47,111,237,.55)"></span><b>Blue</b> = prior plausibility (1σ→3σ). <span class="swatch" style="background:repeating-linear-gradient(45deg,rgba(214,69,69,.4),rgba(214,69,69,.4) 2px,rgba(214,69,69,.15) 2px,rgba(214,69,69,.15) 4px)"></span><b>Red</b> = biologically implausible. <b>◆</b> = reported/anchor value. Hover a band for the source.</div>
+      <div class="pgrp">Scenarios</div>
+      <div class="presets">
+        <button class="p" data-sls="obs">Observed (Ph2)</button>
+        <button class="p" data-sls="bear">Bear</button>
+        <button class="p" data-sls="bull">Bull (frontline)</button>
+        <button class="p" data-sls="base">Base</button>
+      </div>
+      <h2 style="margin-top:10px">Relapsed / refractory AML-MR (Phase 2)</h2>
+      <div class="ctrl"><label>SLS-009+AZA/VEN median OS <span id="v_slsos">8.9 m</span></label><input type="range" id="sls_os" min="4" max="16" step="0.1" value="8.9"><div class="bands" id="band2-sls_os"></div><small>Anchor 8.9m (least-pretreated Ph2). Source: SELLAS Dec-2024 PR &amp; ASH 2025.</small></div>
+      <div class="ctrl"><label>Historical post-venetoclax benchmark OS <span id="v_slsbench">2.5 m</span></label><input type="range" id="sls_bench" min="1.5" max="6" step="0.1" value="2.5"><div class="bands" id="band2-sls_bench"></div><small>~2.5m post-Ven-failure. Red &gt;4.5m (rarely exceeded). Source: post-venetoclax-failure literature (Maiti/DiNardo); SELLAS benchmark.</small></div>
+      <div class="ctrl"><label>Overall response rate (ORR) <span id="v_slsorr">46 %</span></label><input type="range" id="sls_orr" min="20" max="70" step="1" value="46"><div class="bands" id="band2-sls_orr"></div><small>46% all / 58% 1 prior line. Source: SELLAS ASH 2024/2025.</small></div>
+      <h2 style="margin-top:16px">Frontline (newly diagnosed) — Phase 2b → 3</h2>
+      <div class="ctrl"><label>Aza/Ven baseline mOS <span id="v_flbase">14.7 m</span></label><input type="range" id="fl_base" min="10" max="20" step="0.1" value="14.7"><div class="bands" id="band2-fl_base"></div><small>◆14.7m known. Source: DiNardo VIALE-A, NEJM 2020.</small></div>
+      <div class="ctrl"><label>+SLS-009 frontline mOS (projected) <span id="v_flsls">22 m</span></label><input type="range" id="fl_sls" min="14" max="30" step="0.5" value="22"><div class="bands" id="band2-fl_sls"></div><small>Projection. Red &gt;28m. Source: SELLAS / Confident Web estimate.</small></div>
+      <div class="ctrl"><label>TP53-mut Aza/Ven baseline <span id="v_tpbase">5.3 m</span></label><input type="range" id="tp_base" min="3" max="8" step="0.1" value="5.3"><div class="bands" id="band2-tp_base"></div><small>◆~5.3m. Source: VIALE-A TP53 subgroup.</small></div>
+      <div class="ctrl"><label>TP53-mut +SLS-009 (projected) <span id="v_tpsls">15 m</span></label><input type="range" id="tp_sls" min="8" max="20" step="0.5" value="15"><div class="bands" id="band2-tp_sls"></div><small>Projection. Source: SELLAS / Confident Web estimate.</small></div>
+    </div>
+    <div class="card">
+      <h2>SLS-009 vs historical benchmark (r/r)</h2>
+      <canvas id="slsChart" width="920" height="360"></canvas>
+      <div class="grid2">
+        <div class="stat"><div class="k">OS fold-improvement</div><div class="v" id="oFold">–</div></div>
+        <div class="stat"><div class="k">HR-equivalent (exp.)</div><div class="v" id="oHReq">–</div></div>
+        <div class="stat"><div class="k">Months gained</div><div class="v" id="oGain">–</div></div>
+        <div class="stat"><div class="k">ORR</div><div class="v" id="oORR">–</div></div>
+      </div>
+      <div class="verdict" id="oApprov" style="margin-top:12px"></div>
+      <div id="oFront" style="margin-top:12px;font-size:13px"></div>
+    </div>
+  </div>
+
+  <div style="padding:0 18px 6px"><div class="card">
+    <h2>Monte Carlo — SLS-009</h2>
+    <div class="sub" style="margin-bottom:8px">Propagates the prior uncertainty (each slider = center, its 1σ band = spread) through the r/r effect and a hypothetical frontline Phase 3 (SLS-009+Aza/Ven vs Aza/Ven, log-rank at the assumed event count). Approximate — the r/r arm is single-arm-vs-historical, so its "signal" ≠ a randomized win.</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <button class="p" id="mcSlsRun" style="font-weight:700;padding:8px 14px">▶ Run 20k draws</button>
+      <label style="font-size:12.5px;display:flex;gap:6px;align-items:center">assumed frontline Ph3 deaths <input type="range" id="sls_flev" min="150" max="400" step="10" value="250" style="width:90px"><b id="v_slsflev">250</b></label>
+      <span id="mcSlsStatus" style="font-size:12px;color:var(--muted)">click to run</span>
+    </div>
+    <div id="mcSlsStats" style="font-size:14px;font-weight:600;margin-bottom:8px"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Frontline HR-equivalent distribution (green = &lt; 0.75; red line at the ~0.7 detectable range):</div>
+    <div id="mcSlsHist"></div>
+  </div></div>
+
+  <div class="facts"><div class="card">
+    <h2>SLS-009 facts &amp; sources</h2>
+    <div class="fgrid">
+      <div><b>Drug:</b> SLS-009 / tambiciclib (fmr GFH009) — selective CDK9 inhibitor, licensed from GenFleet <span class="tag v">verified</span></div>
+      <div><b>Setting:</b> Phase 2, single-arm, + AZA/VEN, r/r AML-MR after prior venetoclax <span class="tag v">verified</span></div>
+      <div><b>ORR:</b> 46% all cohorts; 58% with 1 prior line; 50% in myelomonocytic subtype <span class="tag v">verified</span></div>
+      <div><b>OS:</b> 8.9 mo (least-pretreated); NR with 1 prior line — vs ~2.5 mo historical post-ven benchmark <span class="tag v">verified</span></div>
+      <div><b>Biomarker:</b> preferential activity in ASXL1-mutated (poor-prognosis) AML <span class="tag v">verified</span></div>
+      <div><b>Safety:</b> 30 mg IV twice-weekly; no dose-limiting toxicities <span class="tag v">verified</span></div>
+      <div><b>Frontline benchmark:</b> Aza/Ven mOS 14.7 mo (VIALE-A); TP53-mut ~5–6 mo <span class="tag v">verified</span></div>
+      <div><b>Projected frontline uplift &amp; TP53 numbers:</b> SELLAS / Confident Web estimates <span class="tag" style="background:#eef1f4;color:#69707c">estimate</span></div>
+    </div>
+    <ol style="font-size:12.5px;line-height:1.7;margin:10px 0 0;padding-left:20px">
+      <li>SELLAS Phase 2 SLS009 r/r AML — <a href="https://www.globenewswire.com/news-release/2024/12/09/2993773/0/en/SELLAS-Announces-Positive-Overall-Survival-and-Overall-Response-Rate-Data-from-the-Phase-2-Trial-of-SLS009-in-r-r-AML.html" target="_blank">OS/ORR PR (Dec 2024)</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx" target="_blank">ASH 2025</a></li>
+      <li>ASH abstracts — <a href="https://ashpublications.org/blood/article/144/Supplement%201/2877/531059/" target="_blank">Blood 2024 (Ph2a)</a> · <a href="https://ashpublications.org/blood/article/146/Supplement%201/3423/552036/" target="_blank">Blood 2025</a> · <a href="https://www.onclive.com/view/cdk9-inhibitor-sls009-displays-activity-in-relapsed-refractory-aml" target="_blank">OncLive</a></li>
+      <li>Frontline control (Aza+Ven): DiNardo et al., VIALE-A, <i>NEJM</i> 2020 (mOS 14.7m). <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2012971" target="_blank">NEJM</a></li>
+    </ol>
+  </div></div>
+</div><!-- /tab-sls009 -->
+
+<!-- ================= TAB 3 : VALUATION ================= -->
+<div id="tab-value" class="tabpage" hidden>
+  <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-val')">📐 Methodology — valuation math</button></div>
+  <div class="methodpanel" id="m-val" hidden>
+    <b>Peak-sales × multiple, with a survival-driven prevalence pool.</b>
+    <h4>The key dynamic (population grows if patients survive)</h4>At steady state, patients <em>on therapy</em> = annual new starts × penetration × <b>average years on therapy</b>. Longer survival ⇒ more years on drug ⇒ a larger prevalent pool. <code>Peak annual revenue = new-starts/yr × penetration × avg-years × annual price</code>.
+    <h4>Valuation</h4><code>Enterprise value = total peak sales × multiple + risk-adjusted platform value</code>. Oncology assets historically trade at ~4–8× peak sales (market convention, not a fixed fact). <code>Per share = EV ÷ fully-diluted shares</code>.
+    <h4>WT1 platform</h4>WT1 was ranked the #1 cancer antigen by an NCI working group (Cheever 2009) and is over-expressed across 20+ tumor types (AML, MDS, mesothelioma, ovarian, glioblastoma…). The platform value is a single risk-adjusted lump you set — deliberately crude.
+    <div style="color:var(--muted);margin-top:8px">Poke holes: penetration, price, duration and the multiple are all assumptions; the addressable pools are estimates; this ignores time-value/discounting, competition, and dilution beyond the share count; it is a back-of-envelope, not a DCF.</div>
+  </div>
+  <div style="padding:0 18px"><div class="sub">A transparent back-of-envelope. Set the addressable pools, pricing, penetration and how long patients stay on therapy (which grows with survival), and a peak-sales multiple. Everything here is an assumption except the anchored facts (US AML incidence, Venclexta comp).</div></div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="bandkey"><span class="swatch" style="background:rgba(47,111,237,.55)"></span><b>Blue</b> = plausible range (1σ→3σ from comps/literature). <span class="swatch" style="background:repeating-linear-gradient(45deg,rgba(214,69,69,.4),rgba(214,69,69,.4) 2px,rgba(214,69,69,.15) 2px,rgba(214,69,69,.15) 4px)"></span><b>Red</b> = aggressive/hard to defend. Hover a band for its source.</div>
+      <div class="pgrp">Buyout scenarios</div>
+      <div class="presets">
+        <button class="p" data-val="cons">Conservative</button>
+        <button class="p" data-val="base">Base</button>
+        <button class="p" data-val="bull">Bull</button>
+        <button class="p" data-val="cw">Confident Web</button>
+      </div>
+      <h2 style="margin-top:10px">GPS engine (AML CR2 + CR1 maintenance)</h2>
+      <div class="ctrl"><label>New CR2, transplant-ineligible / yr (US) <span id="vv_cr2">3,000</span></label><input type="range" id="v_cr2" min="1000" max="6000" step="100" value="3000"><div class="bands" id="band2-v_cr2"></div><small>Confident Web est. (US). Source: derived from SEER AML incidence ~20.8K/yr.</small></div>
+      <div class="ctrl"><label>New CR1, transplant-ineligible / yr (US) <span id="vv_cr1">6,000</span></label><input type="range" id="v_cr1" min="2000" max="12000" step="250" value="6000"><div class="bands" id="band2-v_cr1"></div><small>Confident Web est. Source: SEER/ACS incidence; &gt;60% relapse.</small></div>
+      <div class="ctrl"><label>Penetration <span id="vv_gpen">50 %</span></label><input type="range" id="v_gpen" min="10" max="80" step="1" value="50"><div class="bands" id="band2-v_gpen"></div><small>Monopoly maintenance → high. Red &gt;70%. Source: assumption.</small></div>
+      <div class="ctrl"><label>Annual price / patient <span id="vv_gprice">$150 K</span></label><input type="range" id="v_gprice" min="100" max="300" step="5" value="150"><div class="bands" id="band2-v_gprice"></div><small>Orphan-oncology range. Source: US oncology pricing comps.</small></div>
+      <div class="ctrl"><label>Avg years on therapy (↑ with survival) <span id="vv_gyears">3.0 yr</span></label><input type="range" id="v_gyears" min="1" max="5" step="0.1" value="3"><div class="bands" id="band2-v_gyears"></div><small>Prevalence driver. Ties to GPS survival (Tab 1). Source: derived.</small></div>
+      <h2 style="margin-top:16px">SLS-009 engine (frontline + r/r AML)</h2>
+      <div class="ctrl"><label>Frontline addressable / yr (US) <span id="vv_flpool">10,000</span></label><input type="range" id="v_flpool" min="5000" max="15000" step="250" value="10000"><div class="bands" id="band2-v_flpool"></div><small>Unfit newly-dx AML on Ven+Aza. Source: SEER-derived.</small></div>
+      <div class="ctrl"><label>r/r addressable / yr (US) <span id="vv_rrpool">4,000</span></label><input type="range" id="v_rrpool" min="2000" max="8000" step="250" value="4000"><div class="bands" id="band2-v_rrpool"></div><small>Post-Ven r/r AML-MR. Source: SEER-derived; &gt;60% relapse.</small></div>
+      <div class="ctrl"><label>Penetration <span id="vv_spen">40 %</span></label><input type="range" id="v_spen" min="10" max="70" step="1" value="40"><div class="bands" id="band2-v_spen"></div><small>Add-on to standard of care. Source: assumption.</small></div>
+      <div class="ctrl"><label>Annual price / patient <span id="vv_sprice">$150 K</span></label><input type="range" id="v_sprice" min="100" max="300" step="5" value="150"><div class="bands" id="band2-v_sprice"></div><small>Source: US oncology pricing comps.</small></div>
+      <div class="ctrl"><label>Avg years on therapy <span id="vv_syears">1.5 yr</span></label><input type="range" id="v_syears" min="0.7" max="3" step="0.1" value="1.5"><div class="bands" id="band2-v_syears"></div><small>Shorter than GPS (active disease). Source: derived.</small></div>
+      <h2 style="margin-top:16px">Platform &amp; valuation</h2>
+      <div class="ctrl"><label>Risk-adjusted WT1 platform value <span id="vv_platform">$3.0 B</span></label><input type="range" id="v_platform" min="0" max="15" step="0.5" value="3"><div class="bands" id="band2-v_platform"></div><small>Other WT1+ indications (early). Source: WT1 breadth — Cheever 2009 (NCI #1 antigen).</small></div>
+      <div class="ctrl"><label>Multiple (× peak sales) <span id="vv_mult">5.0×</span></label><input type="range" id="v_mult" min="2" max="10" step="0.5" value="5"><div class="bands" id="band2-v_mult"></div><small>Oncology M&amp;A ~4–8× peak. Red &gt;8×. Source: biotech M&amp;A convention.</small></div>
+      <div class="ctrl"><label>Fully-diluted shares <span id="vv_shares">220 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="220"><div class="bands" id="band2-v_shares"></div><small>◆~217–225M incl. warrants. Source: SELLAS SEC filings.</small></div>
+    </div>
+    <div class="card">
+      <h2>Result</h2>
+      <div class="grid2">
+        <div class="stat"><div class="k">GPS peak sales</div><div class="v" id="oGpsPeak">–</div></div>
+        <div class="stat"><div class="k">SLS-009 peak sales</div><div class="v" id="oSlsPeak">–</div></div>
+        <div class="stat"><div class="k">Total peak sales</div><div class="v" id="oTotPeak">–</div></div>
+        <div class="stat"><div class="k">Prevalent GPS pool (on therapy)</div><div class="v" id="oPool">–</div></div>
+      </div>
+      <div style="margin-top:14px;padding:14px;border-radius:12px;background:#eef3fe;border:1px solid #cfe0fb;text-align:center">
+        <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em">Enterprise value (peak×mult + platform)</div>
+        <div class="bignum" style="color:var(--accent)" id="oEV">–</div>
+        <div style="font-size:13px;margin-top:2px">≈ <b id="oPS">–</b> / share &nbsp;·&nbsp; buyout range <b id="oBuy">–</b></div>
+      </div>
+      <div class="note" id="oValNote"></div>
+    </div>
+  </div>
+
+  <div style="padding:0 18px 6px"><div class="card">
+    <h2>Monte Carlo — Valuation</h2>
+    <div class="sub" style="margin-bottom:8px">Propagates every input's prior uncertainty (slider = center, 1σ band = spread) through the peak-sales × multiple model. Optionally risk-adjusts each engine's revenue by its probability of approval (defaults from Tabs 1 &amp; 2).</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <button class="p" id="mcValRun" style="font-weight:700;padding:8px 14px">▶ Run 20k draws</button>
+      <label style="font-size:12.5px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="v_riskadj" checked> risk-adjust by P(approval)</label>
+      <label style="font-size:12.5px;display:flex;gap:5px;align-items:center">P(GPS) <input type="range" id="v_pgps" min="30" max="95" step="1" value="65" style="width:70px"><b id="v_vpgps">65%</b></label>
+      <label style="font-size:12.5px;display:flex;gap:5px;align-items:center">P(SLS-009) <input type="range" id="v_psls" min="20" max="90" step="1" value="55" style="width:70px"><b id="v_vpsls">55%</b></label>
+      <span id="mcValStatus" style="font-size:12px;color:var(--muted)">click to run</span>
+    </div>
+    <div id="mcValStats" style="font-size:14px;font-weight:600;margin-bottom:8px"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:2px">Enterprise-value distribution ($B):</div>
+    <div id="mcValHist"></div>
+  </div></div>
+
+  <div class="facts"><div class="card">
+    <h2>Valuation facts &amp; sources</h2>
+    <div class="fgrid">
+      <div><b>US AML incidence:</b> ~20,800/yr (SEER 2024); ~22,720 (ACS 2026) <span class="tag v">verified</span></div>
+      <div><b>Relapse/refractory:</b> &gt;60% of CR patients relapse; ~30–40% primary refractory <span class="tag v">verified</span></div>
+      <div><b>Venetoclax (Venclexta) 2024 sales:</b> ~$2.58B — comparator for an AML combo drug <span class="tag v">verified</span></div>
+      <div><b>WT1:</b> #1-ranked cancer antigen (NCI, Cheever 2009); over-expressed in 20+ tumors <span class="tag v">verified</span></div>
+      <div><b>CR2 ~3,000 &amp; CR1-nontransplant ~6,000 new/yr pools:</b> Confident Web estimate (US) <span class="tag" style="background:#eef1f4;color:#69707c">estimate</span></div>
+      <div><b>Pricing, penetration, duration, multiple, platform value:</b> user assumptions / market convention <span class="tag u">assumption</span></div>
+    </div>
+    <ol style="font-size:12.5px;line-height:1.7;margin:10px 0 0;padding-left:20px">
+      <li>AML incidence — <a href="https://seer.cancer.gov/statfacts/html/amyl.html" target="_blank">SEER Stat Facts</a> · <a href="https://www.cancer.org/cancer/types/acute-myeloid-leukemia/about/key-statistics.html" target="_blank">ACS Key Statistics</a></li>
+      <li>Venetoclax sales — <a href="https://www.pharmacompass.com/sales-forecast/venetoclax" target="_blank">PharmaCompass</a> (AbbVie filings)</li>
+      <li>WT1 antigen ranking — Cheever et al., "The prioritization of cancer antigens," <i>Clin Cancer Res</i> 2009. <a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank">PubMed</a></li>
+      <li>TAM pools &amp; peak-sales framing — Confident Web (u/Confident-Web-7118) DD, incorporated as adjustable estimates.</li>
+    </ol>
+    <h2 style="margin-top:16px">Comparables &amp; reality checks</h2>
+    <div class="fgrid">
+      <div><b>Venetoclax (Venclexta):</b> ~$2.6B 2024 sales — the closest proof an AML combo drug can be a blockbuster <span class="tag v">verified</span></div>
+      <div><b>Oral azacitidine (Onureg):</b> AML maintenance (non-transplant) — the closest analog to GPS's setting — has had only <b>modest</b> uptake (well under $1B), a caution on GPS peak-sales assumptions <span class="tag" style="background:#eef1f4;color:#69707c">context</span></div>
+      <div><b>Gilead–Forty Seven (2020):</b> ~$4.9B for magrolimab (CD47, AML/MDS) — a heme-onc M&amp;A benchmark (asset later struggled) <span class="tag v">verified</span></div>
+      <div><b>Multiple convention:</b> oncology assets ~4–8× peak sales; breakthrough/first-in-class toward the top <span class="tag u">convention</span></div>
+      <div><b>Buyout ≠ peak sales realized:</b> acquirers pay for <em>risk-adjusted</em> peak; a pre-approval asset is discounted for the remaining trial/commercial risk <span class="tag u">caveat</span></div>
+      <div><b>Prevalence dynamic is real but bounded:</b> the pool only grows to (annual starts × years on therapy) at steady state — it is not unlimited compounding <span class="tag u">caveat</span></div>
+    </div>
+  </div></div>
+</div><!-- /tab-value -->
+
+<!-- ================= TAB 4 : EXPLAIN ================= -->
+<div id="tab-explain" class="tabpage" hidden>
+  <div style="padding:12px 18px 0">
+    <div class="sub" style="margin-bottom:8px">The same three models — REGAL/GPS, SLS-009, and the valuation — explained at six depths. Pick your level. Sources are named/linked throughout.</div>
+    <div class="presets">
+      <button class="p lvlb active" data-lvl="eli5">ELI5</button>
+      <button class="p lvlb" data-lvl="ms">Middle school</button>
+      <button class="p lvlb" data-lvl="hs">High school</button>
+      <button class="p lvlb" data-lvl="col">College</button>
+      <button class="p lvlb" data-lvl="pro">Professional</button>
+      <button class="p lvlb" data-lvl="phd">PhD — no sugar</button>
+    </div>
+  </div>
+  <div class="facts"><div class="card"><div id="explbody" style="font-size:14px;line-height:1.65"></div></div></div>
+</div><!-- /tab-explain -->
+
+<footer style="padding:16px 22px 40px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);margin-top:20px">
+  SELLAS ($SLS) Interactive Model · Copyright © 2026 sterno874 and contributors · Free software under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU AGPL-3.0-or-later</a>. This program comes with ABSOLUTELY NO WARRANTY. You may redistribute and modify it under the AGPL; if you run a modified version on a server you must offer users its source. Source: <a href="https://github.com/sterno874/SLS-Model" target="_blank">github.com/sterno874/SLS-Model</a>. &nbsp;Educational/analytical only — <b>not investment, legal, medical, or financial advice.</b> Community DD framing attributed to "Confident Web" (u/Confident-Web-7118).
+</footer>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const LN2 = Math.log(2);
+const N_ARM = 63, LMAX = 38;
+const T1=46,T2=58,T3=63,T4=65, E1=60,E2=72,E3=78, THRESH=0.636;
+const HRMAX=1.0; // gauge scale
+const ZFINAL=2.012;             // O'Brien-Fleming FINAL efficacy boundary (Z) ~ at 80 events
+function rmst(fn,p,tau){let s=0;const h=0.25;for(let t=0;t<tau;t+=h)s+=(fn(t,p)+fn(t+h,p))/2*h;return s;} // restricted mean survival time (area under S to tau)
+const ZEFF=2.34, ZFUT=0.4, STRATF=0.90; // interim efficacy boundary Z; mild futility Z; stratified log-rank efficiency
+function Phi(x){const s=x<0?-1:1;x=Math.abs(x)/Math.SQRT2;const t=1/(1+0.3275911*x);const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return 0.5*(1+s*y);}
+function phi(x){return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);}
+function monthLabel(m){const d=new Date(2021,1,1);d.setMonth(d.getMonth()+Math.round(Math.min(m,120)));return "("+d.toLocaleString('en-US',{month:'short',year:'numeric'})+")";}
+// Poisson likelihood on event-count increments (models the counting noise; SD≈√λ)
+function lpois(k,lam){if(lam<=1e-9)return k===0?0:-1e9;let lf=0;for(let i=2;i<=k;i++)lf+=Math.log(i);return -lam+k*Math.log(lam)-lf;}
+function pois(k,lam){return Math.exp(lpois(k,lam));}
+function poisLE(k,lam){let s=0;for(let j=0;j<=k;j++)s+=pois(j,lam);return s;}
+
+// ---------- enrollment ----------
+function rawC(x,m,k){return 1/(1+Math.exp(-k*(x-m)));}
+function enrollCDF(x,m,k){if(x<=0)return 0;if(x>=LMAX)return 1;const c0=rawC(0,m,k),cL=rawC(LMAX,m,k);return Math.min(1,Math.max(0,(rawC(x,m,k)-c0)/(cL-c0)));}
+
+// ---------- survival ----------
+function Stx(t){return 0.45+0.55*Math.exp(-LN2*t/16);} // OS after allo-transplant in CR2 (~45% cured)
+function sBATbase(t,p){if(t<=0)return 1;const kk=p.batk||1;const lam=p.bat/Math.pow(LN2,1/kk);return p.batc+(1-p.batc)*Math.exp(-Math.pow(t/lam,kk));} // Weibull (k=1 => exponential)
+function sGPSbase(t,p){if(t<=0)return 1;const d=p.delay;if(t<=d)return sBATbase(t,p);const b=sBATbase(d,p);return b*(p.gpsc+(1-p.gpsc)*Math.exp(-LN2*(t-d)/p.gpsu));}
+// ITT: transplanted patients (a fraction of each arm) contribute their better survival
+function txMix(t,p,base){return (p.xtx>0 && p.osmode!=='censor') ? p.xtx*Stx(t)+(1-p.xtx)*base : base;}
+function sBAT(t,p){if(t<=0)return 1;return txMix(t,p,sBATbase(t,p));}
+function sGPS(t,p){if(t<=0)return 1;return txMix(t,p,sGPSbase(t,p));}
+function poolS(t,p){return 0.5*sBAT(t,p)+0.5*sGPS(t,p);}
+
+// ---------- events (with transplant handling + dropout censoring) ----------
+function armDeaths(T,p,baseFn,bins){bins=bins||180;let d=0;for(let i=0;i<bins;i++){const e0=LMAX*i/bins,e1=LMAX*(i+1)/bins,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);if(em>=T)continue;const f=T-em;let pd;
+    if(p.xtx>0 && p.osmode==='censor'){ // transplanted pts censored ~month 6 post-enrollment
+      pd=(1-p.xtx)*(1-baseFn(f,p)) + p.xtx*(1-baseFn(Math.min(f,6),p));
+    } else { pd = 1 - txMix(f,p,baseFn(f,p)); }
+    d+=N_ARM*w*pd;}
+  return d;}
+function eventsAt(T,p,bins){const raw=armDeaths(T,p,sBATbase,bins)+armDeaths(T,p,sGPSbase,bins);return raw*(1-p.cens*0.5);}
+
+// ---------- HR (Pike) ----------
+function hazardRatio(T,p){const h=0.5;let Ob=0,Og=0,Eb=0,Eg=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;}if(Eb<1e-6||Eg<1e-6)return NaN;return (Og/Eg)/(Ob/Eb);}
+// combined point-HR (Pike) + proper stratified log-rank expected z at analysis time T
+function analyzeLR(T,p){const h=1;const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;const wt=fh?(1-poolS(t,p)):1;U+=wt*(db-dt*nb/nt);V+=wt*wt*dt*(nb/nt)*(ng/nt);}const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb);const z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);return{hr:hr,z:z};}
+// conditional power given the interim landed in the CONTINUE zone [zfut,ZEFF]; returns P(continue) & conditional power
+function condPow(thIA,th80,Dan,zfut){const zf=(zfut!=null?zfut:ZFUT);const rho=Math.sqrt(60/Dan),s=Math.sqrt(Math.max(1e-6,1-rho*rho));let num=0,den=0;const M=24,lo=zf,hi=ZEFF,h=(hi-lo)/M;for(let i=0;i<=M;i++){const z=lo+i*h,wt=(i===0||i===M)?1:(i%2?4:2),f=phi(z-thIA);den+=wt*f;num+=wt*f*Phi((th80+rho*(z-thIA)-ZFINAL)/s);}den*=h/3;num*=h/3;return{Pc:den, cp:den>1e-12?num/den:0};}
+function Tfor(events,p){let lo=20,hi=140;if(eventsAt(hi,p,60)<events)return hi;for(let i=0;i<18;i++){const m=(lo+hi)/2;if(eventsAt(m,p,60)<events)lo=m;else hi=m;}return (lo+hi)/2;}
+
+// ---------- medians ----------
+function medianOf(fn,p){let prev=1;for(let t=0.1;t<=240;t+=0.1){const s=fn(t,p);if(s<=0.5){const t0=t-0.1;return t0+(prev-0.5)/(prev-s)*0.1;}prev=s;}return null;}
+
+// ---------- consistency ----------
+function consistent(p){
+  const e2=eventsAt(T2,p,110);if(Math.abs(e2-E2)>3)return false;
+  const e1=eventsAt(T1,p,110);if(Math.abs(e1-E1)>8)return false;
+  const e3=eventsAt(T3,p,110);if(Math.abs(e3-E3)>7)return false;
+  const e4=eventsAt(T4,p,110);if(e4>=80.5)return false;
+  return true;
+}
+
+// ---------- auto-fit ----------
+function autofitCure(p){const test=c=>eventsAt(T2,Object.assign({},p,{gpsc:c}));const lo=test(0),hi=test(0.9);if(lo<E2)return{sol:null,reason:"even 0% GPS cure gives only "+lo.toFixed(0)+" events by m58 — BAT too strong for the data"};if(hi>E2)return{sol:null,reason:"even 90% GPS cure still gives "+hi.toFixed(0)+" events by m58 — BAT too weak / uncured mOS too low"};let a=0,b=0.9;for(let i=0;i<40;i++){const m=(a+b)/2;if(test(m)>E2)a=m;else b=m;}return{sol:(a+b)/2};}
+
+// ---------- slider config ----------
+const DATA_WHY="GREEN = values that still reproduce the announced pooled events — 60 @ m46, 72 @ m58, 78 @ m63, still <80 @ m65 — holding your OTHER sliders fixed. Move another slider and this window shifts: that coupling is the identification problem. Sources: SELLAS PRs [3][4][5].";
+const CFG=[
+ {id:"bat", field:"bat", min:6,max:20,step:0.5,sc:1,   sig:{b3:[6,16],b2:[7,14],b1:[8.5,12.5],mu:10.5}, imp:[15,20],
+   why:"PRIOR (blue): median of the non-tail BAT component — a FROM-RANDOMIZATION quantity. REGAL design assumes 8.0m [1]; ven-era CR2/R-R salvage ~8–12m by mutation [10]; Kurosawa CR2 transplant-INELIGIBLE supports the low end [9]. NOTE: the ≤6-mo CR2→randomization window + &gt;6-mo life-expectancy entry criterion positively select the cohort, lifting this ~1–3mo above from-CR2 literature (left-truncation / lead-time) — this shifts the ABSOLUTE median, NOT the HR. 1σ 8.5–12.5m, 3σ to 16m.",
+   impwhy:"IMPLAUSIBLE (>15m): exceeds QUAZAR's CR1-placebo median of 14.8m [6] — CR2 is a worse-prognosis state than CR1, so its median must be lower. No CR2 transplant-ineligible dataset supports a median this high [8][9]. Implausible, not impossible."},
+ {id:"batc",field:"batc",min:0,max:30,step:1,  sc:0.01,sig:{b3:[0,22],b2:[0,17],b1:[4,13],mu:9}, imp:[20,30],
+   why:"PRIOR (blue): long-survivor fraction, FROM RANDOMIZATION. Kurosawa (158 CR2 transplant-INELIGIBLE, from CR2) [9]: 3-yr OS 14% overall (19% intermediate, higher favorable-CBF, lower poor-risk). Left-truncation lifts the from-randomization tail a few points above the from-CR2 figure. 1σ 4–13%. NOTE: fitting the events while respecting the no-halt tends to FORCE this ≥18–24% — an unresolved tension (see impwhy).",
+   impwhy:"IMPLAUSIBLE (>20% plateau ⇒ >~26% 3-yr OS): exceeds even intermediate-risk CR2 (~19% [9]) plus lead-time lift; needs heavy favorable-CBF enrichment or transplant crossover. The puzzle: data + no-halt fits push into this zone anyway — which is mild evidence the interim was NON-binding (letting a lower BAT tail / lower HR back in) OR the arm is unusually favorable. Use the transplant slider for a legitimate tail."},
+ {id:"gpsc",field:"gpsc",min:0,max:75,step:1,  sc:0.01,sig:{b3:[0,70],b2:[0,55],b1:[10,40],mu:25},
+   why:"PRIOR (blue): GPS cure/plateau fraction — highly uncertain. Phase 2 CR1 showed a ~47% 3-yr plateau [1] (but selection-biased); Phase 2 CR2 (the closest analog) showed NO plateau [7]; T-cell immune-response rate ~64% [1]. Wide band on purpose."},
+ {id:"gpsu",field:"gpsu",min:6,max:40,step:0.5,sc:1,   sig:{b3:[6,40],b2:[8,34],b1:[13,27],mu:20},
+   why:"PRIOR (blue): median OS of non-cured GPS patients. Phase 2 CR2 GPS median OS 16.3m [7]; Phase 2 CR1 median DFS 16.9m [1]. 1σ 13–27m. The m63 event point pulls fits toward the high end."},
+ {id:"delay",field:"delay",min:0,max:6,step:0.5,sc:1,  sig:{b3:[0,6],b2:[0,5],b1:[0.5,3.5],mu:2},
+   why:"PRIOR (blue): months before GPS separates from BAT. GPS primes over ~3 months (6 q2-weekly doses) [1]; CR2 patients have prior WT1 exposure so an anamnestic recall could be faster. 1σ 0.5–3.5m."},
+ {id:"xtx", field:"xtx",min:0,max:25,step:1,   sc:0.01,sig:{b3:[0,20],b2:[0,15],b1:[2,10],mu:6}, imp:[18,25],
+   why:"PRIOR (blue): % of each arm transplanted AFTER enrollment. Eligibility is judged only at entry [2], so later transplant is allowed; OS counts their survival (ITT) [2]. Historically <20% of relapsed AML reach transplant even when eligible [8]; transplanted CR2 ~40–50% cured [8].",
+   impwhy:"IMPLAUSIBLE (>18%): this is a transplant-INELIGIBLE-at-entry cohort [2]; even in transplant-eligible relapsed AML, <20% actually reach transplant [8]."},
+ {id:"cens",field:"cens",min:0,max:30,step:1,  sc:0.01,sig:{b3:[0,25],b2:[0,20],b1:[5,15],mu:12},
+   why:"PRIOR (blue): lost-to-follow-up before an EVENT (death). Phase 2 GPS censoring ~15% [7]; trials commonly 10–20%. Higher censoring ⇒ true survival is worse than raw event counts imply. NOTE: SELLAS's '66 discontinued' figure (Mar 2024) [11] is TREATMENT discontinuation — mostly relapse-driven, NOT OS censoring (OS follow-up continues). Do not plug 52% here."},
+ {id:"mid", field:"mid",min:15,max:32,step:1,  sc:1,   sig:{b3:[17.5,32],b2:[20,30],b1:[22.5,27.5],mu:25},
+   why:"PRIOR (blue): enrollment S-curve midpoint. Real milestones [11]: first patient 8 Feb 2021; 105 pts (ex-China) by Nov 2023 (~m33); full N=127 by ~Apr 2024 (~m38) — back-loaded, so late enrollees have short follow-up. Default midpoint ~m25 reproduces ~85% enrolled by m33."},
+ {id:"k",   field:"k",min:0.08,max:0.30,step:0.01,sc:1,sig:{b3:[0.08,0.27],b2:[0.08,0.23],b1:[0.11,0.19],mu:0.15},
+   why:"PRIOR (blue): steepness of the enrollment S-curve. Enrollment accelerated after the Nov 2022 protocol amendment; ~21 of 127 patients enrolled in the final ~5 months [1][11]."}
+];
+function pct(v,mn,mx){return Math.min(100,Math.max(0,(v-mn)/(mx-mn)*100));}
+
+// build static sigma strips once
+function buildBands(){
+  CFG.forEach(c=>{
+    const host=$("band-"+c.id);if(!host)return;
+    const sig=document.createElement("div");sig.className="strip sigma";sig.title=c.why||"Prior plausibility band (1σ/2σ/3σ).";
+    const mk=(lohi,op)=>{const s=document.createElement("div");s.className="seg";
+      s.style.left=pct(lohi[0],c.min,c.max)+"%";s.style.width=(pct(lohi[1],c.min,c.max)-pct(lohi[0],c.min,c.max))+"%";
+      s.style.background="rgba(47,111,237,"+op+")";return s;};
+    sig.appendChild(mk(c.sig.b3,0.14));sig.appendChild(mk(c.sig.b2,0.28));sig.appendChild(mk(c.sig.b1,0.5));
+    if(c.imp){const im=document.createElement("div");im.className="seg imp";im.title=c.impwhy||"Biologically implausible (no supporting dataset).";
+      im.style.left=pct(c.imp[0],c.min,c.max)+"%";im.style.width=(pct(c.imp[1],c.min,c.max)-pct(c.imp[0],c.min,c.max))+"%";sig.appendChild(im);}
+    const data=document.createElement("div");data.className="strip data";data.id="data-"+c.id;data.title=DATA_WHY;
+    const mark=document.createElement("div");mark.className="marker";mark.id="mark-"+c.id;
+    host.appendChild(sig);host.appendChild(data);host.appendChild(mark);
+  });
+}
+// update dynamic data-consistent strips + markers
+function renderBands(p){
+  CFG.forEach(c=>{
+    const strip=$("data-"+c.id);if(!strip)return;strip.innerHTML="";
+    const M=44;let runs=[],inRun=false,start=0;
+    for(let i=0;i<=M;i++){
+      const v=c.min+(c.max-c.min)*i/M;
+      const q=Object.assign({},p);q[c.field]=v*c.sc;
+      const ok=consistent(q);
+      if(ok&&!inRun){inRun=true;start=v;}
+      if((!ok||i===M)&&inRun){inRun=false;runs.push([start, ok?v:(c.min+(c.max-c.min)*(i-1)/M)]);}
+    }
+    runs.forEach(r=>{const s=document.createElement("div");s.className="seg";
+      s.style.left=pct(r[0],c.min,c.max)+"%";s.style.width=Math.max(0.8,pct(r[1],c.min,c.max)-pct(r[0],c.min,c.max))+"%";
+      s.style.background="var(--data)";s.style.opacity="0.75";strip.appendChild(s);});
+    const cur=+$(c.id).value;$("mark-"+c.id).style.left="calc("+pct(cur,c.min,c.max)+"% - 1px)";
+  });
+}
+
+// ---------- chart ----------
+function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function draw(p){
+  const cv=$("chart"),dpr=window.devicePixelRatio||1,W=920,H=430;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
+  const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const L=54,R=16,Tp=12,B=38,tmax=60;
+  const X=t=>L+(W-L-R)*t/tmax,Y=s=>Tp+(H-Tp-B)*(1-s);
+  ctx.strokeStyle="#eef0f3";ctx.fillStyle="#9aa1ac";ctx.font="11px sans-serif";ctx.lineWidth=1;
+  for(let s=0;s<=1.0001;s+=0.25){ctx.beginPath();ctx.moveTo(L,Y(s));ctx.lineTo(W-R,Y(s));ctx.stroke();ctx.textAlign="right";ctx.fillText((s*100).toFixed(0)+"%",L-6,Y(s)+3);}
+  for(let t=0;t<=tmax;t+=12){ctx.strokeStyle="#f3f4f6";ctx.beginPath();ctx.moveTo(X(t),Tp);ctx.lineTo(X(t),H-B);ctx.stroke();ctx.fillStyle="#9aa1ac";ctx.textAlign="center";ctx.fillText(t+"m",X(t),H-B+16);}
+  ctx.textAlign="center";ctx.fillStyle="#6b7280";ctx.fillText("Months from randomization",(L+W-R)/2,H-4);
+  ctx.save();ctx.translate(14,(Tp+H-B)/2);ctx.rotate(-Math.PI/2);ctx.fillText("Overall survival",0,0);ctx.restore();
+  ctx.strokeStyle="#c9ccd2";ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(L,Y(0.5));ctx.lineTo(W-R,Y(0.5));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(X(36),Tp);ctx.lineTo(X(36),H-B);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="#9aa1ac";ctx.textAlign="left";ctx.fillText("36 mo",X(36)+4,Tp+10);
+  function curve(fn,color,w,dash){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.beginPath();for(let t=0;t<=tmax;t+=0.5){const x=X(t),y=Y(fn(t,p));t===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);}
+  curve(poolS,"rgba(138,143,153,.75)",2,[6,4]);
+  curve(sBAT,getCSS('--bat'),2.6);
+  curve(sGPS,getCSS('--gps'),2.6);
+  // legend
+  ctx.font="12px sans-serif";ctx.textAlign="left";
+  const lx=X(38),ly=Tp+8;
+  ctx.fillStyle=getCSS('--gps');ctx.fillRect(lx,ly,14,3);ctx.fillStyle="#333";ctx.fillText("GPS",lx+18,ly+4);
+  ctx.fillStyle=getCSS('--bat');ctx.fillRect(lx,ly+16,14,3);ctx.fillStyle="#333";ctx.fillText("BAT",lx+18,ly+20);
+  ctx.fillStyle="rgba(138,143,153,.75)";ctx.fillRect(lx,ly+32,14,3);ctx.fillStyle="#333";ctx.fillText("Pooled",lx+18,ly+36);
+}
+
+// ---------- render ----------
+function fmtM(x){return x===null?'<small>Not reached</small>':x.toFixed(1)+' <small>m</small>';}
+function badge(el,ok,mid){el.textContent=ok?'OK':(mid?'close':'off');el.className='badge '+(ok?'b-good':(mid?'b-warn':'b-bad'));}
+
+function readParams(){return{bat:+$("bat").value,batc:+$("batc").value/100,batk:+$("batk").value,gpsc:+$("gpsc").value/100,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value/100,cens:+$("cens").value/100,osmode:"itt",mid:+$("mid").value,k:+$("k").value,fh:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value};}
+
+function update(){
+  let p=readParams();
+  const auto=$("autofit").checked;$("gpscWrap").classList.toggle("disabled",auto);
+  let noSol=null;
+  if(auto){const r=autofitCure(p);if(r.sol===null)noSol=r.reason;else{p.gpsc=r.sol;$("gpsc").value=Math.round(r.sol*100);}}
+  $("vBat").textContent=p.bat.toFixed(1)+" m";$("vBatc").textContent=(p.batc*100).toFixed(0)+"%";
+  $("vGpsc").textContent=(p.gpsc*100).toFixed(0)+"%";$("vGpsu").textContent=p.gpsu.toFixed(1)+" m";
+  $("vDelay").textContent=p.delay.toFixed(1)+" m";$("vMid").textContent=p.mid+" m";$("vK").textContent=p.k.toFixed(2);
+  $("vXtx").textContent=(p.xtx*100).toFixed(0)+"%";$("vCens").textContent=(p.cens*100).toFixed(0)+"%";
+  $("vBatk").textContent=p.batk.toFixed(2);$("vStratF").textContent=p.stratF.toFixed(2);$("vZfut").textContent=p.zfut.toFixed(2);
+
+  draw(p); renderBands(p);
+
+  if(noSol){
+    $("oHRnum").textContent="no solution";$("hrMark").style.left="-99px";
+    $("verdict").className="verdict v-none";
+    $("verdict").textContent="NO SOLUTION: "+noSol+". (Same dead-end the DD hit with a 4-month delay — the assumed shape can't fit the data.)";
+    ["oBatMed","oGpsMed","oBat3","oGps3","oRmst","o80","e1","e2","e3","e4","pm"].forEach(i=>$(i).textContent="—");$("oPower").textContent="";
+    $("note").innerHTML=noteText();return;
+  }
+
+  const bm=medianOf(sBAT,p),gm=medianOf(sGPS,p),pmv=medianOf(poolS,p);
+  $("oBatMed").innerHTML=fmtM(bm);$("oGpsMed").innerHTML=fmtM(gm);
+  $("oBat3").innerHTML=(sBAT(36,p)*100).toFixed(0)+' <small>%</small>';
+  $("oGps3").innerHTML=(sGPS(36,p)*100).toFixed(0)+' <small>%</small>';
+
+  // RMST (48-mo horizon) + projected 80th event + significance/power check
+  const dR=rmst(sGPS,p,48)-rmst(sBAT,p,48);
+  $("oRmst").innerHTML=(dR>=0?'+':'')+dR.toFixed(1)+' <small>mo</small>';
+  const cutoff=+$("cutoff").value; $("vCut").textContent=cutoff;
+  const t80=T80(p); let Tan,Dan;
+  if(t80<=cutoff){Tan=t80;Dan=80;} else {Tan=cutoff;Dan=eventsAt(cutoff,p);}
+  $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(0)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small>';
+  const aFin=analyzeLR(Tan,p), thIA=analyzeLR(46,p).z, th80=aFin.z;
+  const binding=$("mcFloor").checked;
+  const pStop=1-Phi(ZEFF-thIA);
+  const pWin= binding? condPow(thIA,th80,Dan,p.zfut).cp : Phi(th80-ZFINAL);
+  $("oPower").innerHTML="<b>Readout power check</b> (cutoff m"+cutoff+"): "+(t80<=cutoff?("reaches 80 events ~m"+t80.toFixed(0)):("<b style='color:var(--bad)'>80th not reached</b> — reads at m"+cutoff+", "+Dan.toFixed(0)+" events"))+" · readout HR "+aFin.hr.toFixed(2)+" · log-rank Z="+th80.toFixed(2)+" · interim Z="+thIA.toFixed(2)+" (would stop early "+(100*pStop).toFixed(0)+"% of the time) · <b style='color:"+(pWin>0.5?'var(--good)':'var(--bad)')+"'>P(significant win) = "+(100*pWin).toFixed(0)+"%</b> "+(binding?"<small>(given no early stop)</small>":"<small>(non-binding)</small>");
+
+  const hr=hazardRatio(T2,p);
+  // gauge
+  $("oHRnum").innerHTML=isNaN(hr)?"—":hr.toFixed(2)+(hr<THRESH?' — clears 0.636 (win)':' — misses 0.636');
+  $("hrThresh").style.left=(THRESH/HRMAX*100)+"%";
+  const IFLOOR=0.547; // observed interim HR had to be <= this to stop early at 60 deaths; it did not
+  $("hrInterim").style.left="0%";$("hrInterim").style.width=(IFLOOR/HRMAX*100)+"%";
+  $("hrInterim").style.background="repeating-linear-gradient(45deg,rgba(214,69,69,.28),rgba(214,69,69,.28) 4px,rgba(214,69,69,.1) 4px,rgba(214,69,69,.1) 8px)";
+  $("hrInterim").style.borderRight="1px dashed var(--bad)";
+  $("hrMark").style.left="calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"% - 1.5px)";
+
+  const ev1=eventsAt(T1,p),ev2=eventsAt(T2,p),ev3=eventsAt(T3,p),ev4=eventsAt(T4,p);
+  $("e1").textContent=ev1.toFixed(0);$("e2").textContent=ev2.toFixed(0);$("e3").textContent=ev3.toFixed(0);$("e4").textContent=ev4.toFixed(0);
+  const ok1=Math.abs(ev1-E1)<=4,mid1=Math.abs(ev1-E1)<=8;
+  const ok2=Math.abs(ev2-E2)<=3,mid2=Math.abs(ev2-E2)<=7;
+  const ok3=Math.abs(ev3-E3)<=3,mid3=Math.abs(ev3-E3)<=7;
+  const ok4=ev4<80&&ev4>=77,mid4=ev4<80.5;
+  badge($("b1"),ok1,mid1);badge($("b2"),ok2,mid2);badge($("b3"),ok3,mid3);badge($("b4"),ok4,mid4);
+  const pmOK=pmv===null||pmv>13.5;$("pm").innerHTML=fmtM(pmv);badge($("bpm"),pmOK,false);
+  $("fu36").textContent=(enrollCDF(T3-36,p.mid,p.k)*100).toFixed(0)+"%";
+
+  const cons=ok1&&ok2&&ok3&&ok4&&pmOK; // verdict now requires ALL badges green (no loose loophole)
+  const v=$("verdict");
+  if(!cons){v.className="verdict v-none";v.textContent="Does NOT match the full announced trajectory (60/72/78 events + still <80 today). Not a live possibility — check which badge is off. Common misses: over-flatlining under-shoots 78@m63; arms-too-close pushes past 80 before today.";}
+  else if(hr<THRESH){v.className="verdict v-win";v.textContent="Consistent with all announced numbers AND HR "+hr.toFixed(2)+" < 0.636 → this world clears the threshold. (Other green worlds below also fit — that's the identification problem.)";}
+  else{v.className="verdict v-lose";v.textContent="Consistent with the announced numbers but HR "+hr.toFixed(2)+" > 0.636 → this world MISSES. Note what it took: check the BAT median / long-survivor sliders — failure needs near-unprecedented BAT.";}
+  $("note").innerHTML=noteText();
+}
+
+function noteText(){
+  return "Reading the strips: the <b>green lower strip</b> is the answer to ‘where does the timeline limit this input?’ — it's the set of values for this slider that still fit 60/72/78 events, holding your other sliders fixed. Move one slider and watch the others' green windows shift: that coupling <em>is</em> the identification problem. The <b>blue upper strip</b> is just the prior (1σ/2σ/3σ) from published data. "+
+  "What the trajectory pins down: to yield only ~72–78 deaths of 126 by now, pooled survival runs well above historical CR2 (~8–11m). What it does NOT pin down (correcting an earlier overstatement): a no-effect world STILL fits if BOTH arms share a ~25–30% long-survivor tail (true median ~23m, 3-yr OS ~40%) — try the ‘No effect (fits too!)’ preset, HR=1.00 and green. That tail is high vs historical (~5–15% 3-yr OS) but not impossible for a fit trial population, so efficacy is *more likely than not* — not established. The data span runs from HR 1.0 (no effect, healthy population) to 0.15 (big effect); the arm split is unidentifiable (drag BAT with auto-fit on, watch HR swing). "+
+  "Transplant &amp; censoring: eligibility is judged only at entry, so patients can be transplanted afterward. ‘Transplant after enrollment’ (ITT mode) adds a ~45%-cure tail to BOTH arms — it lifts BAT's 3-yr OS and pulls the HR toward 1.0 (dilutes, never helps, the drug signal); ‘censor at transplant’ removes them instead (fewer events). ‘Censoring/dropout’ lowers observed events, so true survival is worse than the raw counts imply. "+
+  "Red hatched zones = biologically IMPLAUSIBLE BAT profiles: median >15m (above QUAZAR's CR1 placebo of 14.8m, a healthier population) or chemo-only tail >18% (vs ~5–15% historical). Implausible, not impossible — and a transplant crossover can legitimately create a BAT tail without the chemo-tail slider. The tell: a scenario that only ‘fails’ (HR>0.636) by parking BAT in the red, with no transplant to justify it, is one to distrust. "+
+  "Caveats: HR is an approximate log-rank/Pike estimate, not the stratified Cox; 3-yr OS is model-implied but only ~40% of patients have 36-mo follow-up, so it'd carry wide bands at readout; transplant-censoring's HR effect and differential dropout are not fully modeled.";
+}
+
+// ---------- Monte Carlo (posterior over final HR) ----------
+function T80(p){let lo=60,hi=130;if(eventsAt(hi,p,80)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAt(m,p,80)<80)lo=m;else hi=m;}return (lo+hi)/2;}
+function rn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
+function clampf(f,v){const c=CFG.find(x=>x.field===f);return Math.max(c.min*c.sc,Math.min(c.max*c.sc,v));}
+const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
+function runMC(){
+  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=220000,t0=performance.now();
+  for(let i=0;i<MAX;i++){ if(performance.now()-t0>3600)break; tried++;
+    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
+    for(const f of MCFIELDS) p[f]=clampf(f,ctr[f]+SD[f]*rn());
+    const e58=eventsAt(58,p,80); if(Math.abs(e58-72)>15)continue;   // loose cull; Poisson likelihood does the real work
+    const e46=eventsAt(46,p,80), e63=eventsAt(63,p,80), e65=eventsAt(65,p,80);
+    const pm=medianOf(poolS,p); if(pm!==null&&pm<13)continue;
+    // likelihood of observed increments: 60 by m46, +12 to m58, +6 to m63, still <80 (≤1 more) by m65
+    const l1=e46,l2=Math.max(0,e58-e46),l3=Math.max(0,e63-e58),l4=Math.max(0,e65-e63);
+    const logL=lpois(60,l1)+lpois(12,l2)+lpois(6,l3)+Math.log(Math.max(1e-12,poisLE(1,l4)));
+    const Lev=Math.exp(logL); if(Lev<1e-11)continue;
+    const thIA=analyzeLR(46,p).z;                                   // proper interim log-rank z (~60 events @ m46)
+    const t80=T80(p); let Tan,Dan; if(t80<=cutoff){Tan=t80;Dan=80;} else {Tan=cutoff;Dan=eventsAt(cutoff,p,80);}
+    const aFin=analyzeLR(Tan,p); if(isNaN(aFin.hr))continue; const th80=aFin.z;
+    let w,pw;
+    if(binding){ const r=condPow(thIA,th80,Dan,p.zfut); w=Lev*r.Pc; pw=r.cp; }   // weight by P(continue); win = conditional power (banks early wins, power-neutral)
+    else { w=Lev*Phi(thIA-p.zfut); pw=Phi(th80-ZFINAL); }                        // non-binding: futility-pass weight; marginal significance
+    acc.push({hr:aFin.hr, w:w, pw:pw, reached:t80<=cutoff});
+  }
+  renderMC(acc,tried);
+}
+function renderMC(acc,tried){
+  acc.sort((a,b)=>a.hr-b.hr);const n=acc.length;
+  if(n<80){$("mcStatus").textContent=n+" usable draws — widen priors or loosen the floor";$("mcStats").textContent="";$("mcHist").innerHTML="";return;}
+  let W=0,W2=0,WP=0,W35=0,Wreach=0;
+  for(const x of acc){W+=x.w;W2+=x.w*x.w;WP+=x.w*x.pw;if(x.hr<0.35)W35+=x.w;if(x.reached)Wreach+=x.w;}
+  const ESS=W*W/W2, win=WP/W;
+  function wq(q){let c=0;const t=q*W;for(let i=0;i<n;i++){c+=acc[i].w;if(c>=t)return acc[i].hr;}return acc[n-1].hr;}
+  const med=wq(0.5),lo=wq(0.05),hi=wq(0.95);
+  $("mcStatus").textContent=tried.toLocaleString()+" draws · effective N ≈ "+Math.round(ESS).toLocaleString()+" · "+(100*Wreach/W).toFixed(0)+"% reach 80th event by cutoff";
+  $("mcStats").innerHTML="P(win — significant log-rank) = <span style='color:"+(win>0.5?"var(--good)":"var(--bad)")+"'>"+(100*win).toFixed(0)+"%</span> &nbsp;·&nbsp; median HR "+med.toFixed(2)+" &nbsp;·&nbsp; 90% CrI ["+lo.toFixed(2)+", "+hi.toFixed(2)+"] &nbsp;·&nbsp; P(HR&lt;0.35)="+(100*W35/W).toFixed(1)+"% &nbsp;<span style='color:var(--muted);font-weight:400'>(likelihood-weighted; NPH-aware significance)</span>";
+  const bins=[];for(let b=0.30;b<1.05-1e-9;b+=0.05){let c=0;for(const x of acc)if(x.hr>=b&&x.hr<b+0.05)c+=x.w;bins.push([b,100*c/W]);}
+  const maxp=Math.max.apply(null,bins.map(x=>x[1]).concat([1]));
+  let h='<div style="display:flex;align-items:flex-end;gap:2px;height:130px;border-bottom:1px solid var(--line)">';
+  bins.forEach(function(bp){const b=bp[0],pc=bp[1],col=(b+0.025)<THRESH?"var(--good)":"var(--bad)";
+    h+='<div title="HR '+b.toFixed(2)+'–'+(b+0.05).toFixed(2)+': '+pc.toFixed(1)+'%" style="flex:1;height:'+(pc/maxp*100).toFixed(1)+'%;background:'+col+';border-radius:2px 2px 0 0;min-height:'+(pc>0?2:0)+'px"></div>';});
+  h+='</div><div style="display:flex;gap:2px;font-size:9px;color:var(--muted);margin-top:2px">';
+  bins.forEach(function(bp){h+='<div style="flex:1;text-align:center">'+((Math.round(bp[0]*100))%10===0?bp[0].toFixed(1):"")+'</div>';});
+  h+='</div><div style="font-size:11px;color:var(--muted);margin-top:5px">Green = HR below the 0.636 win threshold · red = miss. X-axis = final HR at 80 deaths. Bar height = % of fitting draws.</div>';
+  $("mcHist").innerHTML=h;
+}
+
+// ---------- presets (every slider set) ----------
+const P={
+ base:    {bat:9, batc:12,gpsc:28,gpsu:40,delay:1,mid:25,k:0.15,auto:false},
+ bull:    {bat:8, batc:6, gpsc:40,gpsu:36,delay:0,mid:25,k:0.15,auto:false},
+ bear:    {bat:7, batc:28,gpsc:3, gpsu:38,delay:1,mid:25,k:0.15,auto:false},
+ noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,mid:25,k:0.15,auto:false},
+ fail:    {bat:10,batc:28,gpsc:28,gpsu:18,delay:0,mid:25,k:0.15,auto:false},
+ delay:   {bat:10,batc:14,gpsc:40,gpsu:40,delay:4,mid:25,k:0.15,auto:false},
+ backload:{bat:7, batc:10,gpsc:26,gpsu:40,delay:0,mid:30,k:0.22,auto:false}
+};
+document.querySelectorAll("button.p").forEach(b=>b.onclick=()=>{
+  const q=P[b.dataset.preset];
+  $("bat").value=q.bat;$("batc").value=q.batc;$("gpsc").value=q.gpsc;$("gpsu").value=q.gpsu;
+  $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;$("autofit").checked=q.auto;
+  $("xtx").value=0;$("cens").value=0; // reset add-ons so preset fit is clean (method assumptions left as-is)
+  update();
+});
+
+["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit"].forEach(id=>$(id).addEventListener("input",update));
+$("mcRun").addEventListener("click",function(){$("mcRun").disabled=true;$("mcStatus").textContent="running…";setTimeout(function(){try{runMC();}finally{$("mcRun").disabled=false;}},30);});
+$("mcNeutral").addEventListener("click",function(){$("bat").value=10.5;$("batc").value=8;$("gpsc").value=25;$("gpsu").value=20;$("delay").value=2;$("xtx").value=6;$("cens").value=12;$("mid").value=25;$("k").value=0.15;$("autofit").checked=false;update();$("mcStatus").textContent="neutral priors set — click Run";});
+buildBands();update();
+
+// ================= TABS & METHODOLOGY =================
+function toggleMethod(id){const e=$(id);e.hidden=!e.hidden;}
+document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));b.classList.add("active");
+  const t=b.dataset.tab;["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
+  if(t==="sls009")renderSLS(); if(t==="value")renderVal(); if(t==="explain")showLevel(curLvl);
+  window.scrollTo(0,0);
+});
+function drawExp(id,arms,tmax){
+  const cv=$(id),dpr=window.devicePixelRatio||1,W=920,H=360;cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
+  const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  const L=48,R=16,Tp=12,B=34,X=t=>L+(W-L-R)*t/tmax,Y=s=>Tp+(H-Tp-B)*(1-s);
+  ctx.font="11px sans-serif";
+  for(let s=0;s<=1.001;s+=0.25){ctx.strokeStyle="#eef0f3";ctx.beginPath();ctx.moveTo(L,Y(s));ctx.lineTo(W-R,Y(s));ctx.stroke();ctx.fillStyle="#9aa1ac";ctx.textAlign="right";ctx.fillText((s*100).toFixed(0)+"%",L-6,Y(s)+3);}
+  for(let t=0;t<=tmax;t+=6){ctx.strokeStyle="#f3f4f6";ctx.beginPath();ctx.moveTo(X(t),Tp);ctx.lineTo(X(t),H-B);ctx.stroke();ctx.fillStyle="#9aa1ac";ctx.textAlign="center";ctx.fillText(t+"m",X(t),H-B+15);}
+  ctx.strokeStyle="#c9ccd2";ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(L,Y(0.5));ctx.lineTo(W-R,Y(0.5));ctx.stroke();ctx.setLineDash([]);
+  let ly=Tp+6;arms.forEach(a=>{ctx.strokeStyle=a.c;ctx.lineWidth=2.6;ctx.beginPath();for(let t=0;t<=tmax;t+=0.5){const s=Math.exp(-LN2*t/a.med),x=X(t),y=Y(s);t===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.fillStyle=a.c;ctx.fillRect(X(tmax*0.5),ly,12,3);ctx.fillStyle="#333";ctx.font="12px sans-serif";ctx.textAlign="left";ctx.fillText(a.lbl+" (med "+a.med.toFixed(1)+"m)",X(tmax*0.5)+16,ly+4);ly+=16;});
+}
+
+// ================= TAB 2 : SLS-009 =================
+function renderSLS(){
+  const os=+$("sls_os").value,bench=+$("sls_bench").value,orr=+$("sls_orr").value;
+  const flb=+$("fl_base").value,fls=+$("fl_sls").value,tpb=+$("tp_base").value,tps=+$("tp_sls").value;
+  $("v_slsos").textContent=os.toFixed(1)+" m";$("v_slsbench").textContent=bench.toFixed(1)+" m";$("v_slsorr").textContent=orr+" %";
+  $("v_flbase").textContent=flb.toFixed(1)+" m";$("v_flsls").textContent=fls.toFixed(1)+" m";$("v_tpbase").textContent=tpb.toFixed(1)+" m";$("v_tpsls").textContent=tps.toFixed(1)+" m";
+  const fold=os/bench,hreq=bench/os,gain=os-bench;
+  $("oFold").innerHTML=fold.toFixed(1)+'×';$("oHReq").innerHTML=hreq.toFixed(2);$("oGain").innerHTML='+'+gain.toFixed(1)+' <small>m</small>';$("oORR").innerHTML=orr+' <small>%</small>';
+  const ap=Math.min(100,100*(1-Math.exp(-(fold-1)/2))*0.6 + orr/70*40);
+  const good=ap>=60;$("oApprov").className="verdict "+(good?"v-win":(ap>=40?"v-none":"v-lose"));
+  $("oApprov").innerHTML="<b>Accelerated-approval readiness (heuristic): "+ap.toFixed(0)+"/100.</b> "+(good?"Strong single-arm case — large OS fold-improvement over a dismal benchmark plus solid ORR.":(ap>=40?"Plausible but benchmark-dependent; a randomized confirmatory trial likely needed.":"Weak — needs a bigger effect or higher ORR."));
+  $("oFront").innerHTML="<b>Frontline (bigger market):</b> +SLS-009 lifts Aza/Ven mOS by <b>"+(fls-flb).toFixed(1)+" mo</b> ("+flb.toFixed(1)+"→"+fls.toFixed(1)+"); in TP53-mut by <b>"+(tps-tpb).toFixed(1)+" mo</b> ("+tpb.toFixed(1)+"→"+tps.toFixed(1)+"). Projections — a randomized Phase 3 would test them.";
+  drawExp("slsChart",[{med:os,c:getCSS('--gps'),lbl:"SLS-009 + AZA/VEN"},{med:bench,c:getCSS('--bat'),lbl:"historical benchmark"}],36);
+  if(typeof renderBands2==="function")renderBands2();
+}
+["sls_os","sls_bench","sls_orr","fl_base","fl_sls","tp_base","tp_sls"].forEach(id=>$(id).addEventListener("input",renderSLS));
+
+// ================= TAB 3 : VALUATION =================
+function fmtB(x){return x>=1000?'$'+(x/1000).toFixed(2)+'B':'$'+x.toFixed(0)+'M';}
+function renderVal(){
+  const cr2=+$("v_cr2").value,cr1=+$("v_cr1").value,gpen=+$("v_gpen").value/100,gprice=+$("v_gprice").value,gyears=+$("v_gyears").value;
+  const flpool=+$("v_flpool").value,rrpool=+$("v_rrpool").value,spen=+$("v_spen").value/100,sprice=+$("v_sprice").value,syears=+$("v_syears").value;
+  const platform=+$("v_platform").value,mult=+$("v_mult").value,shares=+$("v_shares").value;
+  $("vv_cr2").textContent=cr2.toLocaleString();$("vv_cr1").textContent=cr1.toLocaleString();$("vv_gpen").textContent=(gpen*100).toFixed(0)+" %";$("vv_gprice").textContent="$"+gprice+" K";$("vv_gyears").textContent=gyears.toFixed(1)+" yr";
+  $("vv_flpool").textContent=flpool.toLocaleString();$("vv_rrpool").textContent=rrpool.toLocaleString();$("vv_spen").textContent=(spen*100).toFixed(0)+" %";$("vv_sprice").textContent="$"+sprice+" K";$("vv_syears").textContent=syears.toFixed(1)+" yr";
+  $("vv_platform").textContent="$"+platform.toFixed(1)+" B";$("vv_mult").textContent=mult.toFixed(1)+"×";$("vv_shares").textContent=shares+" M";
+  const gpool=(cr2+cr1)*gpen*gyears;               // prevalent on GPS therapy
+  const gpsPeak=gpool*gprice/1000;                 // $M (price in $K)
+  const slsPeak=(flpool+rrpool)*spen*syears*sprice/1000;
+  const totPeak=gpsPeak+slsPeak;
+  const EV=totPeak*mult + platform*1000;           // $M
+  const ps=EV/shares;
+  $("oGpsPeak").innerHTML=fmtB(gpsPeak);$("oSlsPeak").innerHTML=fmtB(slsPeak);$("oTotPeak").innerHTML=fmtB(totPeak);
+  $("oPool").innerHTML=Math.round(gpool).toLocaleString();
+  $("oEV").textContent=fmtB(EV);$("oPS").textContent="$"+ps.toFixed(2);
+  const buyLo=(totPeak*Math.max(1,mult-1.5)+platform*1000)/shares, buyHi=(totPeak*(mult+1.5)+platform*1000)/shares;
+  $("oBuy").textContent="$"+buyLo.toFixed(0)+"–$"+buyHi.toFixed(0)+"/sh";
+  $("oValNote").innerHTML="Peak sales = new-starts × penetration × avg-years-on-therapy × price. Longer survival ⇒ more years on drug ⇒ bigger prevalent pool (the 'population grows if they survive' effect). EV = peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B platform. Every input is an assumption; ignores discounting/competition; not a DCF or investment advice.";
+  if(typeof renderBands2==="function")renderBands2();
+}
+["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares"].forEach(id=>$(id).addEventListener("input",renderVal));
+// ---- generic prior/implausible/anchor bands for Tab 2 & 3 sliders ----
+const CFG2=[
+ {id:"sls_os",min:4,max:16,sig:{b1:[7,11],b2:[5.5,13],b3:[4,15]},anchor:8.9,src:"SELLAS Dec-2024 PR / ASH 2025"},
+ {id:"sls_bench",min:1.5,max:6,sig:{b1:[2,3.5],b2:[1.8,4.5],b3:[1.5,5.5]},imp:[4.5,6],anchor:2.5,src:"post-venetoclax-failure literature; SELLAS benchmark ~2.5m"},
+ {id:"sls_orr",min:20,max:70,sig:{b1:[40,58],b2:[30,65],b3:[20,70]},anchor:46,src:"SELLAS ASH 2024/2025 (46% all, 58% 1-prior)"},
+ {id:"fl_base",min:10,max:20,sig:{b1:[13,16],b2:[12,17],b3:[10,20]},anchor:14.7,src:"VIALE-A, DiNardo NEJM 2020 (14.7m)"},
+ {id:"fl_sls",min:14,max:30,sig:{b1:[18,24],b2:[15,27],b3:[14,30]},imp:[28,30],anchor:22,src:"SELLAS / Confident Web projection"},
+ {id:"tp_base",min:3,max:8,sig:{b1:[4.5,6],b2:[3.5,7],b3:[3,8]},anchor:5.3,src:"VIALE-A TP53 subgroup (~5.3m)"},
+ {id:"tp_sls",min:8,max:20,sig:{b1:[12,17],b2:[9,19],b3:[8,20]},anchor:15,src:"SELLAS / Confident Web projection"},
+ {id:"v_cr2",min:1000,max:6000,sig:{b1:[2000,4000],b2:[1500,5000],b3:[1000,6000]},anchor:3000,src:"Confident Web est.; SEER AML incidence ~20.8K/yr"},
+ {id:"v_cr1",min:2000,max:12000,sig:{b1:[4000,8000],b2:[3000,10000],b3:[2000,12000]},anchor:6000,src:"Confident Web est.; SEER/ACS; >60% relapse"},
+ {id:"v_gpen",min:10,max:80,sig:{b1:[35,65],b2:[25,75],b3:[10,80]},imp:[70,80],src:"assumption (first-in-class maintenance)"},
+ {id:"v_gprice",min:100,max:300,sig:{b1:[130,200],b2:[110,250],b3:[100,300]},imp:[250,300],src:"US orphan-oncology pricing comps"},
+ {id:"v_gyears",min:1,max:5,sig:{b1:[2,4],b2:[1.5,4.5],b3:[1,5]},src:"derived from GPS survival (Tab 1)"},
+ {id:"v_flpool",min:5000,max:15000,sig:{b1:[7000,12000],b2:[5000,14000],b3:[5000,15000]},src:"SEER-derived (unfit newly-dx AML)"},
+ {id:"v_rrpool",min:2000,max:8000,sig:{b1:[3000,6000],b2:[2000,7000],b3:[2000,8000]},src:"SEER-derived; >60% relapse"},
+ {id:"v_spen",min:10,max:70,sig:{b1:[25,55],b2:[15,65],b3:[10,70]},imp:[60,70],src:"assumption (add-on to SoC)"},
+ {id:"v_sprice",min:100,max:300,sig:{b1:[130,200],b2:[110,250],b3:[100,300]},imp:[250,300],src:"US oncology pricing comps"},
+ {id:"v_syears",min:0.7,max:3,sig:{b1:[1,2],b2:[0.8,2.5],b3:[0.7,3]},src:"derived (active-disease, shorter)"},
+ {id:"v_platform",min:0,max:15,sig:{b1:[1,5],b2:[0,8],b3:[0,15]},imp:[10,15],src:"WT1 breadth — Cheever 2009 (NCI #1 antigen); early-stage"},
+ {id:"v_mult",min:2,max:10,sig:{b1:[4,7],b2:[3,8],b3:[2,10]},imp:[8,10],src:"biotech oncology M&A convention (~4–8× peak sales)"},
+ {id:"v_shares",min:200,max:260,sig:{b1:[215,228],b2:[210,235],b3:[200,260]},anchor:220,src:"SELLAS SEC filings (fully diluted ~217–225M)"}
+];
+function pctB(v,mn,mx){return Math.min(100,Math.max(0,(v-mn)/(mx-mn)*100));}
+function buildBands2(){CFG2.forEach(c=>{const host=$("band2-"+c.id);if(!host)return;host.style.position="relative";host.style.height="12px";host.innerHTML="";
+  const strip=document.createElement("div");strip.className="strip sigma";strip.style.top="1px";strip.title=c.src||"";
+  const seg=(lohi,op)=>{const s=document.createElement("div");s.className="seg";s.style.left=pctB(lohi[0],c.min,c.max)+"%";s.style.width=(pctB(lohi[1],c.min,c.max)-pctB(lohi[0],c.min,c.max))+"%";s.style.background="rgba(47,111,237,"+op+")";return s;};
+  strip.appendChild(seg(c.sig.b3,0.14));strip.appendChild(seg(c.sig.b2,0.28));strip.appendChild(seg(c.sig.b1,0.5));
+  if(c.imp){const im=document.createElement("div");im.className="seg imp";im.title="Aggressive / hard to defend — "+(c.src||"");im.style.left=pctB(c.imp[0],c.min,c.max)+"%";im.style.width=(pctB(c.imp[1],c.min,c.max)-pctB(c.imp[0],c.min,c.max))+"%";strip.appendChild(im);}
+  host.appendChild(strip);
+  if(c.anchor!=null){const a=document.createElement("div");a.style.position="absolute";a.style.top="-3px";a.style.left="calc("+pctB(c.anchor,c.min,c.max)+"% - 4px)";a.style.fontSize="9px";a.style.color="#111";a.textContent="◆";a.title="reported/anchor value: "+c.anchor;host.appendChild(a);}
+  const mk=document.createElement("div");mk.className="marker";mk.id="mk2-"+c.id;mk.style.height="12px";host.appendChild(mk);
+});}
+function renderBands2(){CFG2.forEach(c=>{const m=$("mk2-"+c.id);if(m)m.style.left="calc("+pctB(+$(c.id).value,c.min,c.max)+"% - 1px)";});}
+
+// ---- Tab 2 / Tab 3 preset scenarios ----
+const SLSP={
+ obs:{sls_os:8.9,sls_bench:2.5,sls_orr:46,fl_base:14.7,fl_sls:22,tp_base:5.3,tp_sls:15},
+ bear:{sls_os:6,sls_bench:4,sls_orr:35,fl_base:14.7,fl_sls:17,tp_base:5.3,tp_sls:10},
+ bull:{sls_os:12,sls_bench:2.2,sls_orr:58,fl_base:14.7,fl_sls:26,tp_base:5.3,tp_sls:17},
+ base:{sls_os:8.9,sls_bench:2.8,sls_orr:50,fl_base:14.7,fl_sls:21,tp_base:5.3,tp_sls:14}
+};
+document.querySelectorAll("button[data-sls]").forEach(b=>b.onclick=()=>{const q=SLSP[b.dataset.sls];for(const k in q)$(k).value=q[k];renderSLS();});
+const VALP={
+ cons:{v_cr2:2000,v_cr1:4000,v_gpen:35,v_gprice:130,v_gyears:2,v_flpool:7000,v_rrpool:3000,v_spen:25,v_sprice:130,v_syears:1,v_platform:1,v_mult:4,v_shares:225},
+ base:{v_cr2:3000,v_cr1:6000,v_gpen:50,v_gprice:150,v_gyears:3,v_flpool:10000,v_rrpool:4000,v_spen:40,v_sprice:150,v_syears:1.5,v_platform:3,v_mult:5,v_shares:220},
+ bull:{v_cr2:4000,v_cr1:8000,v_gpen:65,v_gprice:200,v_gyears:4,v_flpool:12000,v_rrpool:5000,v_spen:55,v_sprice:200,v_syears:2,v_platform:6,v_mult:7,v_shares:218},
+ cw:{v_cr2:3000,v_cr1:6000,v_gpen:65,v_gprice:170,v_gyears:3.5,v_flpool:12000,v_rrpool:5000,v_spen:50,v_sprice:170,v_syears:2,v_platform:5,v_mult:6,v_shares:220}
+};
+document.querySelectorAll("button[data-val]").forEach(b=>b.onclick=()=>{const q=VALP[b.dataset.val];for(const k in q)$(k).value=q[k];renderVal();});
+
+// ---- generic histogram + samplers for Tab 2/3 Monte Carlo ----
+function drawHist(hostId,vals,lo,hi,bin,thr,greenBelow){
+  const n=vals.length;if(!n){$(hostId).innerHTML="";return;}
+  const bins=[];for(let b=lo;b<hi-1e-9;b+=bin){let c=0;for(const v of vals)if(v>=b&&v<b+bin)c++;bins.push([b,100*c/n]);}
+  const mx=Math.max.apply(null,bins.map(x=>x[1]).concat([1]));
+  let h='<div style="display:flex;align-items:flex-end;gap:1px;height:120px;border-bottom:1px solid var(--line)">';
+  bins.forEach(bp=>{const b=bp[0],pc=bp[1];let col="var(--accent)";if(thr!=null)col=(((b+bin/2)<thr)===greenBelow)?"var(--good)":"var(--bad)";h+='<div title="'+b.toFixed(bin<1?2:0)+'–'+(b+bin).toFixed(bin<1?2:0)+': '+pc.toFixed(1)+'%" style="flex:1;height:'+(pc/mx*100).toFixed(1)+'%;background:'+col+';border-radius:2px 2px 0 0;min-height:'+(pc>0?2:0)+'px"></div>';});
+  h+='</div><div style="display:flex;gap:1px;font-size:9px;color:var(--muted);margin-top:2px">';
+  const step=Math.max(1,Math.ceil(bins.length/8));bins.forEach((bp,i)=>{h+='<div style="flex:1;text-align:center">'+((i%step===0)?bp[0].toFixed(bin<1?2:0):"")+'</div>';});
+  h+='</div>';$(hostId).innerHTML=h;
+}
+function sd2(id){const c=CFG2.find(x=>x.id===id);return (c.sig.b1[1]-c.sig.b1[0])/2;}
+function samp2(id){const c=CFG2.find(x=>x.id===id);return Math.max(c.min,Math.min(c.max,(+$(id).value)+sd2(id)*rn()));}
+function qtl(a,q){const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(q*s.length))];}
+
+function mcSLS(){
+  const N=20000,flev=+$("sls_flev").value;$("v_slsflev").textContent=flev;
+  let folds=[],flhrs=[],pwSum=0,big=0;
+  for(let i=0;i<N;i++){
+    const os=samp2("sls_os"),bench=samp2("sls_bench"),flb=samp2("fl_base"),fls=samp2("fl_sls");
+    const fold=os/Math.max(0.5,bench);folds.push(fold);if(fold>=2)big++;
+    const flhr=flb/Math.max(1,fls);flhrs.push(flhr);
+    const z=-Math.log(flhr)*Math.sqrt(flev)/2;pwSum+=Phi(z-1.96);
+  }
+  const pFL=100*pwSum/N;
+  $("mcSlsStatus").textContent=N.toLocaleString()+" draws";
+  $("mcSlsStats").innerHTML="r/r: median OS fold <b>"+qtl(folds,.5).toFixed(1)+"×</b> (90% CrI "+qtl(folds,.05).toFixed(1)+"–"+qtl(folds,.95).toFixed(1)+"×), P(≥2× vs benchmark) <b>"+(100*big/N).toFixed(0)+"%</b> &nbsp;·&nbsp; frontline: median HR-equiv <b>"+qtl(flhrs,.5).toFixed(2)+"</b>, <b style='color:"+(pFL>50?'var(--good)':'var(--bad)')+"'>P(Phase-3 significant) "+pFL.toFixed(0)+"%</b>";
+  drawHist("mcSlsHist",flhrs,0.4,1.0,0.05,0.75,true);
+}
+$("mcSlsRun").addEventListener("click",function(){$("mcSlsStatus").textContent="running…";setTimeout(mcSLS,20);});
+$("sls_flev").addEventListener("input",function(){$("v_slsflev").textContent=$("sls_flev").value;});
+
+function mcVal(){
+  const N=20000,ra=$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
+  let evs=[],pss=[];
+  for(let i=0;i<N;i++){
+    const cr2=samp2("v_cr2"),cr1=samp2("v_cr1"),gpen=samp2("v_gpen")/100,gprice=samp2("v_gprice"),gyears=samp2("v_gyears");
+    const flpool=samp2("v_flpool"),rrpool=samp2("v_rrpool"),spen=samp2("v_spen")/100,sprice=samp2("v_sprice"),syears=samp2("v_syears");
+    const platform=samp2("v_platform"),mult=samp2("v_mult"),shares=samp2("v_shares");
+    let gp=(cr2+cr1)*gpen*gyears*gprice/1000, sp=(flpool+rrpool)*spen*syears*sprice/1000;
+    if(ra){gp*=pG;sp*=pS;}
+    const EV=(gp+sp)*mult+platform*1000; evs.push(EV/1000); pss.push(EV/shares);
+  }
+  const over10=100*evs.filter(v=>v>10).length/N;
+  $("mcValStatus").textContent=N.toLocaleString()+" draws"+(ra?" (risk-adjusted)":" (unadjusted)");
+  $("mcValStats").innerHTML="median EV <b>$"+qtl(evs,.5).toFixed(1)+"B</b> (90% CrI $"+qtl(evs,.05).toFixed(1)+"–$"+qtl(evs,.95).toFixed(1)+"B) &nbsp;·&nbsp; median <b>$"+qtl(pss,.5).toFixed(0)+"/share</b> ($"+qtl(pss,.05).toFixed(0)+"–$"+qtl(pss,.95).toFixed(0)+") &nbsp;·&nbsp; P(EV &gt; $10B) <b>"+over10.toFixed(0)+"%</b>";
+  const hi=Math.max(10,Math.min(70,Math.ceil(qtl(evs,.97)/5)*5));
+  drawHist("mcValHist",evs,0,hi,hi/24,null,true);
+}
+$("mcValRun").addEventListener("click",function(){$("mcValStatus").textContent="running…";setTimeout(mcVal,20);});
+["v_pgps","v_psls"].forEach(id=>$(id).addEventListener("input",function(){$("v_vpgps").textContent=$("v_pgps").value+"%";$("v_vpsls").textContent=$("v_psls").value+"%";}));
+
+// ================= TAB 4 : EXPLAIN =================
+var curLvl="eli5";
+const EXPL={
+ eli5:"<h3>The super-simple version</h3>"+
+  "<p><b>GPS (the vaccine).</b> AML is a blood cancer that often comes back. GPS is like a training video for your body's tiny soldiers (immune cells), teaching them to spot and attack the cancer so it can't return. Doctors gave GPS to half the patients and the normal medicine to the other half, then counted who is still here. The company told us the <i>total</i> number of people who have passed away at three dates: 60, then 72, then 78. We use those numbers like clues in a detective game to guess how well GPS is working. But we're not allowed to peek at who got which medicine, so we can only guess a <b>range</b>, not the exact answer.</p>"+
+  "<p><b>SLS-009 (the helper pill).</b> Sometimes cancer stops listening to its medicine. SLS-009 is a pill that helps the medicine work again. In a small test, people who took it lived about 9 months instead of about 2½ — much longer.</p>"+
+  "<p><b>How much is the company worth?</b> When a medicine helps people live longer, more people are taking it at the same time (they don't leave), so it can make more money. A big company might buy SELLAS. We do the money math to guess how big that could be.</p>"+
+  "<p><b>Where the facts come from:</b> the company's official announcements and real doctors' research papers — nothing made up.</p>",
+ ms:"<h3>A bit more detail (middle school)</h3>"+
+  "<p><b>The GPS trial (REGAL).</b> 127 patients were split randomly into two equal groups — one gets GPS (a cancer vaccine), one gets the usual 'best available therapy.' It's a fair coin flip, and doctors track how long people live. The trial ends after 80 patients have died (78 so far, as of May 2026). The company shares the running total but keeps <i>which group</i> each person is in secret until the end. That secrecy is called <b>blinding</b>, and it keeps the test honest. Because the groups are hidden, our model can't know exactly how the deaths split, so we try thousands of possibilities and keep the ones that match the real counts (60/72/78).</p>"+
+  "<p><b>The key number.</b> The 'hazard ratio' is basically how much lower your chance of dying is if you got GPS. Lower = better. The trial 'wins' if it's under 0.636.</p>"+
+  "<p><b>SLS-009.</b> A different drug — a pill — for patients whose cancer came back. They lived about 8.9 months vs about 2.5 with the old approach.</p>"+
+  "<p><b>Money.</b> Value ≈ how much the drugs could sell each year × a number buyers pay (about 4–8×), plus extra for the wider technology.</p>"+
+  "<p>Sources: SELLAS press releases, the trial-design paper (Jamy &amp; Cicic 2025), and medical journals — all linked in the other tabs.</p>",
+ hs:"<h3>High-school level</h3>"+
+  "<p><b>Survival &amp; the hazard ratio.</b> Doctors draw survival curves — the % of each group still alive over time. <b>Median</b> survival is when half have died. The <b>hazard ratio (HR)</b> compares death rates: HR 0.5 means GPS patients die at half the rate. REGAL is positive if HR &lt; 0.636.</p>"+
+  "<p><b>The clever part — and the catch.</b> SELLAS reports the <i>total</i> deaths (60/72/78) but not the split by group. A total tells you about both groups <i>combined</i>, not the difference between them — so many different 'GPS-vs-control' realities give the same totals. That's why our answer is a <b>range</b>, and why we run a <b>Monte Carlo</b>: try thousands of random scenarios, keep the ones matching 60/72/78.</p>"+
+  "<p><b>The interim peek.</b> At 60 deaths a safety committee looked (unblinded) and said 'keep going.' If GPS were spectacular they could have stopped early for success — they didn't, which hints GPS isn't <i>ludicrously</i> strong (its HR wasn't below ~0.55 at that point).</p>"+
+  "<p><b>SLS-009.</b> A single-arm study (everyone gets it) compared to a historical benchmark: 8.9 vs 2.5 months ≈ a 3.6× jump.</p>"+
+  "<p><b>Valuation.</b> Peak yearly sales = new patients/yr × how many use it × years on it × price. Longer survival → more years on the drug → bigger sales. Company value ≈ peak sales × ~5 + platform value.</p>"+
+  "<p>Facts: SELLAS PRs; VIALE-A (NEJM 2020) for the AML standard of care; SEER for cancer statistics.</p>",
+ col:"<h3>College level</h3>"+
+  "<p><b>Design.</b> REGAL: 1:1 randomized, event-driven overall-survival trial (N=127), AML in second remission, transplant-ineligible. Primary endpoint OS, stratified Cox/log-rank at 80 deaths; win = HR &lt; 0.636 (one-sided α=0.025). Source: <a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/' target='_blank'>Jamy &amp; Cicic, Future Oncol 2025</a>; <a href='https://clinicaltrials.gov/study/NCT04229979' target='_blank'>ClinicalTrials.gov</a>.</p>"+
+  "<p><b>The identifiability problem.</b> SELLAS is blinded; 60/72/78 are <i>pooled</i> event counts. A pooled count constrains the <i>blend</i> of the arms, not the split — so the arm-level HR is not identifiable from public data. You can fit the same counts with 'strong GPS' or with a 'healthy, heterogeneous control.' Hence a distribution, not a point.</p>"+
+  "<p><b>Monte Carlo.</b> Put prior ranges on survival parameters, simulate, weight each scenario by how well it reproduces the exact counts (a Poisson likelihood on the death increments — approximate Bayesian computation), and fold in the interim 'no early stop.'</p>"+
+  "<p><b>Interim boundary.</b> O'Brien-Fleming spending → the early-stop bar was ~HR 0.55; they didn't stop, so the observed interim HR was above that. Check it with Schoenfeld: 90% power at HR 0.636 needs ~205 events, so 0.636 at 80 events is only the ~50%-power detection bar — not the expected effect.</p>"+
+  "<p><b>SLS-009.</b> Single-arm Phase 2 (+Aza/Ven) vs a ~2.5-mo historical benchmark; 8.9-mo mOS, ORR 46–58%. We also model a hypothetical randomized frontline Phase 3 vs Aza/Ven (VIALE-A 14.7 mo).</p>"+
+  "<p><b>Valuation.</b> Steady-state treated prevalence = incidence × penetration × mean duration; peak revenue = prevalence × price; EV = peak × multiple + platform, risk-adjusted by P(approval). AML incidence ~20,800/yr (<a href='https://seer.cancer.gov/statfacts/html/amyl.html' target='_blank'>SEER</a>).</p>",
+ pro:"<h3>Professional (biotech / buy-side)</h3>"+
+  "<p><b>REGAL.</b> Event-driven OS, N=127, 1:1, 80-death final, one interim at 60 deaths under Lan-DeMets O'Brien-Fleming spending, stratified unweighted Cox/log-rank primary, α=0.025 one-sided, HR&lt;0.636 to win. Design paper, verbatim: <i>'A Lan-DeMets alpha spending function of O'Brien-Fleming type will be used…'</i> (<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/' target='_blank'>Jamy &amp; Cicic 2025</a>). Per Schoenfeld, 0.636 is the ~50%-power MDE; the ~90%-power alternative is ~0.48.</p>"+
+  "<p><b>Why a range, not a point.</b> 60/72/78 are blinded pooled events ⇒ the arm split is non-identifiable. Our ABC posterior samples survival priors (mixture-cure GPS ± delay, Weibull-or-exponential BAT ± long-survivor fraction, ITT transplant tail, censoring), weights by the Poisson likelihood of the increments (60, +12, +6, still &lt;80), and soft-conditions on the interim non-stop (weight = P(continue); win = conditional power via Brownian-motion correlation √(t₁/t₂)) — power-neutral, banks early wins. Significance = proper stratified log-rank score (NPH-penalized; Fleming-Harrington toggle). Independent corroboration of high pooled survival: the Nov-2022 PR — <i>'…approximately two-fold longer than originally anticipated.'</i></p>"+
+  "<p><b>Where it lands.</b> Neutral priors → median HR ~0.57, P(win) ~50% (binding interim) to ~78% (non-binding). The biological BAT-tail ceiling (Kurosawa 3-yr OS ~14%) nudges toward a win, but lead-time selection and the event-fit push BAT's tail up — a strong-favorite coin, not a lock.</p>"+
+  "<p><b>SLS-009.</b> Selective CDK9 inhibitor; single-arm Ph2 + Aza/Ven in post-Ven r/r AML-MR: ORR 46–58%, mOS 8.9 vs ~2.5 historical, ASXL1 sensitivity. Frontline (vs Aza/Ven, VIALE-A 14.7 mo) is the value driver.</p>"+
+  "<p><b>Valuation.</b> Prevalence = starts × penetration × duration; peak = prevalence × price; EV = Σ peak × multiple (4–8× onc) + risk-adjusted platform; risk-adjust each engine by P(approval). Venclexta ($2.6B '24) is the AML-combo comp; Onureg's modest uptake is the cautionary maintenance comp.</p>",
+ phd:"<h3>PhD — no sugar</h3>"+
+  "<p><b>Estimand &amp; identifiability.</b> Target = arm-specific S_j(t) and the stratified-Cox HR at the 80-event analysis. Public data = pooled counts N_D(t), t∈{m46,m58,m63,m65}, plus the interim continuation decision. N_D is a functional of ½(S₁+S₀); the map (S₁,S₀)↦N_D is many-to-one ⇒ the split is non-identified. Any point estimate imports a structural/prior constraint; we report a posterior over the HR.</p>"+
+  "<p><b>Likelihood &amp; interim.</b> Increments ≈ Poisson: ΔD_k~Pois(λ_k), λ_k=ΔE[N_D]; the m65 term is P(ΔD≤1). Continuation multiplies by Φ(z_eff−θ_IA)−Φ(z_fut−θ_IA); success = conditional power ∫φ(z−θ_IA)Φ((θ₈₀+ρ(z−θ_IA)−z_f)/√(1−ρ²))dz over the continue region, ρ=√(D_IA/D_F) (canonical GS Brownian correlation; Jennison-Turnbull 2000; Proschan-Hunsberger 1995). Log-rank drift θ=Σw(O−E)/√(Σw²V)·√η, w=1 (LR) or (1−Ŝ_pool) (FH(0,1); Fleming-Harrington 1991); η = stratification efficiency.</p>"+
+  "<p><b>The Bayes-factor critique (uhdisj41) is correct.</b> A large BF needs a discriminating alternative; against a no-cure null it is inflated, but the counts cannot discriminate a GPS-cure model from a heterogeneous-BAT long-tail model along the ridge, so BF↓~1. A cure structure that assigns the durable stratum to arm 1 is a modelling choice, not data. The interim non-crossing (OBF Z_eff≈2.34 ⇒ observed IA HR≳0.55) truncates the ultra-low-HR mass. Lead-time/left-truncation (Suissa 2008) inflates the from-randomization median vs from-CR2 but is HR-invariant.</p>"+
+  "<p><b>Posterior.</b> Neutral priors: median HR≈0.57, P(win)≈0.50 (binding)/0.78 (non-binding); ≈2/3 folding a biological BAT-tail ceiling — consistent with uhdisj41's independent ~0.66, below CW's ≥0.9.</p>"+
+  "<p><b>Refs:</b> Cox 1972; Schoenfeld 1981/83; O'Brien &amp; Fleming 1979; Lan &amp; DeMets 1983; Uno 2014 (RMST); Boag 1949 (cure); Kurosawa 2010 (Haematologica); DiNardo 2020 (VIALE-A, NEJM). Full lists in each tab's References.</p>"
+};
+function showLevel(l){curLvl=l;document.querySelectorAll(".lvlb").forEach(b=>b.classList.toggle("active",b.dataset.lvl===l));$("explbody").innerHTML=EXPL[l]||"";}
+document.querySelectorAll(".lvlb").forEach(b=>b.onclick=()=>showLevel(b.dataset.lvl));
+showLevel("eli5");
+
+buildBands2();renderSLS();renderVal();
+</script>
+</body>
+</html>
