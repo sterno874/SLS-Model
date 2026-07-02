@@ -38,8 +38,11 @@
   .disabled{opacity:.4;pointer-events:none}
   .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
   .pgrp{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:6px 0 3px}
-  button.p{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer}
+  .pgrp-hint{font-size:11px;color:var(--muted);margin:-2px 0 8px;line-height:1.45}
+  button.p{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer;text-align:left;line-height:1.35}
   button.p:hover{border-color:var(--accent);color:var(--accent)}
+  button.p.p-def{border-color:var(--accent);background:#eef3fe;font-weight:700}
+  button.p .p-sub{display:block;font-size:10px;font-weight:400;color:var(--muted);margin-top:2px}
   .chk{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;margin:8px 0 12px;padding:8px;background:#eef3fe;border-radius:8px}
   canvas{width:100%;height:auto;display:block}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
@@ -122,17 +125,25 @@
     <h2>Scenario controls</h2>
 
     <div class="pgrp">Core cases</div>
+    <div class="pgrp-hint">Start with <b>Best Available Guess</b> — neutral priors + public data, not marketing optimism.</div>
     <div class="presets">
-      <button class="p" data-preset="base">Base (likely)</button>
-      <button class="p" data-preset="bull">Bull / DD cure</button>
-      <button class="p" data-preset="bear">Bear (near-miss)</button>
+      <button class="p p-def" data-preset="best" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess<span class="p-sub">Neutral · binding IA · ~50% P(win)</span></button>
+      <button class="p" data-preset="bear" title="Near-threshold miss: inflated BAT tail, minimal GPS cure — HR ~0.55–0.65 zone.">Bear (near-miss)<span class="p-sub">Conservative efficacy read</span></button>
+      <button class="p" data-preset="bull" title="Bullish DD cure case: high GPS plateau, low BAT tail, no delay — optimistic but fits events.">Bull / DD cure<span class="p-sub">Optimistic efficacy</span></button>
+      <button class="p" data-preset="critique" title="Independent critique view: modest GPS benefit + biological BAT-tail ceiling — ~⅔ P(win).">Critique (~⅔)<span class="p-sub">Modest GPS · BAT-tail ceiling</span></button>
+    </div>
+    <div class="pgrp">Interim-assumption variants</div>
+    <div class="presets">
+      <button class="p" data-preset="bind" title="Same survival as Best Available Guess with binding efficacy interim enforced — ~50% P(win).">Binding interim (~50%)<span class="p-sub">Registrational default</span></button>
+      <button class="p" data-preset="nonbind" title="Same survival priors but non-binding interim — informational IA only, ~78% P(win).">Non-binding (~78%)<span class="p-sub">Informational IA only</span></button>
+      <button class="p" data-preset="cw" title="Confident Web DD framing: high GPS cure, DD auto-fit, non-binding interim — ~85%+ P(win).">Confident Web (~85%)<span class="p-sub">Community DD optimistic</span></button>
     </div>
     <div class="pgrp">Special / edge cases</div>
     <div class="presets">
-      <button class="p" data-preset="noeffect">No effect (fits too!)</button>
-      <button class="p" data-preset="fail">What failure needs</button>
-      <button class="p" data-preset="delay">Vaccine delay 4m</button>
-      <button class="p" data-preset="backload">Backloaded enroll</button>
+      <button class="p" data-preset="noeffect" title="Null effect with shared ~25–30% long-survivor tail — still fits 60/72/78 (identifiability ridge).">No effect (fits too!)<span class="p-sub">HR≈1 · shared tail</span></button>
+      <button class="p" data-preset="fail" title="What a losing readout needs: high BAT tail + weak GPS separation.">What failure needs<span class="p-sub">HR &gt; 0.636</span></button>
+      <button class="p" data-preset="delay" title="4-month GPS onset delay — late separation penalized under standard log-rank.">Vaccine delay 4m<span class="p-sub">Late GPS effect</span></button>
+      <button class="p" data-preset="backload" title="Back-loaded enrollment shifts event timing — sensitivity check.">Backloaded enroll<span class="p-sub">Enrollment shape</span></button>
     </div>
 
     <div class="bandkey">
@@ -145,43 +156,43 @@
     <label class="chk"><input type="checkbox" id="autofit"/> Auto-fit GPS cure fraction to hit 72 events @ m58 (the DD's "1 degree of freedom" method)</label>
 
     <div class="ctrl">
-      <label>BAT median — excl. long-survivors <span id="vBat">9.0 m</span></label>
-      <input type="range" id="bat" min="6" max="20" step="0.5" value="9"/>
+      <label>BAT median — excl. long-survivors <span id="vBat">10.0 m</span></label>
+      <input type="range" id="bat" min="6" max="20" step="0.5" value="10"/>
       <div class="bands" id="band-bat"></div>
       <small>Median of the non-tail component. The TRUE BAT arm median (incl. the long-survivor fraction) is shown at right and is higher when that slider is &gt;0. Historical CR2: ~6–11m.</small>
     </div>
 
     <div class="ctrl">
-      <label>BAT long-survivor fraction <span id="vBatc">12%</span></label>
-      <input type="range" id="batc" min="0" max="30" step="1" value="12"/>
+      <label>BAT long-survivor fraction <span id="vBatc">14%</span></label>
+      <input type="range" id="batc" min="0" max="30" step="1" value="14"/>
       <div class="bands" id="band-batc"></div>
       <small>Favorable-risk BAT patients who survive years. Published CR2: ~5–15%. This is the main "escape hatch" toward a losing HR.</small>
     </div>
 
     <div class="ctrl" id="gpscWrap">
-      <label>GPS cure fraction <span id="vGpsc">28%</span></label>
-      <input type="range" id="gpsc" min="0" max="75" step="1" value="28"/>
+      <label>GPS cure fraction <span id="vGpsc">22%</span></label>
+      <input type="range" id="gpsc" min="0" max="75" step="1" value="22"/>
       <div class="bands" id="band-gpsc"></div>
       <small>GPS patients on a permanent plateau. Highly uncertain — Phase 2 CR2 showed 0% plateau; Phase 2 CR1 showed ~47%.</small>
     </div>
 
     <div class="ctrl">
-      <label>GPS uncured median OS <span id="vGpsu">40.0 m</span></label>
-      <input type="range" id="gpsu" min="6" max="40" step="0.5" value="40"/>
+      <label>GPS uncured median OS <span id="vGpsu">32.0 m</span></label>
+      <input type="range" id="gpsu" min="6" max="40" step="0.5" value="32"/>
       <div class="bands" id="band-gpsu"></div>
       <small>Survival of non-cured GPS patients. Phase 2 CR2 whole-arm was 21m. Note: the m63 data pulls this to the high end.</small>
     </div>
 
     <div class="ctrl">
-      <label>GPS onset delay <span id="vDelay">1.0 m</span></label>
-      <input type="range" id="delay" min="0" max="6" step="0.5" value="1"/>
+      <label>GPS onset delay <span id="vDelay">1.5 m</span></label>
+      <input type="range" id="delay" min="0" max="6" step="0.5" value="1.5"/>
       <div class="bands" id="band-delay"></div>
       <small>Months before GPS separates from BAT (immune ramp-up).</small>
     </div>
 
     <div class="ctrl">
-      <label>Transplant after enrollment <span id="vXtx">0%</span></label>
-      <input type="range" id="xtx" min="0" max="25" step="1" value="0"/>
+      <label>Transplant after enrollment <span id="vXtx">6%</span></label>
+      <input type="range" id="xtx" min="0" max="25" step="1" value="6"/>
       <div class="bands" id="band-xtx"></div>
       <small>% of EACH arm transplanted post-enrollment (eligibility is judged only at entry, so this is allowed). Transplanted CR2 patients get ~45% long-term survival — a shared tail that lifts both arms and shrinks the GPS gap.</small>
     </div>
@@ -193,8 +204,8 @@
     </div>
 
     <div class="ctrl">
-      <label>Censoring / dropout <span id="vCens">0%</span></label>
-      <input type="range" id="cens" min="0" max="30" step="1" value="0"/>
+      <label>Censoring / dropout <span id="vCens">12%</span></label>
+      <input type="range" id="cens" min="0" max="30" step="1" value="12"/>
       <div class="bands" id="band-cens"></div>
       <small>Lost-to-follow-up before an event → fewer observed events, so true survival is worse than the counts imply (optimistic-bias correction). Phase 2 GPS ~15%. Differential dropout by arm would bias HR — not captured.</small>
     </div>
@@ -382,21 +393,22 @@
     <div class="card">
       <div class="bandkey"><span class="swatch" style="background:rgba(47,111,237,.55)"></span><b>Blue</b> = prior plausibility (1σ→3σ). <span class="swatch" style="background:repeating-linear-gradient(45deg,rgba(214,69,69,.4),rgba(214,69,69,.4) 2px,rgba(214,69,69,.15) 2px,rgba(214,69,69,.15) 4px)"></span><b>Red</b> = biologically implausible. <b>◆</b> = reported/anchor value. Hover a band for the source.</div>
       <div class="pgrp">Scenarios</div>
+      <div class="pgrp-hint">Observed = exact Ph2 anchors (ASH 2025). Best Available Guess = reported data with conservative benchmark drift adjustment.</div>
       <div class="presets">
-        <button class="p" data-sls="obs">Observed (Ph2)</button>
-        <button class="p" data-sls="bear">Bear</button>
-        <button class="p" data-sls="bull">Bull (frontline)</button>
-        <button class="p" data-sls="base">Base</button>
+        <button class="p p-def" data-sls="best" title="Reported Ph2 OS/ORR with ~2.8m benchmark (drift-adjusted post-Ven) and modest frontline uplift — honest central case.">Best Available Guess<span class="p-sub">Reported · drift-adjusted bench</span></button>
+        <button class="p" data-sls="obs" title="Exact ASH 2025 anchors: 8.9m OS, 46% ORR, 2.5m benchmark — no adjustment for selection/immortal time.">Observed (Ph2)<span class="p-sub">ASH 2025 anchors only</span></button>
+        <button class="p" data-sls="bear" title="Discount for single-arm selection, immortal time, and optimistic historical-control drift.">Bear<span class="p-sub">Selection &amp; drift haircut</span></button>
+        <button class="p" data-sls="bull" title="Frontline option-value case: strong r/r + optimistic Ph3 frontline projections.">Bull (frontline)<span class="p-sub">Commercial upside</span></button>
       </div>
       <h2 style="margin-top:10px">Relapsed / refractory AML-MR (Phase 2)</h2>
       <div class="ctrl"><label>SLS-009+AZA/VEN median OS <span id="v_slsos">8.9 m</span></label><input type="range" id="sls_os" min="4" max="16" step="0.1" value="8.9"><div class="bands" id="band2-sls_os"></div><small>Anchor 8.9m (least-pretreated Ph2). Source: SELLAS Dec-2024 PR &amp; ASH 2025.</small></div>
-      <div class="ctrl"><label>Historical post-venetoclax benchmark OS <span id="v_slsbench">2.5 m</span></label><input type="range" id="sls_bench" min="1.5" max="6" step="0.1" value="2.5"><div class="bands" id="band2-sls_bench"></div><small>~2.5m post-Ven-failure. Red &gt;4.5m (rarely exceeded). Source: post-venetoclax-failure literature (Maiti/DiNardo); SELLAS benchmark.</small></div>
+      <div class="ctrl"><label>Historical post-venetoclax benchmark OS <span id="v_slsbench">2.8 m</span></label><input type="range" id="sls_bench" min="1.5" max="6" step="0.1" value="2.8"><div class="bands" id="band2-sls_bench"></div><small>~2.5m post-Ven-failure (reported); 2.8m drift-adjusted central case. Red &gt;4.5m (rarely exceeded). Source: post-venetoclax-failure literature (Maiti/DiNardo); SELLAS benchmark.</small></div>
       <div class="ctrl"><label>Overall response rate (ORR) <span id="v_slsorr">46 %</span></label><input type="range" id="sls_orr" min="20" max="70" step="1" value="46"><div class="bands" id="band2-sls_orr"></div><small>46% all / 58% 1 prior line. Source: SELLAS ASH 2024/2025.</small></div>
       <h2 style="margin-top:16px">Frontline (newly diagnosed) — Phase 2b → 3</h2>
       <div class="ctrl"><label>Aza/Ven baseline mOS <span id="v_flbase">14.7 m</span></label><input type="range" id="fl_base" min="10" max="20" step="0.1" value="14.7"><div class="bands" id="band2-fl_base"></div><small>◆14.7m known. Source: DiNardo VIALE-A, NEJM 2020.</small></div>
-      <div class="ctrl"><label>+SLS-009 frontline mOS (projected) <span id="v_flsls">22 m</span></label><input type="range" id="fl_sls" min="14" max="30" step="0.5" value="22"><div class="bands" id="band2-fl_sls"></div><small>Projection. Red &gt;28m. Source: SELLAS / Confident Web estimate.</small></div>
+      <div class="ctrl"><label>+SLS-009 frontline mOS (projected) <span id="v_flsls">20 m</span></label><input type="range" id="fl_sls" min="14" max="30" step="0.5" value="20"><div class="bands" id="band2-fl_sls"></div><small>Projection. Red &gt;28m. Source: SELLAS / Confident Web estimate.</small></div>
       <div class="ctrl"><label>TP53-mut Aza/Ven baseline <span id="v_tpbase">5.3 m</span></label><input type="range" id="tp_base" min="3" max="8" step="0.1" value="5.3"><div class="bands" id="band2-tp_base"></div><small>◆~5.3m. Source: VIALE-A TP53 subgroup.</small></div>
-      <div class="ctrl"><label>TP53-mut +SLS-009 (projected) <span id="v_tpsls">15 m</span></label><input type="range" id="tp_sls" min="8" max="20" step="0.5" value="15"><div class="bands" id="band2-tp_sls"></div><small>Projection. Source: SELLAS / Confident Web estimate.</small></div>
+      <div class="ctrl"><label>TP53-mut +SLS-009 (projected) <span id="v_tpsls">13 m</span></label><input type="range" id="tp_sls" min="8" max="20" step="0.5" value="13"><div class="bands" id="band2-tp_sls"></div><small>Projection. Source: SELLAS / Confident Web estimate.</small></div>
     </div>
     <div class="card">
       <h2>SLS-009 vs historical benchmark (r/r)</h2>
@@ -461,28 +473,29 @@
     <div class="card">
       <div class="bandkey"><span class="swatch" style="background:rgba(47,111,237,.55)"></span><b>Blue</b> = plausible range (1σ→3σ from comps/literature). <span class="swatch" style="background:repeating-linear-gradient(45deg,rgba(214,69,69,.4),rgba(214,69,69,.4) 2px,rgba(214,69,69,.15) 2px,rgba(214,69,69,.15) 4px)"></span><b>Red</b> = aggressive/hard to defend. Hover a band for its source.</div>
       <div class="pgrp">Buyout scenarios</div>
+      <div class="pgrp-hint">Risk-adjusted peak sales × multiple. Best Available Guess = moderate penetration with Onureg/Gilead-Forty Seven caution baked in.</div>
       <div class="presets">
-        <button class="p" data-val="cons">Conservative</button>
-        <button class="p" data-val="base">Base</button>
-        <button class="p" data-val="bull">Bull</button>
-        <button class="p" data-val="cw">Confident Web</button>
+        <button class="p p-def" data-val="best" title="Moderate penetration, maintenance-AML caution (Onureg), pre-approval discount — central buyout case.">Best Available Guess<span class="p-sub">Risk-adjusted · 5× multiple</span></button>
+        <button class="p" data-val="cons" title="Low penetration, shorter duration, 4× multiple — GPS fails or modest uptake.">Conservative<span class="p-sub">Fail / modest uptake</span></button>
+        <button class="p" data-val="bull" title="Strong uptake in both engines, 7× multiple — both assets succeed commercially.">Bull<span class="p-sub">Blockbuster upside</span></button>
+        <button class="p" data-val="cw" title="Confident Web DD TAM/penetration — optimistic but below prior max assumptions.">Confident Web<span class="p-sub">Community DD optimistic</span></button>
       </div>
       <h2 style="margin-top:10px">GPS engine (AML CR2 + CR1 maintenance)</h2>
-      <div class="ctrl"><label>New CR2, transplant-ineligible / yr (US) <span id="vv_cr2">3,000</span></label><input type="range" id="v_cr2" min="1000" max="6000" step="100" value="3000"><div class="bands" id="band2-v_cr2"></div><small>Confident Web est. (US). Source: derived from SEER AML incidence ~20.8K/yr.</small></div>
-      <div class="ctrl"><label>New CR1, transplant-ineligible / yr (US) <span id="vv_cr1">6,000</span></label><input type="range" id="v_cr1" min="2000" max="12000" step="250" value="6000"><div class="bands" id="band2-v_cr1"></div><small>Confident Web est. Source: SEER/ACS incidence; &gt;60% relapse.</small></div>
-      <div class="ctrl"><label>Penetration <span id="vv_gpen">50 %</span></label><input type="range" id="v_gpen" min="10" max="80" step="1" value="50"><div class="bands" id="band2-v_gpen"></div><small>Monopoly maintenance → high. Red &gt;70%. Source: assumption.</small></div>
-      <div class="ctrl"><label>Annual price / patient <span id="vv_gprice">$150 K</span></label><input type="range" id="v_gprice" min="100" max="300" step="5" value="150"><div class="bands" id="band2-v_gprice"></div><small>Orphan-oncology range. Source: US oncology pricing comps.</small></div>
-      <div class="ctrl"><label>Avg years on therapy (↑ with survival) <span id="vv_gyears">3.0 yr</span></label><input type="range" id="v_gyears" min="1" max="5" step="0.1" value="3"><div class="bands" id="band2-v_gyears"></div><small>Prevalence driver. Ties to GPS survival (Tab 1). Source: derived.</small></div>
+      <div class="ctrl"><label>New CR2, transplant-ineligible / yr (US) <span id="vv_cr2">2,800</span></label><input type="range" id="v_cr2" min="1000" max="6000" step="100" value="2800"><div class="bands" id="band2-v_cr2"></div><small>Confident Web est. (US). Source: derived from SEER AML incidence ~20.8K/yr.</small></div>
+      <div class="ctrl"><label>New CR1, transplant-ineligible / yr (US) <span id="vv_cr1">5,500</span></label><input type="range" id="v_cr1" min="2000" max="12000" step="250" value="5500"><div class="bands" id="band2-v_cr1"></div><small>Confident Web est. Source: SEER/ACS incidence; &gt;60% relapse.</small></div>
+      <div class="ctrl"><label>Penetration <span id="vv_gpen">45 %</span></label><input type="range" id="v_gpen" min="10" max="80" step="1" value="45"><div class="bands" id="band2-v_gpen"></div><small>Monopoly maintenance → high. Red &gt;70%. Source: assumption.</small></div>
+      <div class="ctrl"><label>Annual price / patient <span id="vv_gprice">$145 K</span></label><input type="range" id="v_gprice" min="100" max="300" step="5" value="145"><div class="bands" id="band2-v_gprice"></div><small>Orphan-oncology range. Source: US oncology pricing comps.</small></div>
+      <div class="ctrl"><label>Avg years on therapy (↑ with survival) <span id="vv_gyears">2.8 yr</span></label><input type="range" id="v_gyears" min="1" max="5" step="0.1" value="2.8"><div class="bands" id="band2-v_gyears"></div><small>Prevalence driver. Ties to GPS survival (Tab 1). Source: derived.</small></div>
       <h2 style="margin-top:16px">SLS-009 engine (frontline + r/r AML)</h2>
-      <div class="ctrl"><label>Frontline addressable / yr (US) <span id="vv_flpool">10,000</span></label><input type="range" id="v_flpool" min="5000" max="15000" step="250" value="10000"><div class="bands" id="band2-v_flpool"></div><small>Unfit newly-dx AML on Ven+Aza. Source: SEER-derived.</small></div>
-      <div class="ctrl"><label>r/r addressable / yr (US) <span id="vv_rrpool">4,000</span></label><input type="range" id="v_rrpool" min="2000" max="8000" step="250" value="4000"><div class="bands" id="band2-v_rrpool"></div><small>Post-Ven r/r AML-MR. Source: SEER-derived; &gt;60% relapse.</small></div>
-      <div class="ctrl"><label>Penetration <span id="vv_spen">40 %</span></label><input type="range" id="v_spen" min="10" max="70" step="1" value="40"><div class="bands" id="band2-v_spen"></div><small>Add-on to standard of care. Source: assumption.</small></div>
-      <div class="ctrl"><label>Annual price / patient <span id="vv_sprice">$150 K</span></label><input type="range" id="v_sprice" min="100" max="300" step="5" value="150"><div class="bands" id="band2-v_sprice"></div><small>Source: US oncology pricing comps.</small></div>
-      <div class="ctrl"><label>Avg years on therapy <span id="vv_syears">1.5 yr</span></label><input type="range" id="v_syears" min="0.7" max="3" step="0.1" value="1.5"><div class="bands" id="band2-v_syears"></div><small>Shorter than GPS (active disease). Source: derived.</small></div>
+      <div class="ctrl"><label>Frontline addressable / yr (US) <span id="vv_flpool">9,000</span></label><input type="range" id="v_flpool" min="5000" max="15000" step="250" value="9000"><div class="bands" id="band2-v_flpool"></div><small>Unfit newly-dx AML on Ven+Aza. Source: SEER-derived.</small></div>
+      <div class="ctrl"><label>r/r addressable / yr (US) <span id="vv_rrpool">3,500</span></label><input type="range" id="v_rrpool" min="2000" max="8000" step="250" value="3500"><div class="bands" id="band2-v_rrpool"></div><small>Post-Ven r/r AML-MR. Source: SEER-derived; &gt;60% relapse.</small></div>
+      <div class="ctrl"><label>Penetration <span id="vv_spen">38 %</span></label><input type="range" id="v_spen" min="10" max="70" step="1" value="38"><div class="bands" id="band2-v_spen"></div><small>Add-on to standard of care. Source: assumption.</small></div>
+      <div class="ctrl"><label>Annual price / patient <span id="vv_sprice">$145 K</span></label><input type="range" id="v_sprice" min="100" max="300" step="5" value="145"><div class="bands" id="band2-v_sprice"></div><small>Source: US oncology pricing comps.</small></div>
+      <div class="ctrl"><label>Avg years on therapy <span id="vv_syears">1.4 yr</span></label><input type="range" id="v_syears" min="0.7" max="3" step="0.1" value="1.4"><div class="bands" id="band2-v_syears"></div><small>Shorter than GPS (active disease). Source: derived.</small></div>
       <h2 style="margin-top:16px">Platform &amp; valuation</h2>
-      <div class="ctrl"><label>Risk-adjusted WT1 platform value <span id="vv_platform">$3.0 B</span></label><input type="range" id="v_platform" min="0" max="15" step="0.5" value="3"><div class="bands" id="band2-v_platform"></div><small>Other WT1+ indications (early). Source: WT1 breadth — Cheever 2009 (NCI #1 antigen).</small></div>
+      <div class="ctrl"><label>Risk-adjusted WT1 platform value <span id="vv_platform">$2.5 B</span></label><input type="range" id="v_platform" min="0" max="15" step="0.5" value="2.5"><div class="bands" id="band2-v_platform"></div><small>Other WT1+ indications (early). Source: WT1 breadth — Cheever 2009 (NCI #1 antigen).</small></div>
       <div class="ctrl"><label>Multiple (× peak sales) <span id="vv_mult">5.0×</span></label><input type="range" id="v_mult" min="2" max="10" step="0.5" value="5"><div class="bands" id="band2-v_mult"></div><small>Oncology M&amp;A ~4–8× peak. Red &gt;8×. Source: biotech M&amp;A convention.</small></div>
-      <div class="ctrl"><label>Fully-diluted shares <span id="vv_shares">220 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="220"><div class="bands" id="band2-v_shares"></div><small>◆~217–225M incl. warrants. Source: SELLAS SEC filings.</small></div>
+      <div class="ctrl"><label>Fully-diluted shares <span id="vv_shares">222 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="222"><div class="bands" id="band2-v_shares"></div><small>◆~217–225M incl. warrants. Source: SELLAS SEC filings.</small></div>
     </div>
     <div class="card">
       <h2>Result</h2>
@@ -851,25 +864,30 @@ function renderMC(acc,tried){
 
 // ---------- presets (every slider set) ----------
 const P={
- base:    {bat:9, batc:12,gpsc:28,gpsu:40,delay:1,mid:25,k:0.15,auto:false},
- bull:    {bat:8, batc:6, gpsc:40,gpsu:36,delay:0,mid:25,k:0.15,auto:false},
- bear:    {bat:7, batc:28,gpsc:3, gpsu:38,delay:1,mid:25,k:0.15,auto:false},
- noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,mid:25,k:0.15,auto:false},
- fail:    {bat:10,batc:28,gpsc:28,gpsu:18,delay:0,mid:25,k:0.15,auto:false},
- delay:   {bat:10,batc:14,gpsc:40,gpsu:40,delay:4,mid:25,k:0.15,auto:false},
- backload:{bat:7, batc:10,gpsc:26,gpsu:40,delay:0,mid:30,k:0.22,auto:false}
+ best:    {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
+ bind:    {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
+ nonbind: {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:false},
+ critique:{bat:10, batc:16,gpsc:18,gpsu:34,delay:2,  mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
+ bull:    {bat:8,  batc:6, gpsc:40,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
+ bear:    {bat:11, batc:22,gpsc:5, gpsu:36,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
+ cw:      {bat:8,  batc:8, gpsc:42,gpsu:38,delay:0,  mid:25,k:0.15,auto:true, xtx:0,cens:0, mcFloor:false},
+ noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
+ fail:    {bat:10,batc:28,gpsc:28,gpsu:18,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
+ delay:   {bat:10,batc:14,gpsc:40,gpsu:40,delay:4,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
+ backload:{bat:7,  batc:10,gpsc:26,gpsu:40,delay:0,  mid:30,k:0.22,auto:false,xtx:0,cens:0, mcFloor:true}
 };
-document.querySelectorAll("button.p").forEach(b=>b.onclick=()=>{
-  const q=P[b.dataset.preset];
+function applyRegalPreset(q){
   $("bat").value=q.bat;$("batc").value=q.batc;$("gpsc").value=q.gpsc;$("gpsu").value=q.gpsu;
-  $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;$("autofit").checked=q.auto;
-  $("xtx").value=0;$("cens").value=0; // reset add-ons so preset fit is clean (method assumptions left as-is)
+  $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;$("autofit").checked=!!q.auto;
+  $("xtx").value=(q.xtx!=null)?q.xtx:0;$("cens").value=(q.cens!=null)?q.cens:0;
+  if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
   update();
-});
+}
+document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyRegalPreset(P[b.dataset.preset]));
 
 ["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit"].forEach(id=>$(id).addEventListener("input",update));
 $("mcRun").addEventListener("click",function(){$("mcRun").disabled=true;$("mcStatus").textContent="running…";setTimeout(function(){try{runMC();}finally{$("mcRun").disabled=false;}},30);});
-$("mcNeutral").addEventListener("click",function(){$("bat").value=10.5;$("batc").value=8;$("gpsc").value=25;$("gpsu").value=20;$("delay").value=2;$("xtx").value=6;$("cens").value=12;$("mid").value=25;$("k").value=0.15;$("autofit").checked=false;update();$("mcStatus").textContent="neutral priors set — click Run";});
+$("mcNeutral").addEventListener("click",function(){applyRegalPreset(P.best);$("mcStatus").textContent="Best Available Guess priors set — click Run";});
 buildBands();update();
 
 // ================= TABS & METHODOLOGY =================
@@ -969,17 +987,17 @@ function renderBands2(){CFG2.forEach(c=>{const m=$("mk2-"+c.id);if(m)m.style.lef
 
 // ---- Tab 2 / Tab 3 preset scenarios ----
 const SLSP={
- obs:{sls_os:8.9,sls_bench:2.5,sls_orr:46,fl_base:14.7,fl_sls:22,tp_base:5.3,tp_sls:15},
- bear:{sls_os:6,sls_bench:4,sls_orr:35,fl_base:14.7,fl_sls:17,tp_base:5.3,tp_sls:10},
- bull:{sls_os:12,sls_bench:2.2,sls_orr:58,fl_base:14.7,fl_sls:26,tp_base:5.3,tp_sls:17},
- base:{sls_os:8.9,sls_bench:2.8,sls_orr:50,fl_base:14.7,fl_sls:21,tp_base:5.3,tp_sls:14}
+ best:{sls_os:8.9,sls_bench:2.8,sls_orr:46,fl_base:14.7,fl_sls:20,tp_base:5.3,tp_sls:13},
+ obs: {sls_os:8.9,sls_bench:2.5,sls_orr:46,fl_base:14.7,fl_sls:22,tp_base:5.3,tp_sls:15},
+ bear:{sls_os:6.5,sls_bench:3.5,sls_orr:35,fl_base:14.7,fl_sls:17,tp_base:5.3,tp_sls:10},
+ bull:{sls_os:11, sls_bench:2.2,sls_orr:55,fl_base:14.7,fl_sls:24,tp_base:5.3,tp_sls:16}
 };
 document.querySelectorAll("button[data-sls]").forEach(b=>b.onclick=()=>{const q=SLSP[b.dataset.sls];for(const k in q)$(k).value=q[k];renderSLS();});
 const VALP={
- cons:{v_cr2:2000,v_cr1:4000,v_gpen:35,v_gprice:130,v_gyears:2,v_flpool:7000,v_rrpool:3000,v_spen:25,v_sprice:130,v_syears:1,v_platform:1,v_mult:4,v_shares:225},
- base:{v_cr2:3000,v_cr1:6000,v_gpen:50,v_gprice:150,v_gyears:3,v_flpool:10000,v_rrpool:4000,v_spen:40,v_sprice:150,v_syears:1.5,v_platform:3,v_mult:5,v_shares:220},
- bull:{v_cr2:4000,v_cr1:8000,v_gpen:65,v_gprice:200,v_gyears:4,v_flpool:12000,v_rrpool:5000,v_spen:55,v_sprice:200,v_syears:2,v_platform:6,v_mult:7,v_shares:218},
- cw:{v_cr2:3000,v_cr1:6000,v_gpen:65,v_gprice:170,v_gyears:3.5,v_flpool:12000,v_rrpool:5000,v_spen:50,v_sprice:170,v_syears:2,v_platform:5,v_mult:6,v_shares:220}
+ best:{v_cr2:2800,v_cr1:5500,v_gpen:45,v_gprice:145,v_gyears:2.8,v_flpool:9000,v_rrpool:3500,v_spen:38,v_sprice:145,v_syears:1.4,v_platform:2.5,v_mult:5,v_shares:222},
+ cons:{v_cr2:2000,v_cr1:4000,v_gpen:30,v_gprice:125,v_gyears:2.0,v_flpool:7000,v_rrpool:2800,v_spen:22,v_sprice:125,v_syears:1.0,v_platform:0.5,v_mult:4,v_shares:225},
+ bull:{v_cr2:3800,v_cr1:7500,v_gpen:58,v_gprice:185,v_gyears:3.5,v_flpool:11000,v_rrpool:4500,v_spen:50,v_sprice:175,v_syears:1.8,v_platform:4,v_mult:6.5,v_shares:218},
+ cw:  {v_cr2:3000,v_cr1:6000,v_gpen:58,v_gprice:165,v_gyears:3.2,v_flpool:11000,v_rrpool:4500,v_spen:45,v_sprice:165,v_syears:1.7,v_platform:4,v_mult:5.5,v_shares:220}
 };
 document.querySelectorAll("button[data-val]").forEach(b=>b.onclick=()=>{const q=VALP[b.dataset.val];for(const k in q)$(k).value=q[k];renderVal();});
 
