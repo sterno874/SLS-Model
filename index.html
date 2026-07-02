@@ -92,6 +92,17 @@
   .vrow input[type=range]{flex:1;max-width:200px;accent-color:var(--accent)}
   .vrow .vv{min-width:96px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
   .bignum{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums}
+  .modenav{display:flex;gap:6px;margin-bottom:12px}
+  .modebtn{flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);line-height:1.35}
+  .modebtn.active{color:var(--accent);border-color:var(--accent);background:#eef3fe}
+  .modebtn .m-sub{display:block;font-size:10px;font-weight:500;color:var(--muted);margin-top:2px}
+  .invbox{margin:0 0 14px;padding:10px 12px;border-radius:10px;border:1px solid #c9daf8;background:#eef3fe;font-size:12.5px;line-height:1.55}
+  .invbox b{color:var(--ink)}
+  .invout{margin:0 0 14px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;font-size:12.5px}
+  .invout .ik{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .invout .iv{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+  .invgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:8px}
+  .derived-tag{font-size:10px;padding:1px 6px;border-radius:8px;background:#e8f6ee;color:#12692f;margin-left:4px;font-weight:600}
 </style>
 </head>
 <body>
@@ -116,6 +127,8 @@
     HR via the Pike/O–E estimator. Significance via the proper <b>stratified log-rank score</b> <code>Z = (Σ w·(O−E))/√(Σ w²·V) · √(strat-efficiency)</code> computed from the curves — so a late-loaded effect is correctly penalized (unweighted <code>w=1</code>; Fleming-Harrington <code>w=1−S_pool</code>). Win = <code>Z ≥ 2.01</code> (the O'Brien-Fleming final boundary). Schoenfeld: 90% power at HR 0.636 needs ~205 events, so 0.636 at 80 events is the ~50%-power <em>bar</em>.
     <h4>3 · Monte-Carlo posterior</h4>
     Sample priors (slider = center, 1σ band = spread) → weight each draw by the <b>Poisson likelihood</b> of the observed event increments (60, +12, +6, still &lt;80) → for a binding efficacy interim, soft-condition on "no early stop" (weight = P(continue); win = conditional power via the Brownian-motion correlation √(t₁/t₂)) — power-neutral, banks early wins. P(win) = Σ(w·p_win)/Σ(w).
+    <h4>4 · CW inverse mode (Confident Web methodology)</h4>
+    The <b>forward</b> direction sets arm survival parameters and asks whether they reproduce the blinded event counts. <b>CW inverse</b> flips this: anchor the announced pooled events (60 @ m46, 72 @ m58, 78 @ m63, still &lt;80) and treat the <b>GPS cure fraction</b> as the primary structural assumption (long-tail survivors assigned to GPS). With BAT constrained by biology (3-yr OS cap ~15–18%, Kurosawa CR2 ~14%), the model <em>solves for</em> implied BAT median/tail and GPS uncured median — mOS and HR fall out. This mirrors u/Confident-Web-7118's DD framing (r/wallstreetbets, r/pennystocks): cure fraction drives, medians are derived. Still non-identifiable along the GPS-cure ↔ BAT-heterogeneity ridge — honest about that.
     <div style="color:var(--muted);margin-top:8px">Poke holes: the arm split is unidentifiable (blinded); priors do heavy lifting; the log-rank z is an expectation, not a patient-level resimulation; stratification/futility/test-weighting are undisclosed (adjustable). Full citations in References below.</div>
   </div>
 
@@ -124,7 +137,29 @@
   <div class="card">
     <h2>Scenario controls</h2>
 
-    <div class="pgrp">Core cases</div>
+    <div class="modenav">
+      <button type="button" class="modebtn active" id="modeForward" data-mode="forward">Forward model<span class="m-sub">Set mOS/tails → check events</span></button>
+      <button type="button" class="modebtn" id="modeInverse" data-mode="inverse">CW inverse<span class="m-sub">Fix events + cure → derive mOS</span></button>
+    </div>
+
+    <div class="invbox" id="invExplain" hidden>
+      <b>CW inverse methodology</b> (u/Confident-Web-7118 DD): anchor blinded pooled events at m46/m58/m63, set GPS cure fraction as the primary knob, cap BAT long-tail by biology (~15–18% 3-yr OS), and <b>solve for</b> implied BAT median, BAT tail, and GPS uncured median. Overall mOS and HR are derived outputs — not inputs. Structural assignment of durable survivors to GPS is a modeling choice, not proof. Non-binding interim assumed (CW framing). <a href="https://www.reddit.com/r/wallstreetbets/search/?q=Confident-Web-7118+SLS" target="_blank" rel="noopener">Reddit DD ↗</a>
+    </div>
+
+    <div id="invDerived" class="invout" hidden>
+      <div style="font-weight:700;margin-bottom:4px">Implied parameters <span class="derived-tag">derived</span></div>
+      <div class="invgrid">
+        <div><div class="ik">BAT median (excl. tail)</div><div class="iv bat" id="invBat">–</div></div>
+        <div><div class="ik">BAT long-survivor fraction</div><div class="iv bat" id="invBatc">–</div></div>
+        <div><div class="ik">GPS uncured median</div><div class="iv gps" id="invGpsu">–</div></div>
+        <div><div class="ik">Pooled median OS</div><div class="iv" id="invPool">–</div></div>
+        <div><div class="ik">Implied HR @ m58</div><div class="iv" id="invHR">–</div></div>
+        <div><div class="ik">Fit residual</div><div class="iv" id="invErr">–</div></div>
+      </div>
+      <div id="invStatus" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+    </div>
+
+    <div class="pgrp" id="presetLabel">Core cases</div>
     <div class="pgrp-hint">Start with <b>Best Available Guess</b> — neutral priors + public data, not marketing optimism.</div>
     <div class="presets">
       <button class="p p-def" data-preset="best" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess<span class="p-sub">Neutral · binding IA · ~50% P(win)</span></button>
@@ -133,37 +168,49 @@
       <button class="p" data-preset="critique" title="Independent critique view: modest GPS benefit + biological BAT-tail ceiling — ~⅔ P(win).">Critique (~⅔)<span class="p-sub">Modest GPS · BAT-tail ceiling</span></button>
     </div>
     <div class="pgrp">Interim-assumption variants</div>
-    <div class="presets">
+    <div class="presets" id="presetInterim">
       <button class="p" data-preset="bind" title="Same survival as Best Available Guess with binding efficacy interim enforced — ~50% P(win).">Binding interim (~50%)<span class="p-sub">Registrational default</span></button>
       <button class="p" data-preset="nonbind" title="Same survival priors but non-binding interim — informational IA only, ~78% P(win).">Non-binding (~78%)<span class="p-sub">Informational IA only</span></button>
       <button class="p" data-preset="cw" title="Confident Web DD framing: high GPS cure, DD auto-fit, non-binding interim — ~85%+ P(win).">Confident Web (~85%)<span class="p-sub">Community DD optimistic</span></button>
     </div>
-    <div class="pgrp">Special / edge cases</div>
-    <div class="presets">
-      <button class="p" data-preset="noeffect" title="Null effect with shared ~25–30% long-survivor tail — still fits 60/72/78 (identifiability ridge).">No effect (fits too!)<span class="p-sub">HR≈1 · shared tail</span></button>
+    <div class="pgrp" id="presetInvGrp" hidden>CW inverse presets</div>
+    <div class="presets" id="presetInv" hidden>
+      <button class="p p-def" data-inv="cw42" title="CW DD default: ~42% GPS cure, BAT capped at Kurosawa 3-yr OS, non-binding interim.">CW default (~42%)<span class="p-sub">DD optimistic · derive mOS</span></button>
+      <button class="p" data-inv="cw35" title="Moderate cure fraction — implied mOS closer to Phase 2 CR2.">Moderate cure (35%)<span class="p-sub">Mid-range tail</span></button>
+      <button class="p" data-inv="cw50" title="High cure — pushes implied BAT lower / GPS uncured higher.">High cure (50%)<span class="p-sub">Strong tail assignment</span></button>
+      <button class="p" data-inv="cwbind" title="Same CW cure but binding interim — lower P(win).">CW + binding IA<span class="p-sub">Conservative interim</span></button>
+    </div>
+    <div class="pgrp" id="presetEdgeLabel">Special / edge cases</div>
+    <div class="presets" id="presetEdge"> title="Null effect with shared ~25–30% long-survivor tail — still fits 60/72/78 (identifiability ridge).">No effect (fits too!)<span class="p-sub">HR≈1 · shared tail</span></button>
       <button class="p" data-preset="fail" title="What a losing readout needs: high BAT tail + weak GPS separation.">What failure needs<span class="p-sub">HR &gt; 0.636</span></button>
       <button class="p" data-preset="delay" title="4-month GPS onset delay — late separation penalized under standard log-rank.">Vaccine delay 4m<span class="p-sub">Late GPS effect</span></button>
       <button class="p" data-preset="backload" title="Back-loaded enrollment shifts event timing — sensitivity check.">Backloaded enroll<span class="p-sub">Enrollment shape</span></button>
     </div>
 
-    <div class="bandkey">
+    <div class="bandkey" id="bandkeyForward">
       <span class="swatch" style="background:rgba(47,111,237,.55)"></span><b>Upper strip</b> = prior plausibility from the literature (1σ darkest → 3σ lightest). <br>
       <span class="swatch" style="background:var(--data)"></span><b>Lower strip</b> = values that still fit the announced 60/72/78-event timeline, <em>given your other sliders</em>. Black tick = current value.<br>
       <span class="swatch" style="background:repeating-linear-gradient(45deg,rgba(214,69,69,.4),rgba(214,69,69,.4) 2px,rgba(214,69,69,.15) 2px,rgba(214,69,69,.15) 4px)"></span><b>Red hatch</b> = biologically <em>implausible</em> (no supporting dataset). Not marked "impossible" — biology has outliers, and transplant crossover can legitimately extend a tail.<br>
       <b style="color:var(--accent)">👆 Hover any band</b> for the reasoning + numbered sources (see References at the bottom).
     </div>
 
-    <label class="chk"><input type="checkbox" id="autofit"/> Auto-fit GPS cure fraction to hit 72 events @ m58 (the DD's "1 degree of freedom" method)</label>
+    <label class="chk" id="autofitWrap"><input type="checkbox" id="autofit"/> Auto-fit GPS cure fraction to hit 72 events @ m58 (the DD's "1 degree of freedom" method)</label>
 
-    <div class="ctrl">
-      <label>BAT median — excl. long-survivors <span id="vBat">10.0 m</span></label>
+    <div class="ctrl" id="invBatCapWrap" hidden>
+      <label>BAT 3-year OS cap (biology) <span id="vBatCap">17%</span></label>
+      <input type="range" id="batcap" min="12" max="22" step="1" value="17"/>
+      <small>CW constrains BAT long-tail by historical CR2 transplant-ineligible data (Kurosawa ~14% 3-yr OS; intermediate-risk ~19%). Solver picks BAT tail ≤ this cap. Higher cap = more room for a strong control arm (harder win).</small>
+    </div>
+
+    <div class="ctrl" id="batWrap">
+      <label>BAT median — excl. long-survivors <span id="vBat">10.0 m</span><span class="derived-tag" id="batDerivedTag" hidden>implied</span></label>
       <input type="range" id="bat" min="6" max="20" step="0.5" value="10"/>
       <div class="bands" id="band-bat"></div>
       <small>Median of the non-tail component. The TRUE BAT arm median (incl. the long-survivor fraction) is shown at right and is higher when that slider is &gt;0. Historical CR2: ~6–11m.</small>
     </div>
 
-    <div class="ctrl">
-      <label>BAT long-survivor fraction <span id="vBatc">14%</span></label>
+    <div class="ctrl" id="batcWrap">
+      <label>BAT long-survivor fraction <span id="vBatc">14%</span><span class="derived-tag" id="batcDerivedTag" hidden>implied</span></label>
       <input type="range" id="batc" min="0" max="30" step="1" value="14"/>
       <div class="bands" id="band-batc"></div>
       <small>Favorable-risk BAT patients who survive years. Published CR2: ~5–15%. This is the main "escape hatch" toward a losing HR.</small>
@@ -176,8 +223,8 @@
       <small>GPS patients on a permanent plateau. Highly uncertain — Phase 2 CR2 showed 0% plateau; Phase 2 CR1 showed ~47%.</small>
     </div>
 
-    <div class="ctrl">
-      <label>GPS uncured median OS <span id="vGpsu">32.0 m</span></label>
+    <div class="ctrl" id="gpsuWrap">
+      <label>GPS uncured median OS <span id="vGpsu">32.0 m</span><span class="derived-tag" id="gpsuDerivedTag" hidden>implied</span></label>
       <input type="range" id="gpsu" min="6" max="40" step="0.5" value="32"/>
       <div class="bands" id="band-gpsu"></div>
       <small>Survival of non-cured GPS patients. Phase 2 CR2 whole-arm was 21m. Note: the m63 data pulls this to the high end.</small>
@@ -294,8 +341,8 @@
 <!-- MONTE CARLO -->
 <div style="padding:0 18px 6px">
   <div class="card">
-    <h2>Monte Carlo — final-HR distribution</h2>
-    <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (60 by m46, +12, +6, and still &lt;80), so every scenario is anchored <em>in proportion to how well it explains the exact numbers, with counting noise modeled</em> — not accepted/rejected by an arbitrary window. "Win" is now a proper <b>stratified log-rank significance test</b> (probabilistic, NPH-aware — a late-loaded effect is penalized), and the interim is handled correctly: with "binding efficacy" checked, worlds are soft-weighted by P(continuing without an early stop) and scored by their <em>conditional</em> power — which banks early wins and is power-neutral (not the crude hard cliff). A mild futility pass and a stratification efficiency haircut are applied. Move any slider to shift a prior, then re-run. Approximate-Bayesian posterior — only as good as the priors. <b>Tip:</b> click "Set neutral (literature) priors" for the balanced base case (~65–68% win); the fitting presets (Base/Bull/etc.) center the priors on a strong-effect scenario, so their MC will read more optimistic.</div>
+    <h2 id="mcPanelTitle">Monte Carlo — final-HR distribution</h2>
+    <div id="mcPanelHint" style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (60 by m46, +12, +6, and still &lt;80), so every scenario is anchored <em>in proportion to how well it explains the exact numbers, with counting noise modeled</em> — not accepted/rejected by an arbitrary window. "Win" is now a proper <b>stratified log-rank significance test</b> (probabilistic, NPH-aware — a late-loaded effect is penalized), and the interim is handled correctly: with "binding efficacy" checked, worlds are soft-weighted by P(continuing without an early stop) and scored by their <em>conditional</em> power — which banks early wins and is power-neutral (not the crude hard cliff). A mild futility pass and a stratification efficiency haircut are applied. Move any slider to shift a prior, then re-run. Approximate-Bayesian posterior — only as good as the priors. <b>Tip:</b> click "Set neutral (literature) priors" for the balanced base case (~65–68% win); the fitting presets (Base/Bull/etc.) center the priors on a strong-effect scenario, so their MC will read more optimistic.</div>
     <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
       <button class="p" id="mcRun" style="font-weight:700;padding:8px 14px">▶ Run 200k draws</button>
       <button class="p" id="mcNeutral">Set neutral (literature) priors</button>
@@ -357,7 +404,7 @@
       <li><b>REGAL enrollment &amp; discontinuation milestones</b> — first patient Feb 2021; 105 pts (ex-China) by Nov 2023; full enrollment ~Apr 2024; 66 patients had discontinued <i>treatment</i> by Mar 2024 (blinded; relapse-driven, not OS censoring). <a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank">Apr 2024 IDMC/enrollment PR</a></li>
       <li><b>SELLAS Nov 14, 2022 update</b> — blinded pooled mOS "approximately two-fold longer than originally anticipated" (design pooled 10.3m → ~20m). <a href="https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Nov 2022)</a></li>
       <li><b>AVALON — Todisco et al. <i>Cancer</i> 2023</b> — Italian real-world Ven+HMA cohort (190 pts incl. relapsed/refractory AML); R/R median OS in the single digits, durable survival gated on transplant. <a href="https://acsjournals.onlinelibrary.wiley.com/doi/10.1002/cncr.34608" target="_blank">Cancer 2023</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/41224500/" target="_blank">2025 transplant-bridge subanalysis</a></li>
-      <li><b>Community due-diligence framing — "Confident Web"</b> (u/Confident-Web-7118, r/pennystocks &amp; Stocktwits SLS DD). Source for the REGAL-specific lead-time/left-truncation (IRM) argument, the fitted-scenario / IRM tables, and the binding-vs-weighted-test discussion incorporated as scenarios here (not as established fact). The underlying statistics are primary-sourced below.</li>
+      <li><b>Community due-diligence framing — "Confident Web"</b> (u/Confident-Web-7118). Detailed REGAL DD on r/wallstreetbets and r/pennystocks / Stocktwits: cure-fraction mixture model on GPS, event-deceleration argument (72 @ m58), lead-time/IRM tables, non-binding interim framing, Bayes-factor claims. <a href="https://www.reddit.com/r/wallstreetbets/search/?q=Confident-Web-7118+SLS" target="_blank" rel="noopener">Reddit search ↗</a> · secondary summary <a href="https://247wallst.com/investing/2026/03/20/sellas-stock-up-346-in-a-year-as-cancer-vaccine-trial-nears-its-final-8-deaths/" target="_blank" rel="noopener">24/7 Wall St. ↗</a>. Incorporated as forward preset + CW inverse mode (not established fact).</li>
       <li><b>Interim &amp; design-power computation (this analysis)</b> — Lan–DeMets O'Brien-Fleming, one-sided α=0.025, looks at t=0.75 &amp; 1.0: interim Z=2.34, final Z=2.01 (HR≤0.638 to win). Schoenfeld check: 90% power at HR 0.636 needs ~205 events, so 80 events at 0.636 ≈ 50% power ⇒ 0.636 is the significance BAR, the ~90%-power alternative is ~0.48.</li>
     </ol>
     <h2 style="margin-top:18px">Statistical methods (primary sources)</h2>
@@ -641,6 +688,84 @@ function consistent(p){
 // ---------- auto-fit ----------
 function autofitCure(p){const test=c=>eventsAt(T2,Object.assign({},p,{gpsc:c}));const lo=test(0),hi=test(0.9);if(lo<E2)return{sol:null,reason:"even 0% GPS cure gives only "+lo.toFixed(0)+" events by m58 — BAT too strong for the data"};if(hi>E2)return{sol:null,reason:"even 90% GPS cure still gives "+hi.toFixed(0)+" events by m58 — BAT too weak / uncured mOS too low"};let a=0,b=0.9;for(let i=0;i<40;i++){const m=(a+b)/2;if(test(m)>E2)a=m;else b=m;}return{sol:(a+b)/2};}
 
+// ---------- CW inverse mode (Confident Web: cure fraction drives, mOS falls out) ----------
+// u/Confident-Web-7118 DD — r/wallstreetbets / r/pennystocks; see References [14]
+let regalMode="forward";
+function eventErr(p){
+  const e1=eventsAt(T1,p,110),e2=eventsAt(T2,p,110),e3=eventsAt(T3,p,110),e4=eventsAt(T4,p,110);
+  const pm=medianOf(poolS,p);
+  let err=Math.pow(e1-E1,2)+Math.pow(e2-E2,2)+Math.pow(e3-E3,2)+Math.max(0,e4-79.5)*400;
+  if(pm!==null&&pm<13.5)err+=Math.pow(13.5-pm,2)*8;
+  return err;
+}
+function bisectField(p,field,metric,target,lo,hi,steps){
+  steps=steps||36;
+  const test=v=>metric(Object.assign({},p,{[field]:v}));
+  const mLo=test(lo),mHi=test(hi);
+  if((mLo-target)*(mHi-target)>0)return null;
+  let a=lo,b=hi;
+  for(let i=0;i<steps;i++){const m=(a+b)/2;if(test(m)>target)a=m;else b=m;}
+  return (a+b)/2;
+}
+function batcFor3yrCap(p,bat,target3yr){
+  let lo=0,hi=0.35;
+  for(let i=0;i<28;i++){const m=(lo+hi)/2,c=Object.assign({},p,{bat,batc:m});if(sBAT(36,c)*100>target3yr)hi=m;else lo=m;}
+  return (lo+hi)/2;
+}
+function inverseSolve(base, capOverride){
+  const p=Object.assign({},base);
+  const cap3=capOverride!=null?capOverride:+$("batcap").value;
+  const batcMax=batcFor3yrCap(p,p.bat||8,cap3);
+  let best=null,bestErr=1e9;
+  for(let bat=6;bat<=14.01;bat+=0.25){
+    const batc=Math.min(batcMax,batcFor3yrCap(p,bat,cap3));
+    const trial=Object.assign({},p,{bat,batc});
+    const gpsu=bisectField(trial,"gpsu",q=>eventsAt(T2,q,100),E2,8,55);
+    if(gpsu===null)continue;
+    trial.gpsu=gpsu;
+    const err=eventErr(trial);
+    if(err<bestErr){bestErr=err;best=Object.assign({},trial);}
+  }
+  if(!best)return{sol:null,err:bestErr,reason:"No (BAT, GPS uncured) pair fits the anchored events with BAT 3-yr OS ≤ "+cap3+"%. Try raising the cap or lowering cure fraction."};
+  return{sol:best,err:bestErr};
+}
+function applyInverseResult(r){
+  if(!r||!r.sol){$("invStatus").textContent=r&&r.reason?r.reason:"";return false;}
+  const s=r.sol;
+  $("bat").value=s.bat;$("batc").value=Math.round(s.batc*100);$("gpsu").value=s.gpsu.toFixed(1);
+  $("invBat").textContent=s.bat.toFixed(1)+" m";$("invBatc").textContent=(s.batc*100).toFixed(0)+"%";
+  $("invGpsu").textContent=s.gpsu.toFixed(1)+" m";
+  const pm=medianOf(poolS,s),hr=hazardRatio(T2,s);
+  $("invPool").textContent=pm===null?">240 m":pm.toFixed(1)+" m";
+  $("invHR").textContent=isNaN(hr)?"—":hr.toFixed(2);
+  $("invErr").textContent=r.err<1?"exact":r.err.toFixed(1);
+  $("invStatus").textContent="Anchored to 60/72/78 + <80; GPS cure "+(s.gpsc*100).toFixed(0)+"% fixed; BAT 3-yr OS "+(sBAT(36,s)*100).toFixed(0)+"% (≤"+$("batcap").value+"% cap). Structural tail→GPS assignment — not arm-level proof.";
+  return true;
+}
+function setRegalMode(mode){
+  regalMode=mode;
+  $("modeForward").classList.toggle("active",mode==="forward");
+  $("modeInverse").classList.toggle("active",mode==="inverse");
+  $("invExplain").hidden=mode!=="inverse";
+  $("invDerived").hidden=mode!=="inverse";
+  $("invBatCapWrap").hidden=mode!=="inverse";
+  $("autofitWrap").hidden=mode==="inverse";
+  $("bandkeyForward").hidden=mode!=="inverse";
+  ["presetLabel","presetInterim","presetEdgeLabel","presetEdge"].forEach(id=>{const e=$(id);if(e)e.hidden=mode==="inverse";});
+  $("presetInvGrp").hidden=mode!=="inverse";
+  $("presetInv").hidden=mode!=="inverse";
+  ["batDerivedTag","batcDerivedTag","gpsuDerivedTag"].forEach(id=>{const e=$(id);if(e)e.hidden=mode!=="inverse";});
+  ["bat","batc","gpsu"].forEach(id=>{const e=$(id);if(e){e.disabled=mode==="inverse";e.closest(".ctrl").classList.toggle("disabled",mode==="inverse");}});
+  $("gpscWrap").classList.toggle("disabled",mode==="forward"&&$("autofit").checked);
+  $("mcPanelTitle").textContent=mode==="inverse"?"Monte Carlo — implied HR distribution (CW inverse)":"Monte Carlo — final-HR distribution";
+  $("mcPanelHint").innerHTML=mode==="inverse"
+    ?'Varies <b>GPS cure fraction</b> (±1σ around slider) and BAT 3-yr cap, re-runs the inverse solver each draw, and histograms the <b>implied HR</b> that falls out. Shows how sensitive derived efficacy is to the cure-fraction assumption — not a forward posterior. Non-binding interim unless preset says otherwise.'
+    :'Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (60 by m46, +12, +6, and still &lt;80), so every scenario is anchored <em>in proportion to how well it explains the exact numbers, with counting noise modeled</em> — not accepted/rejected by an arbitrary window. "Win" is now a proper <b>stratified log-rank significance test</b> (probabilistic, NPH-aware — a late-loaded effect is penalized), and the interim is handled correctly: with "binding efficacy" checked, worlds are soft-weighted by P(continuing without an early stop) and scored by their <em>conditional</em> power — which banks early wins and is power-neutral (not the crude hard cliff). A mild futility pass and a stratification efficiency haircut are applied. Move any slider to shift a prior, then re-run. Approximate-Bayesian posterior — only as good as the priors. <b>Tip:</b> click "Set neutral (literature) priors" for the balanced base case (~65–68% win); the fitting presets (Base/Bull/etc.) center the priors on a strong-effect scenario, so their MC will read more optimistic.';
+  update();
+}
+$("modeForward").onclick=()=>setRegalMode("forward");
+$("modeInverse").onclick=()=>setRegalMode("inverse");
+
 // ---------- slider config ----------
 const DATA_WHY="GREEN = values that still reproduce the announced pooled events — 60 @ m46, 72 @ m58, 78 @ m63, still <80 @ m65 — holding your OTHER sliders fixed. Move another slider and this window shifts: that coupling is the identification problem. Sources: SELLAS PRs [3][4][5].";
 const CFG=[
@@ -740,9 +865,16 @@ function readParams(){return{bat:+$("bat").value,batc:+$("batc").value/100,batk:
 
 function update(){
   let p=readParams();
-  const auto=$("autofit").checked;$("gpscWrap").classList.toggle("disabled",auto);
   let noSol=null;
-  if(auto){const r=autofitCure(p);if(r.sol===null)noSol=r.reason;else{p.gpsc=r.sol;$("gpsc").value=Math.round(r.sol*100);}}
+  if(regalMode==="inverse"){
+    $("vBatCap").textContent=$("batcap").value+"%";
+    const ir=inverseSolve(p);
+    if(!applyInverseResult(ir)){noSol=ir.reason||"inverse solve failed";}
+    else p=readParams();
+  } else {
+    const auto=$("autofit").checked;$("gpscWrap").classList.toggle("disabled",auto);
+    if(auto){const r=autofitCure(p);if(r.sol===null)noSol=r.reason;else{p.gpsc=r.sol;$("gpsc").value=Math.round(r.sol*100);}}
+  }
   $("vBat").textContent=p.bat.toFixed(1)+" m";$("vBatc").textContent=(p.batc*100).toFixed(0)+"%";
   $("vGpsc").textContent=(p.gpsc*100).toFixed(0)+"%";$("vGpsu").textContent=p.gpsu.toFixed(1)+" m";
   $("vDelay").textContent=p.delay.toFixed(1)+" m";$("vMid").textContent=p.mid+" m";$("vK").textContent=p.k.toFixed(2);
@@ -799,9 +931,9 @@ function update(){
 
   const cons=ok1&&ok2&&ok3&&ok4&&pmOK; // verdict now requires ALL badges green (no loose loophole)
   const v=$("verdict");
-  if(!cons){v.className="verdict v-none";v.textContent="Does NOT match the full announced trajectory (60/72/78 events + still <80 today). Not a live possibility — check which badge is off. Common misses: over-flatlining under-shoots 78@m63; arms-too-close pushes past 80 before today.";}
-  else if(hr<THRESH){v.className="verdict v-win";v.textContent="Consistent with all announced numbers AND HR "+hr.toFixed(2)+" < 0.636 → this world clears the threshold. (Other green worlds below also fit — that's the identification problem.)";}
-  else{v.className="verdict v-lose";v.textContent="Consistent with the announced numbers but HR "+hr.toFixed(2)+" > 0.636 → this world MISSES. Note what it took: check the BAT median / long-survivor sliders — failure needs near-unprecedented BAT.";}
+  if(!cons){v.className="verdict v-none";v.textContent=regalMode==="inverse"?"Implied scenario does NOT match the full announced trajectory — adjust cure fraction or BAT cap.":"Does NOT match the full announced trajectory (60/72/78 events + still <80 today). Not a live possibility — check which badge is off. Common misses: over-flatlining under-shoots 78@m63; arms-too-close pushes past 80 before today.";}
+  else if(hr<THRESH){v.className="verdict v-win";v.textContent=regalMode==="inverse"?"CW inverse: implied HR "+hr.toFixed(2)+" < 0.636 → derived mOS/tails consistent with a win, given your cure-fraction assumption. (Other cure fractions also fit — see inverse MC.)":"Consistent with all announced numbers AND HR "+hr.toFixed(2)+" < 0.636 → this world clears the threshold. (Other green worlds below also fit — that's the identification problem.)";}
+  else{v.className="verdict v-lose";v.textContent=regalMode==="inverse"?"CW inverse: fits the event anchors but implied HR "+hr.toFixed(2)+" > 0.636 → derived parameters predict a miss. Try lower cure fraction or check BAT cap.":"Consistent with the announced numbers but HR "+hr.toFixed(2)+" > 0.636 → this world MISSES. Note what it took: check the BAT median / long-survivor sliders — failure needs near-unprecedented BAT.";}
   $("note").innerHTML=noteText();
 }
 
@@ -820,6 +952,7 @@ const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
 function clampf(f,v){const c=CFG.find(x=>x.field===f);return Math.max(c.min*c.sc,Math.min(c.max*c.sc,v));}
 const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
 function runMC(){
+  if(regalMode==="inverse"){runMCInverse();return;}
   const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=220000,t0=performance.now();
   for(let i=0;i<MAX;i++){ if(performance.now()-t0>3600)break; tried++;
     const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
@@ -840,6 +973,30 @@ function runMC(){
     acc.push({hr:aFin.hr, w:w, pw:pw, reached:t80<=cutoff});
   }
   renderMC(acc,tried);
+}
+function runMCInverse(){
+  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=80000,t0=performance.now();
+  const sdG=SD.gpsc||0.08,sdCap=1.5,baseCap=+$("batcap").value;
+  for(let i=0;i<MAX;i++){if(performance.now()-t0>4000)break;tried++;
+    const cap=Math.round(Math.max(12,Math.min(22,baseCap+sdCap*rn())));
+    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut,delay:ctr.delay,xtx:ctr.xtx,cens:ctr.cens,mid:ctr.mid,k:ctr.k,
+      gpsc:Math.max(0.05,Math.min(0.75,ctr.gpsc+sdG*rn())),bat:8};
+    const ir=inverseSolve(p,cap);
+    if(!ir.sol||ir.err>25)continue;
+    const s=ir.sol;
+    const t80=T80(s);let Tan,Dan;if(t80<=cutoff){Tan=t80;Dan=80;}else{Tan=cutoff;Dan=eventsAt(cutoff,s,80);}
+    const aFin=analyzeLR(Tan,s);if(isNaN(aFin.hr))continue;
+    const thIA=analyzeLR(46,s).z,th80=aFin.z;
+    let pw;
+    if(binding){const r=condPow(thIA,th80,Dan,ctr.zfut);pw=r.cp*Math.exp(-ir.err*0.05);}else{pw=Phi(th80-ZFINAL);}
+    acc.push({hr:aFin.hr,w:Math.exp(-ir.err*0.08),pw:pw,reached:t80<=cutoff,gpsu:s.gpsu,bat:s.bat});
+  }
+  renderMC(acc,tried);
+  if(acc.length>=80){
+    const gpsu=acc.map(x=>x.gpsu).sort((a,b)=>a-b);
+    const qf=(a,q)=>a[Math.min(a.length-1,Math.floor(q*a.length))];
+    $("mcStats").innerHTML+=' &nbsp;·&nbsp; implied GPS uncured mOS median '+qf(gpsu,0.5).toFixed(1)+'m ['+qf(gpsu,0.05).toFixed(1)+', '+qf(gpsu,0.95).toFixed(1)+']';
+  }
 }
 function renderMC(acc,tried){
   acc.sort((a,b)=>a.hr-b.hr);const n=acc.length;
@@ -876,16 +1033,33 @@ const P={
  delay:   {bat:10,batc:14,gpsc:40,gpsu:40,delay:4,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
  backload:{bat:7,  batc:10,gpsc:26,gpsu:40,delay:0,  mid:30,k:0.22,auto:false,xtx:0,cens:0, mcFloor:true}
 };
+const INV={
+ cw42:   {gpsc:42,batcap:17,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
+ cw35:   {gpsc:35,batcap:17,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
+ cw50:   {gpsc:50,batcap:18,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
+ cwbind: {gpsc:42,batcap:17,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:true}
+};
 function applyRegalPreset(q){
+  if(regalMode==="inverse")setRegalMode("forward");
   $("bat").value=q.bat;$("batc").value=q.batc;$("gpsc").value=q.gpsc;$("gpsu").value=q.gpsu;
   $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;$("autofit").checked=!!q.auto;
   $("xtx").value=(q.xtx!=null)?q.xtx:0;$("cens").value=(q.cens!=null)?q.cens:0;
   if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
   update();
 }
+function applyInversePreset(q){
+  setRegalMode("inverse");
+  $("gpsc").value=q.gpsc;$("batcap").value=q.batcap;
+  $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;
+  $("xtx").value=q.xtx!=null?q.xtx:0;$("cens").value=q.cens!=null?q.cens:0;
+  if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
+  document.querySelectorAll("button[data-inv]").forEach(b=>b.classList.toggle("p-def",b.dataset.inv==="cw42"));
+  update();
+}
 document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyRegalPreset(P[b.dataset.preset]));
+document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInversePreset(INV[b.dataset.inv]));
 
-["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit"].forEach(id=>$(id).addEventListener("input",update));
+["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",update)});
 $("mcRun").addEventListener("click",function(){$("mcRun").disabled=true;$("mcStatus").textContent="running…";setTimeout(function(){try{runMC();}finally{$("mcRun").disabled=false;}},30);});
 $("mcNeutral").addEventListener("click",function(){applyRegalPreset(P.best);$("mcStatus").textContent="Best Available Guess priors set — click Run";});
 buildBands();update();
@@ -1070,6 +1244,7 @@ const EXPL={
  hs:"<h3>High-school level</h3>"+
   "<p><b>Survival curves &amp; the hazard ratio.</b> Doctors plot survival curves — the fraction of each group still alive over time. <b>Median</b> OS is when half have died. The <b>hazard ratio (HR)</b> compares instantaneous death rates: HR 0.5 means GPS patients die at half the control rate. REGAL's primary endpoint is ITT overall survival; the trial wins if stratified log-rank HR &lt; 0.636 at 80 events (one-sided α=0.025). Design: <a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/' target='_blank'>Jamy &amp; Cicic, Future Oncol 2025</a>; registry: <a href='https://clinicaltrials.gov/study/NCT04229979' target='_blank'>NCT04229979</a>.</p>"+
   "<p><b>The identifiability catch.</b> SELLAS reports <i>pooled</i> death totals (60 at month ~46, 72 at ~58, 78 at ~63) but not the arm split. A pooled count tells you about the <i>average</i> of both groups — many different GPS-vs-control scenarios produce the same totals. Example: strong GPS benefit and a unusually healthy control arm both fit 78 pooled deaths. That's why we report a <b>distribution</b>, not a point HR, using Monte Carlo simulation weighted by how well each scenario matches the announced counts.</p>"+
+  "<p><b>Forward vs CW inverse.</b> <b>Forward mode</b> (default): you set BAT/GPS survival parameters and the model checks whether they reproduce the blinded counts. <b>CW inverse mode</b> (Confident Web / u/Confident-Web-7118): flip the direction — anchor the event counts and set GPS cure fraction as the main assumption; the model <i>derives</i> implied BAT median, GPS uncured mOS, and HR. Cure fraction drives; medians fall out. Same identifiability limits apply — assigning the long tail to GPS is structural, not proven.</p>"+
   "<p><b>Interim analysis &amp; what it implies.</b> At 60 deaths (Jan 2025), the IDMC reviewed unblinded data and recommended continuation (<a href='https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia/default.aspx' target='_blank'>SELLAS PR</a>). Under O'Brien-Fleming spending, early efficacy stop required HR ≲ 0.55 — they didn't stop, capping how low the interim HR could have been. They also passed futility (GPS wasn't hopeless). Neither proves final success: 0.636 at 80 events is only ~50% power per Schoenfeld — the bar to <i>detect</i> a benefit, not the expected effect size (~0.48 for 90% power).</p>"+
   "<p><b>Historical context for control (BAT).</b> CR2 transplant-ineligible patients historically had poor outcomes: Kurosawa et al. (<a href='https://haematologica.org/article/view/5781' target='_blank'>Haematologica 2010</a>) found 3-year OS ~14% without transplant. Venetoclax-era salvage medians are ~8–12 months (<a href='https://pubmed.ncbi.nlm.nih.gov/33661271/' target='_blank'>Stahl, Blood Adv 2021</a>). REGAL's blinded pooled survival looks much better than design assumed (~10 months), per SELLAS's Nov 2022 update — but that doesn't tell us GPS beat control.</p>"+
   "<p><b>SLS-009.</b> Selective CDK9 inhibitor (tambiciclib) in single-arm Phase 2 + Aza/Ven for post-venetoclax r/r AML-MR (<a href='https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx' target='_blank'>ASH 2025</a>): ORR 46% (58% in 1-prior-line), mOS 8.9 vs ~2.6 historical. Frontline comparison anchor: VIALE-A Aza/Ven mOS 14.7 mo (<a href='https://pubmed.ncbi.nlm.nih.gov/32023337/' target='_blank'>DiNardo, NEJM 2020</a>). Single-arm vs historical ≠ randomized proof.</p>"+
@@ -1077,7 +1252,7 @@ const EXPL={
   "<p><b>What remains unknown:</b> arm-level event counts, censoring rates, in-trial BAT median, final HR/p-value, SLS-009 randomized effect, and acquirer willingness-to-pay.</p>",
  col:"<h3>College level</h3>"+
   "<p><b>REGAL design &amp; estimand.</b> Phase 3, open-label, 1:1 randomized, event-driven OS trial (N=127 actual; ~63/arm), AML CR2/CRp2, transplant-ineligible at entry (<a href='https://clinicaltrials.gov/study/NCT04229979' target='_blank'>NCT04229979</a>). Primary: ITT OS, stratified unweighted Cox/log-rank at 80 deaths; win if HR &lt; 0.636 (one-sided α=0.025). One interim at 60 deaths under Lan-DeMets O'Brien-Fleming α-spending (<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/' target='_blank'>Jamy &amp; Cicic 2025</a>). BAT options: observation, HMA, venetoclax, LDAC — physician's choice. GPS: up to 15 injections over ~18 months.</p>"+
-  "<p><b>Non-identifiability from blinded pooled counts.</b> Public data: N_D(t) at t ∈ {m46, m58, m63, m65} plus interim continuation. N_D = f(½(S_GPS + S_BAT)) — the map (S_GPS, S_BAT) ↦ N_D is many-to-one. Arm-level HR is not identifiable without the split or strong structural assumptions. Ridge pathology: mixture-cure GPS (Boag 1949) vs heterogeneous BAT long-tail (Weibull + plateau) can fit identical pooled event trajectories — Bayes factors collapse toward 1 because the data lack discriminating power along that ridge. Any point HR estimate imports priors; we report an approximate-Bayesian posterior (ABC: Beaumont et al. 2002).</p>"+
+  "<p><b>Non-identifiability from blinded pooled counts.</b> Public data: N_D(t) at t ∈ {m46, m58, m63, m65} plus interim continuation. N_D = f(½(S_GPS + S_BAT)) — the map (S_GPS, S_BAT) ↦ N_D is many-to-one. Arm-level HR is not identifiable without the split or strong structural assumptions. Ridge pathology: mixture-cure GPS (Boag 1949) vs heterogeneous BAT long-tail (Weibull + plateau) can fit identical pooled event trajectories — Bayes factors collapse toward 1 because the data lack discriminating power along that ridge. Any point HR estimate imports priors; we report an approximate-Bayesian posterior (ABC: Beaumont et al. 2002). Tab 1 offers two directions: <b>forward</b> (set curves → check events) and <b>CW inverse</b> (anchor events + GPS cure fraction → derive implied mOS/HR per u/Confident-Web-7118).</p>"+
   "<p><b>Monte Carlo / likelihood.</b> Sample survival priors (GPS: delayed mixture-cure; BAT: Weibull + long-survivor fraction; ITT transplant crossover ~6% per arm; censoring ~12%), simulate enrollment (back-loaded S-curve: 105 pts by Nov 2023, N=127 by Apr 2024), weight each draw by Poisson likelihood on event increments (60, +12, +6, P(Δ≤1 at m65)). Soft-weight interim continuation: P(continue) = Φ(z_eff − θ_IA) − Φ(z_fut − θ_IA); score win via conditional power with Brownian correlation ρ = √(60/80) (Jennison &amp; Turnbull 2000).</p>"+
   "<p><b>Interim inference &amp; power arithmetic.</b> OBF interim Z ≈ 2.34 ⇒ early-stop HR ≲ 0.55; IDMC continued (Jan 2025, <a href='https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html' target='_blank'>PR</a>). Schoenfeld: D = (z_α + z_β)² / [r(1−r)(ln HR)²] — 90% power at HR 0.636 needs ~205 events; at 80 events, 0.636 is the ~50%-power MDE, not the design alternative (~HR 0.48 for 90%). Lead-time bias: ≤6-mo CR2→randomization + &gt;6-mo life-expectancy entry inflates from-randomization medians ~1–3 mo vs from-CR2 literature (Suissa 2008, immortal time) — shifts absolute medians, not HR under proportional hazards.</p>"+
   "<p><b>Control-arm priors &amp; tension.</b> Kurosawa (<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC3011608/' target='_blank'>Haematologica 2010</a>): 158 CR2 transplant-ineligible, 3-yr OS 14% (19% intermediate). QUAZAR placebo mOS 14.8 mo (<a href='https://www.onuregpro.com/efficacy' target='_blank'>CR1, healthier population</a>) caps implausible BAT medians. Fitting 60/72/78 while respecting no early stop tends to push BAT long-tail fraction upward — tension with biology unless interim was non-binding or enrolled cohort is favorable. Nov 2022 blinded update: pooled mOS ~2× design assumption (<a href='https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html' target='_blank'>PR</a>) — corroborates high pooled survival, not GPS efficacy.</p>"+
