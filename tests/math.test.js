@@ -18,6 +18,7 @@ import {
   hazardRatio,
   analyzeLR,
   consistent,
+  passesVerdict,
   autofitCure,
   inverseSolve,
   Tfor,
@@ -45,6 +46,11 @@ test("GPS mixture-cure plateau", () => {
 
 test("best preset within event tolerances", () => {
   assert.ok(consistent(mk({})));
+});
+
+test("best preset passes verdict on load", () => {
+  assert.ok(passesVerdict(mk({})));
+  assert.ok(Math.abs(eventsAt(63, mk({})) - 78) <= 3);
 });
 
 test("best preset HR < 0.636", () => {
@@ -75,10 +81,10 @@ test("Pike HR ≈ analyzeLR", () => {
   assert.ok(Math.abs(hazardRatio(T2, best) - lr.hr) < 0.005);
 });
 
-test("SLS HR-equiv = bench/os under exponential", () => {
-  const hreq = 2.8 / 8.9;
+test("SLS OS ratio = bench/os under exponential", () => {
+  const osRatio = 2.8 / 8.9;
   const expected = (Math.log(2) / 8.9) / (Math.log(2) / 2.8);
-  assert.ok(Math.abs(hreq - expected) < 0.001);
+  assert.ok(Math.abs(osRatio - expected) < 0.001);
 });
 
 test("autofit targets 72 @ m58", () => {
@@ -102,7 +108,7 @@ test("milestone LL truncated @ m46 excludes later increments", () => {
 });
 
 test("CW forward preset HR < 0.636", () => {
-  const cwPreset = mk({ bat: 10, batc: 0.06, gpsc: 0.42, gpsu: 36, delay: 0, xtx: 0, cens: 0 });
+  const cwPreset = mk({ bat: 9, batc: 0.06, gpsc: 0.41, gpsu: 35.5, delay: 0, xtx: 0, cens: 0 });
   assert.ok(hazardRatio(T2, cwPreset) < 0.636);
 });
 
@@ -140,9 +146,10 @@ test("Tfor(80) anchored forward lands before naive cumulative search", () => {
   assert.ok(t < 72 && t >= 63);
 });
 
-test("readout power: anchored Dan exceeds raw eventsAt when 80th not reached", () => {
-  const best = mk({});
-  assert.ok(t80Analysis(best, 84).Dan > eventsAt(72, best));
+test("readout power: anchored Dan uses 78 floor when model under-predicts m63", () => {
+  const under = mk({ bat: 10, batc: 0.14, gpsc: 0.22, gpsu: 32, delay: 1.5 });
+  assert.ok(eventsAt(63, under) < 78);
+  assert.ok(t80Analysis(under, 84).Dan >= 78);
 });
 
 test("best preset HR clears 0.636 but sits below interim floor", () => {
@@ -157,8 +164,8 @@ test("bear preset HR clears 0.636 and stays above interim floor", () => {
   assert.ok(hr < 0.636 && hr > IFLOOR);
 });
 
-test("header best-est defaults: GPS HR ~0.43 @ m58", () => {
-  assert.ok(Math.abs(hazardRatio(T2, mk({})) - 0.433) < 0.01);
+test("header best-est defaults: GPS HR ~0.45 @ m58", () => {
+  assert.ok(Math.abs(hazardRatio(T2, mk({})) - 0.45) < 0.02);
 });
 
 test("fmtCalMonth and monthToDate agree", () => {

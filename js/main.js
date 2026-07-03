@@ -52,6 +52,7 @@ import {
   Tfor,
   medianOf,
   consistent,
+  passesVerdict,
   autofitCure,
   eventErr,
   bisectField,
@@ -62,7 +63,7 @@ import {
 const $ = id => document.getElementById(id);
 
 // ---------- plausibility gating (UI) ----------
-function isPlausible(p){return consistent(p);}
+function isPlausible(p){return passesVerdict(p);}
 let lastConsistentP=null;
 function paramsFromPresetQ(q){
   if(!q)return null;
@@ -81,9 +82,19 @@ function auditPresetButtons(){
     if(!fit){btn.title=(btn.title||"")+" [Does not fit 60/72/78 event anchors — disabled]";}
   });
 }
-function updatePlausibilityUI(p,plausible){
+function updatePlausibilityUI(p,plausible,approxFit){
   const w=$("plausibilityWarn");
-  if(w){w.hidden=!!plausible;if(!plausible)w.textContent="Current parameters do not fit blinded event counts (e60/e58/e63). Adjust sliders or enable auto-fit.";}
+  if(w){
+    if(plausible)w.hidden=true;
+    else if(approxFit){
+      w.hidden=false;
+      const e3=eventsAt(T3,p,110);
+      w.textContent="Approximate fit — model e63 "+e3.toFixed(1)+" is outside ±3 of confirmed 78. Chart requires full trajectory match; adjust sliders or enable auto-fit.";
+    }else{
+      w.hidden=false;
+      w.textContent="Current parameters do not fit blinded event counts (e60/e58/e63). Adjust sliders or enable auto-fit.";
+    }
+  }
   const wrap=$("chartWrap"),msg=$("chartStaleMsg"),out=$("outputCard");
   if(wrap)wrap.classList.toggle("chart-stale",!plausible);
   if(msg)msg.hidden=!!plausible||!lastConsistentP;
@@ -129,10 +140,11 @@ const tabsDirty={sls009:true,value:true,explain:true};
 function panelOpen(id){const el=$(id);return!!(el&&el.open);}
 function scheduleDraw(p){
   const plausible=isPlausible(p);
-  if(plausible)lastConsistentP=Object.assign({},p);
+  const approxFit=!plausible&&consistent(p);
+  if(plausible||approxFit)lastConsistentP=Object.assign({},p);
   const drawP=plausible?p:(lastConsistentP||null);
   pendingDrawP=drawP;
-  updatePlausibilityUI(p,plausible);
+  updatePlausibilityUI(p,plausible,approxFit);
   if(pendingDrawRaf)return;
   pendingDrawRaf=requestAnimationFrame(()=>{pendingDrawRaf=null;if(pendingDrawP)draw(pendingDrawP);else drawEmptyChart();});
 }
@@ -589,19 +601,33 @@ function update(){
   scheduleReadoutUpdate();
 
   const hr=hazardRatio(T2,p);
-  // gauge
-  $("oHRnum").innerHTML=isNaN(hr)?"—":hr.toFixed(2)+(hr<THRESH?' — clears <em>final</em> 0.636 threshold':' — misses final 0.636');
+  const hrRead=isNaN(aFin.hr)?null:aFin.hr;
+  // gauge — primary marker @ m58 (interim-era); secondary @ readout cutoff when available
+  const hrM58Txt=isNaN(hr)?"—":hr.toFixed(2);
+  const hrReadTxt=hrRead!=null?hrRead.toFixed(2):null;
+  $("oHRnum").innerHTML=isNaN(hr)
+    ?"—"
+    :("HR <b>"+hrM58Txt+"</b> @ m58 (interim-era)"+(hrReadTxt!=null&&Tan!==T2?" · readout HR <b>"+hrReadTxt+"</b> @ m"+Tan.toFixed(0):"")+(hr<THRESH?' — clears <em>final</em> 0.636 threshold':' — misses final 0.636'));
   $("hrThresh").style.left=(THRESH/HRMAX*100)+"%";
   $("hrInterim").style.left="0%";$("hrInterim").style.width=(IFLOOR/HRMAX*100)+"%";
   $("hrInterim").style.background="repeating-linear-gradient(45deg,rgba(214,69,69,.28),rgba(214,69,69,.28) 4px,rgba(214,69,69,.1) 4px,rgba(214,69,69,.1) 8px)";
   $("hrInterim").style.borderRight="1px dashed var(--bad)";
   $("hrMark").style.left="calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"% - 1.5px)";
+  const hrReadout=$("hrReadoutMark");
+  if(hrReadout){
+    if(hrRead!=null&&Tan!==T2)hrReadout.style.left="calc("+Math.min(100,Math.max(0,hrRead/HRMAX*100))+"% - 1.5px)";
+    else hrReadout.style.left="-99px";
+  }
   const gn=$("hrGaugeNote");
   if(gn){
+    gn.style.display="block";
+    let note="Gauge markers: <b>black</b> = Pike HR @ m58 (interim-era, ~72 events); ";
+    if(hrReadTxt!=null&&Tan!==T2)note+="<b>blue</b> = projected readout HR @ m"+Tan.toFixed(0)+" (~"+Dan.toFixed(0)+" events); ";
+    note+="<b>red hatch</b> = interim implausibility (@ 60 events — HR≲0.55 would have stopped early per OBF; REGAL continued). <b>Red line 0.636</b> = final win threshold @ 80 events.";
     if(!isNaN(hr)&&hr<IFLOOR&&hr<THRESH){
-      gn.style.display="block";
-      gn.innerHTML='<b>Why red hatch + “clears 0.636”?</b> The hatch marks HRs that would have stopped the trial at the 60-death OBF interim (HR≲0.55; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a> · <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 IDMC continue</a>). REGAL did <em>not</em> stop — so an HR this low at m58 is inconsistent with the interim unless GPS benefit back-loaded after m46, or the model over-fits blinded pooled counts. “Clears 0.636” refers only to the <em>final</em> 80-death win line.';
-    }else{gn.style.display="none";gn.innerHTML="";}
+      note+=" Your m58 HR sits in the hatch yet clears 0.636 — back-loaded GPS benefit or non-binding interim is the usual reconciliation.";
+    }
+    gn.innerHTML=note;
   }
 
   const ev1=eventsAt(T1,p),ev2=eventsAt(T2,p),ev3=eventsAt(T3,p),ev4=eventsAt(T4,p);
@@ -712,13 +738,13 @@ function renderMC(acc,tried){
 
 // ---------- presets (every slider set) ----------
 const P={
- best:    {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
- bind:    {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
- nonbind: {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:false},
- critique:{bat:10, batc:16,gpsc:18,gpsu:34,delay:2,  mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
+ best:    {bat:9.5,batc:14,gpsc:22,gpsu:31.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
+ bind:    {bat:9.5,batc:14,gpsc:22,gpsu:31.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
+ nonbind: {bat:9.5,batc:14,gpsc:22,gpsu:31.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:false},
+ critique:{bat:9,  batc:16,gpsc:18,gpsu:33,delay:2,  mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
  bull:    {bat:8,  batc:6, gpsc:40,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
  bear:    {bat:11, batc:22,gpsc:5, gpsu:36,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
- cw:      {bat:10, batc:6, gpsc:42,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
+ cw:      {bat:9,  batc:6, gpsc:41,gpsu:35.5,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
  noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
  fail:    {bat:10,batc:28,gpsc:28,gpsu:18,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
  delay:   {bat:10,batc:14,gpsc:40,gpsu:40,delay:4,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
@@ -1257,13 +1283,15 @@ function computeValuationMetrics(){
   const cr2=+$("v_cr2").value,cr1=+$("v_cr1").value,gpen=+$("v_gpen").value/100,gprice=+$("v_gprice").value,gyears=+$("v_gyears").value;
   const flpool=+$("v_flpool").value,rrpool=+$("v_rrpool").value,spen=+$("v_spen").value/100,sprice=+$("v_sprice").value,syears=+$("v_syears").value;
   const platform=+$("v_platform").value,mult=+$("v_mult").value,shares=+$("v_shares").value;
+  const ra=$("v_riskadj")&&$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
   const gpool=(cr2+cr1)*gpen*gyears;
-  const gpsPeak=gpool*gprice/1000;
-  const slsPeak=(flpool+rrpool)*spen*syears*sprice/1000;
+  let gpsPeak=gpool*gprice/1000;
+  let slsPeak=(flpool+rrpool)*spen*syears*sprice/1000;
+  if(ra){gpsPeak*=pG;slsPeak*=pS;}
   const totPeak=gpsPeak+slsPeak;
   const EV=totPeak*mult+platform*1000;
   const ps=EV/shares;
-  return{gpool,gpsPeak,slsPeak,totPeak,EV,ps};
+  return{gpool,gpsPeak,slsPeak,totPeak,EV,ps,riskAdjusted:!!ra};
 }
 function updateBestEstStrip(){
   if(embedMode||!$("bestEstStrip"))return;
@@ -1274,17 +1302,17 @@ function updateBestEstStrip(){
   const os=+$("sls_os").value,bench=+$("sls_bench").value;
   const slsEl=$("beSlsHr");
   if(slsEl)slsEl.textContent=(bench>0&&os>0)?(bench/os).toFixed(2):"—";
-  const{EV,ps}=computeValuationMetrics();
+  const{EV,ps,riskAdjusted}=computeValuationMetrics();
   const buyEl=$("beBuyout");
-  if(buyEl)buyEl.textContent=(EV>=1000?"EV $"+(EV/1000).toFixed(1)+"B · ":"")+"$"+ps.toFixed(0)+"/sh";
+  if(buyEl)buyEl.textContent=(EV>=1000?"EV $"+(EV/1000).toFixed(1)+"B · ":"")+"$"+ps.toFixed(0)+"/sh"+(riskAdjusted?" (risk-adj)":"");
 }
 function renderSLS(){
   const os=+$("sls_os").value,bench=+$("sls_bench").value,orr=+$("sls_orr").value;
   const flb=+$("fl_base").value,fls=+$("fl_sls").value,tpb=+$("tp_base").value,tps=+$("tp_sls").value;
   $("v_slsos").textContent=os.toFixed(1)+" m";$("v_slsbench").textContent=bench.toFixed(1)+" m";$("v_slsorr").textContent=orr+" %";
   $("v_flbase").textContent=flb.toFixed(1)+" m";$("v_flsls").textContent=fls.toFixed(1)+" m";$("v_tpbase").textContent=tpb.toFixed(1)+" m";$("v_tpsls").textContent=tps.toFixed(1)+" m";
-  const fold=os/bench,hreq=bench/os,gain=os-bench;
-  $("oFold").innerHTML=fold.toFixed(1)+'×';$("oHReq").innerHTML=hreq.toFixed(2);$("oGain").innerHTML='+'+gain.toFixed(1)+' <small>m</small>';$("oORR").innerHTML=orr+' <small>%</small>';
+  const fold=os/bench,osRatio=bench/os,gain=os-bench;
+  $("oFold").innerHTML=fold.toFixed(1)+'×';$("oHReq").innerHTML=osRatio.toFixed(2);$("oGain").innerHTML='+'+gain.toFixed(1)+' <small>m</small>';$("oORR").innerHTML=orr+' <small>%</small>';
   const ap=Math.min(100,100*(1-Math.exp(-(fold-1)/2))*0.6 + orr/70*40);
   const good=ap>=60;$("oApprov").className="verdict "+(good?"v-win":(ap>=40?"v-none":"v-lose"));
   $("oApprov").innerHTML="<b>Accelerated-approval readiness (heuristic): "+ap.toFixed(0)+"/100.</b> "+(good?"Strong single-arm case — large OS fold-improvement over a dismal benchmark plus solid ORR.":(ap>=40?"Plausible but benchmark-dependent; a randomized confirmatory trial likely needed.":"Weak — needs a bigger effect or higher ORR."));
@@ -1320,6 +1348,7 @@ function renderVal(){
 const debouncedRenderVal=debounce(renderVal,75);
 function onValInput(){tabsDirty.value=true;debouncedBestEst();if(activeTab==="value")debouncedRenderVal();}
 ["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares"].forEach(id=>$(id).addEventListener("input",onValInput));
+if($("v_riskadj"))$("v_riskadj").addEventListener("change",onValInput);
 // ---- generic prior/implausible/anchor bands for Tab 2 & 3 sliders ----
 const CFG2=[
  {id:"sls_os",min:4,max:16,sig:{b1:[7,11],b2:[5.5,13],b3:[4,15]},anchor:8.9,src:"SELLAS Dec-2024 PR / ASH 2025"},
@@ -1411,7 +1440,7 @@ function mcSLS(){
   }
   const pFL=100*pwSum/N;
   $("mcSlsStatus").textContent=N.toLocaleString()+" draws";
-  $("mcSlsStats").innerHTML="r/r: median OS fold <b>"+qtl(folds,.5).toFixed(1)+"×</b> (90% CrI "+qtl(folds,.05).toFixed(1)+"–"+qtl(folds,.95).toFixed(1)+"×), P(≥2× vs benchmark) <b>"+(100*big/N).toFixed(0)+"%</b> &nbsp;·&nbsp; frontline: median HR-equiv <b>"+qtl(flhrs,.5).toFixed(2)+"</b>, <b style='color:"+(pFL>50?'var(--good)':'var(--bad)')+"'>P(Phase-3 significant) "+pFL.toFixed(0)+"%</b>";
+  $("mcSlsStats").innerHTML="r/r: median OS fold <b>"+qtl(folds,.5).toFixed(1)+"×</b> (90% CrI "+qtl(folds,.05).toFixed(1)+"–"+qtl(folds,.95).toFixed(1)+"×), P(≥2× vs benchmark) <b>"+(100*big/N).toFixed(0)+"%</b> &nbsp;·&nbsp; frontline: median OS ratio <b>"+qtl(flhrs,.5).toFixed(2)+"</b>, <b style='color:"+(pFL>50?'var(--good)':'var(--bad)')+"'>P(Phase-3 significant) "+pFL.toFixed(0)+"%</b> <span style='color:var(--muted);font-size:11px'>(proxy from median ratio, not SAP log-rank)</span>";
   drawHist("mcSlsHist",flhrs,0.4,1.0,0.05,0.75,true);
 }
 $("mcSlsRun").addEventListener("click",function(){
@@ -1441,7 +1470,7 @@ $("mcValRun").addEventListener("click",function(){
   $("mcValStatus").textContent="running…";
   deferWithLoading(mcVal,"Running Monte Carlo…");
 });
-["v_pgps","v_psls"].forEach(id=>$(id).addEventListener("input",function(){$("v_vpgps").textContent=$("v_pgps").value+"%";$("v_vpsls").textContent=$("v_psls").value+"%";}));
+["v_pgps","v_psls"].forEach(id=>$(id).addEventListener("input",function(){$("v_vpgps").textContent=$("v_pgps").value+"%";$("v_vpsls").textContent=$("v_psls").value+"%";onValInput();}));
 
 // ================= TAB 4 : EXPLAIN =================
 var curLvl="eli5";

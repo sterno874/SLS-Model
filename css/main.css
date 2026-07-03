@@ -139,6 +139,7 @@
   .gauge .interim{position:absolute;top:0;bottom:0;background:rgba(47,111,237,.14);border-left:1px dashed #2f6fed;border-right:1px dashed #2f6fed}
   .gauge .thresh{position:absolute;top:0;bottom:0;width:2px;background:var(--bad)}
   .gauge .hrmark{position:absolute;top:-3px;height:32px;width:3px;background:#111;border-radius:2px}
+  .gauge .hrmark-readout{background:var(--accent);width:3px;opacity:.85}
   .gauge .labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px}
   .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;color:#fff}
   .b-good{background:var(--good)} .b-warn{background:var(--warn)} .b-bad{background:var(--bad)}

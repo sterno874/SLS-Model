@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { T2, hazardRatio, consistent } from "../js/math/survival.js";
+import { T2, hazardRatio, consistent, passesVerdict, eventsAt, T3, E3 } from "../js/math/survival.js";
 import { paramsFromPresetQ } from "./helpers.js";
 import { P, PLAUSIBLE_PRESET_NAMES } from "./fixtures/presets.js";
 
@@ -33,4 +33,11 @@ test("noeffect preset HR near unity", () => {
 test("cw preset HR below win threshold", () => {
   const p = paramsFromPresetQ(P.cw);
   assert.ok(hazardRatio(T2, p) < 0.636);
+});
+
+test("default best preset passes verdict (full trajectory match)", () => {
+  const p = paramsFromPresetQ(P.best);
+  assert.ok(passesVerdict(p), "best preset should pass verdict at m46/m58/m63");
+  const e3 = eventsAt(T3, p);
+  assert.ok(Math.abs(e3 - E3) <= 3, `e63 ${e3} should be within ±3 of 78`);
 });

@@ -16,13 +16,20 @@ function computeValuationMetrics(v) {
   const platform = v.platform;
   const mult = v.mult;
   const shares = v.shares;
+  const ra = !!v.riskadj;
+  const pG = (v.pgps != null ? v.pgps : 65) / 100;
+  const pS = (v.psls != null ? v.psls : 55) / 100;
   const gpool = (cr2 + cr1) * gpen * gyears;
-  const gpsPeak = (gpool * gprice) / 1000;
-  const slsPeak = ((flpool + rrpool) * spen * syears * sprice) / 1000;
+  let gpsPeak = (gpool * gprice) / 1000;
+  let slsPeak = ((flpool + rrpool) * spen * syears * sprice) / 1000;
+  if (ra) {
+    gpsPeak *= pG;
+    slsPeak *= pS;
+  }
   const totPeak = gpsPeak + slsPeak;
   const EV = totPeak * mult + platform * 1000;
   const ps = EV / shares;
-  return { gpool, gpsPeak, slsPeak, totPeak, EV, ps };
+  return { gpool, gpsPeak, slsPeak, totPeak, EV, ps, riskAdjusted: ra };
 }
 
 const DEFAULTS = {
@@ -38,17 +45,29 @@ const DEFAULTS = {
   syears: 1.4,
   platform: 2.5,
   mult: 5,
-  shares: 222
+  shares: 222,
+  riskadj: true,
+  pgps: 65,
+  psls: 55
 };
 
-test("valuation peak/EV arithmetic matches header defaults", () => {
+test("valuation peak/EV arithmetic matches header defaults (risk-adjusted)", () => {
   const { gpool, totPeak, EV, ps } = computeValuationMetrics(DEFAULTS);
   assert.ok(Math.abs(gpool - 10458) < 0.1);
-  const expectedTot =
-    (10458 * 145) / 1000 + ((9000 + 3500) * 0.38 * 1.4 * 145) / 1000;
+  const gpsGross = (10458 * 145) / 1000;
+  const slsGross = ((9000 + 3500) * 0.38 * 1.4 * 145) / 1000;
+  const expectedTot = gpsGross * 0.65 + slsGross * 0.55;
   assert.ok(Math.abs(totPeak - expectedTot) < 0.1);
   assert.ok(Math.abs(EV - (expectedTot * 5 + 2500)) < 0.1);
-  assert.ok(Math.abs(ps - 67.1) < 1);
+  assert.ok(Math.abs(ps - 45.3) < 1);
+});
+
+test("gross EV when risk adjustment disabled", () => {
+  const gross = computeValuationMetrics({ ...DEFAULTS, riskadj: false });
+  const expectedTot =
+    (10458 * 145) / 1000 + ((9000 + 3500) * 0.38 * 1.4 * 145) / 1000;
+  assert.ok(Math.abs(gross.totPeak - expectedTot) < 0.1);
+  assert.ok(gross.EV > computeValuationMetrics(DEFAULTS).EV);
 });
 
 test("EV scales linearly with multiple", () => {
@@ -69,4 +88,12 @@ test("platform lump sum adds to EV", () => {
   const noPlatform = computeValuationMetrics({ ...DEFAULTS, platform: 0 });
   const withPlatform = computeValuationMetrics(DEFAULTS);
   assert.ok(Math.abs(withPlatform.EV - noPlatform.EV - 2500) < 0.01);
+});
+
+test("risk adjustment scales GPS and SLS peaks independently", () => {
+  const base = computeValuationMetrics(DEFAULTS);
+  const gpsOnly = computeValuationMetrics({ ...DEFAULTS, psls: 0 });
+  const slsOnly = computeValuationMetrics({ ...DEFAULTS, pgps: 0 });
+  assert.ok(gpsOnly.totPeak < base.totPeak);
+  assert.ok(slsOnly.totPeak < base.totPeak);
 });

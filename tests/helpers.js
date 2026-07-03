@@ -18,12 +18,12 @@ export { T1, T2, T3, E1, E2, E3, ZFINAL };
 export function mk(p = {}) {
   return Object.assign(
     {
-      bat: 10,
+      bat: 9.5,
       batc: 0.14,
       batk: 1,
       gpsc: 0.22,
-      gpsu: 32,
-      delay: 1.5,
+      gpsu: 31.5,
+      delay: 2,
       xtx: 0.06,
       cens: 0.12,
       osmode: "itt",

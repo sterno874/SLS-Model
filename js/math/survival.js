@@ -64,13 +64,19 @@ function Tfor(events,p){const evAt=(T,b)=>events>=E3?eventsAtAnchored(T,p,b):eve
 // ---------- medians ----------
 function medianOf(fn,p){let prev=1;for(let t=0.1;t<=240;t+=0.1){const s=fn(t,p);if(s<=0.5){const t0=t-0.1;return t0+(prev-0.5)/(prev-s)*0.1;}prev=s;}return null;}
 
-// ---------- consistency ----------
-function consistent(p){
-  const e2=eventsAt(T2,p,110);if(!Number.isFinite(e2)||Math.abs(e2-E2)>3)return false;
-  const e1=eventsAt(T1,p,110);if(!Number.isFinite(e1)||Math.abs(e1-E1)>8)return false;
-  const e3=eventsAt(T3,p,110);if(!Number.isFinite(e3)||Math.abs(e3-E3)>7)return false;
-  const e4=eventsAt(T4,p,110);if(!Number.isFinite(e4)||e4>=80.5)return false;
+// ---------- consistency / verdict ----------
+function consistent(p,bins){
+  bins=bins||110;
+  const e1=eventsAt(T1,p,bins);if(!Number.isFinite(e1)||Math.abs(e1-E1)>4)return false;
+  const e2=eventsAt(T2,p,bins);if(!Number.isFinite(e2)||Math.abs(e2-E2)>3)return false;
+  const e3=eventsAt(T3,p,bins);if(!Number.isFinite(e3)||Math.abs(e3-E3)>3)return false;
+  const e4=eventsAt(T4,p,bins);if(!Number.isFinite(e4)||e4>=80||e4<77)return false;
   return true;
+}
+function passesVerdict(p,bins){
+  if(!consistent(p,bins))return false;
+  const pm=medianOf(poolS,p);
+  return pm===null||pm>13.5;
 }
 // ---------- auto-fit ----------
 function autofitCure(p){const test=c=>eventsAt(T2,Object.assign({},p,{gpsc:c}));const lo=test(0),hi=test(0.9);if(lo<E2)return{sol:null,reason:"even 0% GPS cure gives only "+lo.toFixed(0)+" events by m58 — BAT too strong for the data"};if(hi>E2)return{sol:null,reason:"even 90% GPS cure still gives "+hi.toFixed(0)+" events by m58 — BAT too weak / uncured mOS too low"};let a=0,b=0.9;for(let i=0;i<40;i++){const m=(a+b)/2;if(test(m)>E2)a=m;else b=m;}return{sol:(a+b)/2};}
@@ -120,6 +126,6 @@ export {
   lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix,
   sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored,
   T80PrPace, T80, t80Analysis, mcPathToT80,
-  hazardRatio, analyzeLR, condPow, Tfor, medianOf, consistent, autofitCure,
+  hazardRatio, analyzeLR, condPow, Tfor, medianOf, consistent, passesVerdict, autofitCure,
   eventErr, bisectField, batcFor3yrCap, inverseSolve
 };

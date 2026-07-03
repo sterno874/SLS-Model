@@ -23,5 +23,6 @@ test("survival.js exports core model functions", async () => {
   const mod = await import(pathToFileURL(path.join(root, "js/math/survival.js")).href);
   assert.equal(typeof mod.inverseSolve, "function");
   assert.equal(typeof mod.consistent, "function");
+  assert.equal(typeof mod.passesVerdict, "function");
   assert.equal(typeof mod.eventsAt, "function");
 });
