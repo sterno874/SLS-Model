@@ -80,8 +80,35 @@ function poisLL(p) {
 }
 const altHyp = mk({ bat: 10, batc: 0.14, gpsc: 0.22, gpsu: 32, delay: 1.5, xtx: 0.06, cens: 0.12 });
 const strawNull = mk({ bat: 8, batc: 0, gpsc: 0, gpsu: 8, delay: 0, xtx: 0, cens: 0 });
-check("Poisson LL: alt hypothesis beats strawman null on 60/72/78",
+check("Poisson LL: alt hypothesis beats strawman null on 60/72/78 — Δ=12.05",
   poisLL(altHyp) > poisLL(strawNull), "Δ=" + (poisLL(altHyp) - poisLL(strawNull)).toFixed(2));
+
+function b64urlEncode(str) {
+  return Buffer.from(str, "utf8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlDecode(str) {
+  str = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (str.length % 4) str += "=";
+  return Buffer.from(str, "base64").toString("utf8");
+}
+const shareSample = { v: 1, tab: "gps", regalMode: "inverse", gps: { bat: 10, gpsc: 42 }, ui: { explainLvl: "phd" } };
+const shareDec = JSON.parse(b64urlDecode(b64urlEncode(JSON.stringify(shareSample))));
+check("Share URL b64 round-trip", shareDec.regalMode === "inverse" && shareDec.ui.explainLvl === "phd");
+
+function poisLogLThrough(p, throughMonth) {
+  const e46v = M.eventsAt(46, p, 100), e58v = M.eventsAt(58, p, 100), e63v = M.eventsAt(63, p, 100), e65v = M.eventsAt(65, p, 100);
+  let ll = 0;
+  if (throughMonth >= 46) ll += M.lpois(60, e46v);
+  if (throughMonth >= 58) ll += M.lpois(12, Math.max(0, e58v - e46v));
+  if (throughMonth >= 63) ll += M.lpois(6, Math.max(0, e63v - e58v));
+  if (throughMonth >= 65) ll += Math.log(Math.max(1e-12, M.poisLE(1, Math.max(0, e65v - e63v))));
+  return ll;
+}
+check("Milestone LL: truncated @ m46 excludes later increments",
+  poisLogLThrough(best, 46) > poisLogLThrough(best, 65));
+
+const cwPreset = mk({ bat: 10, batc: 0.06, gpsc: 0.42, gpsu: 36, delay: 0, xtx: 0, cens: 0 });
+check("CW forward preset HR < 0.636", M.hazardRatio(T2, cwPreset) < 0.636, M.hazardRatio(T2, cwPreset).toFixed(3));
 
 console.log("\n--- Summary: " + pass + " passed, " + fail + " failed ---");
 process.exit(fail > 0 ? 1 : 0);

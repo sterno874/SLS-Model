@@ -519,7 +519,7 @@
       </div>
       <div class="bf-box">
         <h4>Heterogeneous BAT null (critique)</h4>
-        <div style="font-size:12px;color:var(--muted)">BAT Weibull + 18% long-survivor tail, GPS weak (5% cure)</div>
+        <div style="font-size:12px;color:var(--muted)">BAT Weibull + 18% long-survivor tail (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3011608/" target="_blank" rel="noopener">Kurosawa 2010</a> range), GPS weak (5% cure) — <span class="tag a">assumption</span></div>
       </div>
     </div>
     <div class="ctrl" style="margin:8px 0"><label>Observed events @ m58 <span id="bfE58">72</span></label><input type="range" id="bf_e58" min="65" max="78" step="1" value="72"/></div>
@@ -557,7 +557,7 @@
 <details class="feat-panel" id="panelPresetCmp">
   <summary>Preset comparison dashboard <span class="tag m">model</span></summary>
   <div style="margin-top:10px">
-    <p class="cw-note">All REGAL forward and inverse presets computed side-by-side — no clicking through one by one. P(win) uses a fast approximate MC (3k draws). May take a few seconds.</p>
+    <p class="cw-note">All REGAL forward and inverse presets computed side-by-side — no clicking through one by one. P(win) uses the same fast approximate MC as the tornado panel (3k draws per preset). May take a few seconds.</p>
     <button class="p" id="presetCmpRun" style="font-weight:700;padding:6px 12px;margin-bottom:8px">▶ Compute all presets</button>
     <span id="presetCmpStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     <div style="overflow-x:auto;max-height:420px;overflow-y:auto">
@@ -573,7 +573,7 @@
 <details class="feat-panel" id="panelBacktest">
   <summary>Milestone backtest — what would P(win) have been then? <span class="tag m">model</span></summary>
   <div style="margin-top:10px">
-    <p class="cw-note">At each historical milestone, shows what P(win) and HR would have been using only the data available then — but with the <em>current</em> model structure applied to truncated information. Honest caveat: this is retrospective modeling, not what was knowable in real time.</p>
+    <p class="cw-note">At each historical milestone, shows HR and P(win) using a <b>truncated Poisson likelihood</b> (only event counts announced by that date) while holding today’s slider values fixed — it does <em>not</em> re-fit parameters with hindsight. Honest caveat: retrospective structure + current priors, not what was knowable or modeled in real time.</p>
     <div class="milestone-cards" id="backtestCards"></div>
   </div>
 </details>
@@ -1441,21 +1441,22 @@ function captureState(){
     gps:{bat:+$("bat").value,batc:+$("batc").value,batk:+$("batk").value,gpsc:+$("gpsc").value,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value,cens:+$("cens").value,mid:+$("mid").value,k:+$("k").value,batcap:+$("batcap").value,autofit:$("autofit").checked,fhTest:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value,mcFloor:$("mcFloor").checked,cutoff:+$("cutoff").value},
     sls:{sls_os:+$("sls_os").value,sls_bench:+$("sls_bench").value,sls_orr:+$("sls_orr").value,fl_base:+$("fl_base").value,fl_sls:+$("fl_sls").value,tp_base:+$("tp_base").value,tp_sls:+$("tp_sls").value,sls_flev:+$("sls_flev").value},
     val:{v_cr2:+$("v_cr2").value,v_cr1:+$("v_cr1").value,v_gpen:+$("v_gpen").value,v_gprice:+$("v_gprice").value,v_gyears:+$("v_gyears").value,v_flpool:+$("v_flpool").value,v_rrpool:+$("v_rrpool").value,v_spen:+$("v_spen").value,v_sprice:+$("v_sprice").value,v_syears:+$("v_syears").value,v_platform:+$("v_platform").value,v_mult:+$("v_mult").value,v_shares:+$("v_shares").value,v_riskadj:$("v_riskadj").checked,v_pgps:+$("v_pgps").value,v_psls:+$("v_psls").value},
-    ui:{showUncertainty,irm_lead:+$("irm_lead").value,bf_e58:+$("bf_e58").value,bf_cure:+$("bf_cure").value}};
+    ui:{showUncertainty,irm_lead:+$("irm_lead").value,bf_e58:+$("bf_e58").value,bf_cure:+$("bf_cure").value,explainLvl:curLvl}};
 }
 function encodeStateToHash(){return "#s="+b64urlEncode(JSON.stringify(captureState()));}
 function applyState(s){
   if(!s||s.v!==1)return false;restoringState=true;
   if(s.gps){const g=s.gps;for(const k of ["bat","batc","batk","gpsc","gpsu","delay","xtx","cens","mid","k","batcap","stratF","zfut","cutoff"])if(g[k]!=null&&$(k))$(k).value=g[k];if(g.autofit!=null)$("autofit").checked=g.autofit;if(g.fhTest!=null)$("fhTest").checked=g.fhTest;if(g.mcFloor!=null)$("mcFloor").checked=g.mcFloor;}
   if(s.sls){for(const k in s.sls)if($(k))$(k).value=s.sls[k];}
-  if(s.val){for(const k in s.val){if($(k))$(k).value=s.val[k];if(k==="v_riskadj"&&$("v_riskadj"))$("v_riskadj").checked=s.val[k];}}
-  if(s.ui){if(s.ui.showUncertainty!=null){showUncertainty=s.ui.showUncertainty;$("showUncertainty").checked=showUncertainty;}if(s.ui.irm_lead!=null)$("irm_lead").value=s.ui.irm_lead;if(s.ui.bf_e58!=null)$("bf_e58").value=s.ui.bf_e58;if(s.ui.bf_cure!=null)$("bf_cure").value=s.ui.bf_cure;}
+  if(s.val){for(const k in s.val){if(k==="v_riskadj"&&$("v_riskadj"))$("v_riskadj").checked=!!s.val[k];else if($(k))$(k).value=s.val[k];}}
+  if(s.ui){if(s.ui.showUncertainty!=null){showUncertainty=s.ui.showUncertainty;$("showUncertainty").checked=showUncertainty;}if(s.ui.irm_lead!=null)$("irm_lead").value=s.ui.irm_lead;if(s.ui.bf_e58!=null)$("bf_e58").value=s.ui.bf_e58;if(s.ui.bf_cure!=null)$("bf_cure").value=s.ui.bf_cure;if(s.ui.explainLvl)curLvl=s.ui.explainLvl;}
   activeRegalPreset=s.activeRegalPreset||activeRegalPreset;activeInvPreset=s.activeInvPreset||activeInvPreset;
   activeSlsPreset=s.activeSlsPreset||activeSlsPreset;activeValPreset=s.activeValPreset||activeValPreset;
   if(s.regalMode)setRegalMode(s.regalMode);
   refreshRegalPresetHighlight();highlightPresets("button[data-sls]","sls",activeSlsPreset);highlightPresets("button[data-val]","val",activeValPreset);
   update();renderSLS();renderVal();renderIRM();updateBayes();
-  if(s.tab)switchTab(s.tab);restoringState=false;return true;
+  if(s.tab)switchTab(s.tab);else if(s.ui&&s.ui.explainLvl)showLevel(s.ui.explainLvl);
+  restoringState=false;return true;
 }
 function restoreFromHash(){const h=location.hash;if(!h.startsWith("#s="))return false;try{return applyState(JSON.parse(b64urlDecode(h.slice(3))));}catch(e){console.warn("Could not restore state from URL",e);return false;}}
 function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";document.body.appendChild(t);}t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
@@ -1465,14 +1466,21 @@ $("btnPrint").onclick=()=>{updatePrintSummary();window.print();};
 $("showUncertainty").onchange=function(){showUncertainty=this.checked;update();};
 
 // ================= FAST P(WIN) APPROX =================
-function fastPwin(p,binding,cutoff,nDraws){
-  nDraws=nDraws||3000;const ctr=Object.assign({},p);let W=0,WP=0;
+function poisLogLThrough(p,throughMonth){
+  const e46v=eventsAt(46,p,100),e58v=eventsAt(58,p,100),e63v=eventsAt(63,p,100),e65v=eventsAt(65,p,100);
+  let ll=0;
+  if(throughMonth>=46)ll+=lpois(60,e46v);
+  if(throughMonth>=58)ll+=lpois(12,Math.max(0,e58v-e46v));
+  if(throughMonth>=63)ll+=lpois(6,Math.max(0,e63v-e58v));
+  if(throughMonth>=65)ll+=Math.log(Math.max(1e-12,poisLE(1,Math.max(0,e65v-e63v))));
+  return ll;
+}
+function fastPwin(p,binding,cutoff,nDraws,dataThrough){
+  nDraws=nDraws||3000;const ctr=Object.assign({},p);const thru=dataThrough!=null?dataThrough:65;let W=0,WP=0;
   for(let i=0;i<nDraws;i++){const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut};
     for(const f of MCFIELDS) q[f]=clampf(f,ctr[f]+SD[f]*rn());
-    const e58=eventsAt(58,q,80);if(Math.abs(e58-72)>15)continue;
-    const e46=eventsAt(46,q,80),e63=eventsAt(63,q,80),e65=eventsAt(65,q,80);
-    const l1=e46,l2=Math.max(0,e58-e46),l3=Math.max(0,e63-e58),l4=Math.max(0,e65-e63);
-    const Lev=Math.exp(lpois(60,l1)+lpois(12,l2)+lpois(6,l3)+Math.log(Math.max(1e-12,poisLE(1,l4))));
+    if(thru>=58){const e58=eventsAt(58,q,80);if(Math.abs(e58-72)>15)continue;}
+    const Lev=Math.exp(poisLogLThrough(q,thru));
     if(Lev<1e-11)continue;
     const thIA=analyzeLR(46,q).z,t80=T80(q);let Tan,Dan;if(t80<=cutoff){Tan=t80;Dan=80;}else{Tan=cutoff;Dan=eventsAt(cutoff,q,80);}
     const aFin=analyzeLR(Tan,q);if(isNaN(aFin.hr))continue;
@@ -1565,8 +1573,8 @@ function renderIRM(){
   const batA=armAlive(63,p,sBAT),gpsA=armAlive(63,p,sGPS);
   const trueBat=irmBat!=null?Math.max(1,irmBat-lead):null;
   const rows=[
-    ["BAT IRM (from rand)",irmBat!=null?irmBat.toFixed(1)+" m":"—","10 mo (CW anchor)",irmBat!=null?(irmBat-10).toFixed(1)+" m":""],
-    ["TRUE CR2-onset BAT mOS",trueBat!=null?trueBat.toFixed(1)+" m":"—","~8–11 mo",""],
+    ["BAT IRM (from rand)",irmBat!=null?irmBat.toFixed(1)+" m":"—",'10 mo (<a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">CW anchor</a>)',irmBat!=null?(irmBat-10).toFixed(1)+" m":""],
+    ["TRUE CR2-onset BAT mOS",trueBat!=null?trueBat.toFixed(1)+" m":"—",'~8–11 mo (<a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">Stahl 2021</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3011608/" target="_blank" rel="noopener">Kurosawa 2010</a>)',""],
     ["Pooled IRM",irmPool!=null?irmPool.toFixed(1)+" m":"—",CW_REF.pool+" mo",irmPool!=null?(irmPool-CW_REF.pool).toFixed(1)+" m":""],
     ["HR @ m58",isNaN(hr)?"—":hr.toFixed(2),CW_REF.hr.toFixed(2),isNaN(hr)?"":(hr-CW_REF.hr).toFixed(2)],
     ["BAT 3-yr OS",bat3.toFixed(0)+"%",CW_REF.bat3+"%",(bat3-CW_REF.bat3).toFixed(0)+"pp"],
@@ -1608,9 +1616,9 @@ function runPresetCmp(){
     const rows=[];
     for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
       const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
-      rows.push({name,mode:"forward",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,2000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+      rows.push({name,mode:"forward",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
     for(const name in INV){const pr=paramsFromPreset(name,INV[name],"inverse");if(!pr)continue;
-      rows.push({name,mode:"inverse",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,2000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+      rows.push({name,mode:"inverse",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
     $("presetCmpBody").innerHTML=rows.map(r=>{
       const win=r.hr<THRESH?"win":"lose";
       return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
@@ -1622,15 +1630,15 @@ $("presetCmpRun").onclick=runPresetCmp;
 
 // ================= MILESTONE BACKTEST (#7) =================
 const MILESTONES=[
-  {label:"Interim",month:46,events:60,src:"Jan 2025 PR"},
-  {label:"72-event update",month:58,events:72,src:"Dec 2025 PR"},
-  {label:"78-event update",month:63,events:78,src:"May 2026 PR"}
+  {label:"Interim",month:46,events:60,dataThrough:46,src:'<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 PR</a>'},
+  {label:"72-event update",month:58,events:72,dataThrough:58,src:'<a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">Dec 2025 PR</a>'},
+  {label:"78-event update",month:63,events:78,dataThrough:65,src:'<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">May 2026 PR</a> (78 @ m63, still &lt;80 @ m65)'}
 ];
 function renderBacktest(){
   const p=readParams(),binding=$("mcFloor").checked;
   $("backtestCards").innerHTML=MILESTONES.map(m=>{
-    const hr=hazardRatio(m.month,p),pw=fastPwin(p,binding,m.month+6,2000);
-    return '<div class="mcard"><div class="mt">'+m.label+' — '+m.events+' @ m'+m.month+'</div><div class="mv">'+(isNaN(hr)?"—":hr.toFixed(2))+' HR</div><div style="font-size:13px">P(win|then) ≈ <b>'+(isNaN(pw)?"—":(100*pw).toFixed(0)+"%")+'</b></div><div style="font-size:10px;color:var(--muted);margin-top:4px">'+m.src+' · current model applied retrospectively</div></div>';
+    const hr=hazardRatio(m.month,p),pw=fastPwin(p,binding,Math.max(72,m.month+6),3000,m.dataThrough);
+    return '<div class="mcard"><div class="mt">'+m.label+' — '+m.events+' @ m'+m.month+'</div><div class="mv">'+(isNaN(hr)?"—":hr.toFixed(2))+' HR</div><div style="font-size:13px">P(win|data then) ≈ <b>'+(isNaN(pw)?"—":(100*pw).toFixed(0)+"%")+'</b></div><div style="font-size:10px;color:var(--muted);margin-top:4px">'+m.src+' · Poisson likelihood truncated to milestones then known · same survival sliders as now (not re-fit)</div></div>';
   }).join("");
 }
 
@@ -1889,8 +1897,15 @@ showLevel("eli5");
 buildBands2();renderSLS();renderVal();
 </script>
 <script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  (function(){
+    var h=location.hostname;
+    if(h==="sls-model.vercel.app"||h.endsWith(".vercel.app")){
+      window.va=window.va||function(){(window.vaq=window.vaq||[]).push(arguments);};
+      var s=document.createElement("script");
+      s.defer=true;s.src="/_vercel/insights/script.js";
+      document.head.appendChild(s);
+    }
+  })();
 </script>
-<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

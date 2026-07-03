@@ -31,7 +31,7 @@ Clinical: REGAL design paper (Jamy & Cicic, *Future Oncol* 2025, PMC11760237); C
 Community due-diligence framing (the lead-time/IRM argument, fitted-scenario tables, binding-vs-weighted-test discussion) is attributed to **"Confident Web" (u/Confident-Web-7118)** and incorporated as *adjustable scenarios, not established fact*.
 
 ## Run locally
-Just open `index.html` in any modern browser. No build step, no dependencies, no server-side storage. (Vercel Web Analytics runs only on the deployed site, not locally.)
+Just open `index.html` in any modern browser. No build step, no dependencies, no server-side storage. Vercel Web Analytics loads only on `*.vercel.app` deployments (not local file open).
 
 Math regression: `node verify_math.js` (also runs in GitHub Actions on push/PR to `main` — see `.github/workflows/verify-math.yml`).
 
