@@ -37,6 +37,8 @@
   .readout-estimate .re-main b{font-weight:700;color:var(--accent)}
   .readout-estimate .re-ci{font-size:11.5px;margin-top:1px}
   .readout-estimate .re-events{font-size:10.5px;margin-top:3px;color:var(--muted)}
+  .readout-estimate .re-pace{font-size:11px;margin-top:2px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .readout-estimate .re-footnote{font-size:10px;margin-top:3px;color:var(--muted);font-style:italic;line-height:1.35}
   .readout-estimate .tag.m{font-size:9px;padding:0 5px;vertical-align:1px}
   @media(max-width:640px){
     .readout-estimate{text-align:left;max-width:100%;width:100%;padding-top:8px;border-top:1px solid var(--line);margin-top:4px}
@@ -353,7 +355,9 @@
     <div class="readout-estimate no-embed" id="readoutEstimate" aria-live="polite" hidden>
       <div class="re-main">Est. 80th event: <b id="reDate">—</b> <span class="tag m">model est.</span></div>
       <div class="re-ci" id="reCI">90% CI: —</div>
+      <div class="re-pace" id="rePace" hidden></div>
       <div class="re-events"><span id="reEvents">78/80 events</span> · <span class="cite"><a id="reAnchorLink" href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 @ May 2026 PR</a></span></div>
+      <div class="re-footnote" id="reFootnote">Projected from 78 events @ May 2026; shifts with survival assumptions.</div>
     </div>
   </div>
   <div class="hdr-tools no-print">
@@ -696,7 +700,7 @@
 <details class="feat-panel" id="panelT80">
   <summary>Time-to-80th-event simulator <span class="tag m">model</span></summary>
   <div style="margin-top:10px">
-    <p class="cw-note">Monte Carlo simulation of months until the 80th death, given current survival curves and enrollment model. Anchors: <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72 @ m58</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 @ m63</a> (still &lt;80).</p>
+    <p class="cw-note">Monte Carlo simulation of months until the 80th death from the confirmed <b>78 @ m63</b> anchor — model increments only for the remaining 2 events. PR pace reference: linear extrapolation from 72→78 (+6 in 5 mo). Sources: <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72 @ m58</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 @ m63</a>.</p>
     <button class="p" id="t80Run" style="font-weight:700;padding:6px 12px;margin-bottom:8px">▶ Simulate 10k paths</button>
     <span id="t80Status" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     <div id="t80Stats" style="font-size:13px;font-weight:600;margin:8px 0"></div>
@@ -1506,6 +1510,10 @@ function armDeaths(T,p,baseFn,bins){bins=bins||180;let d=0;for(let i=0;i<bins;i+
     d+=N_ARM*w*pd;}
   return d;}
 function eventsAt(T,p,bins){const raw=armDeaths(T,p,sBATbase,bins)+armDeaths(T,p,sGPSbase,bins);return raw*(1-p.cens*0.5);}
+// Forward projection locked to confirmed PR anchors (78 @ m63); model increments only beyond anchor
+function eventsAtAnchored(T,p,bins){bins=bins||110;if(T<T3)return eventsAt(T,p,bins);const modelAtAnchor=eventsAt(T3,p,bins);return E3+(eventsAt(T,p,bins)-modelAtAnchor);}
+function T80PrPace(){const rate=(E3-E2)/(T3-T2);return T3+(80-E3)/rate;}
+function mcPathToT80(q,bins){bins=bins||110;let t=T3;while(eventsAtAnchored(t,q,bins)<80&&t<120)t+=0.5;return t;}
 
 // ---------- HR (Pike) ----------
 function hazardRatio(T,p){const h=0.5;let Ob=0,Og=0,Eb=0,Eg=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;}if(Eb<1e-6||Eg<1e-6)return NaN;return (Og/Eg)/(Ob/Eb);}
@@ -1744,15 +1752,21 @@ function updateReadoutVisibility(){
 }
 function updateReadoutTracker(){
   updateReadoutVisibility();
-  const p=readParams(),t80=T80(p);
+  const p=readParams(),t80=T80(p),tPace=T80PrPace(),moFromAnchor=t80-T3;
   if($("reDate"))$("reDate").textContent=fmtCalMonth(t80);
-  if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80 events';
-  const times=[];for(let i=0;i<2000;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;
-    let t=T3;while(eventsAt(t,q,60)<80&&t<120)t+=0.5;times.push(t);}
+  if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80 events · +'+moFromAnchor.toFixed(1)+' mo from anchor';
+  const times=[];for(let i=0;i<2000;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;times.push(mcPathToT80(q,110));}
   times.sort((a,b)=>a-b);
   const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
   const p10=qf(0.05),p90=qf(0.95);
-  if($("reCI"))$("reCI").textContent='90% CI: '+fmtCalRange(p10,p90);
+  if($("reCI"))$("reCI").textContent='90% CI: '+fmtCalRange(p10,p90)+' (+'+(p10-T3).toFixed(1)+'–'+(p90-T3).toFixed(1)+' mo from anchor)';
+  const paceEl=$("rePace");
+  if(paceEl){
+    if(t80>tPace+0.4){
+      paceEl.hidden=false;
+      paceEl.innerHTML='PR pace est.: <b>'+fmtCalMonth(tPace)+'</b> (+'+(tPace-T3).toFixed(1)+' mo · linear 72→78) <span class="tag f">PR pace</span>';
+    }else paceEl.hidden=true;
+  }
 }
 function scenarioMetrics(p,binding){
   if(!p)return null;
@@ -2027,7 +2041,7 @@ function noteText(){
 }
 
 // ---------- Monte Carlo (posterior over final HR) ----------
-function T80(p){let lo=60,hi=130;if(eventsAt(hi,p,80)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAt(m,p,80)<80)lo=m;else hi=m;}return (lo+hi)/2;}
+function T80(p){let lo=T3,hi=130;if(eventsAtAnchored(hi,p,110)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAtAnchored(m,p,110)<80)lo=m;else hi=m;}return (lo+hi)/2;}
 function rn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
 function clampf(f,v){const c=CFG.find(x=>x.field===f);return Math.max(c.min*c.sc,Math.min(c.max*c.sc,v));}
@@ -2315,13 +2329,12 @@ function runT80Sim(){
     const p=readParams(),N=10000,times=[];
     for(let i=0;i<N;i++){
       const q=Object.assign({},p);q.bat+=rn()*0.5;q.gpsc=Math.max(0,Math.min(0.75,q.gpsc+rn()*0.03));
-      let t=T3;while(eventsAt(t,q,60)<80&&t<120)t+=0.5;
-      times.push(t);
+      times.push(mcPathToT80(q,110));
     }
     times.sort((a,b)=>a-b);
     const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
-    const med=qf(0.5),p90=qf(0.9),p10=qf(0.1);
-    $("t80Stats").innerHTML="Median <b>m"+med.toFixed(1)+"</b> · 90th percentile <b>m"+p90.toFixed(1)+"</b> · 10th <b>m"+p10.toFixed(1)+"</b>";
+    const med=qf(0.5),p90=qf(0.9),p10=qf(0.1),tPace=T80PrPace();
+    $("t80Stats").innerHTML="Median <b>m"+med.toFixed(1)+"</b> ("+fmtCalMonth(med)+", +"+(med-T3).toFixed(1)+" mo from anchor) · 90th <b>m"+p90.toFixed(1)+"</b> · 10th <b>m"+p10.toFixed(1)+"</b> · PR pace <b>m"+tPace.toFixed(1)+"</b> ("+fmtCalMonth(tPace)+")";
     const bins=[];for(let b=63;b<90;b+=1){let c=0;for(const t of times)if(t>=b&&t<b+1)c++;bins.push([b,100*c/N]);}
     const mx=Math.max(...bins.map(x=>x[1]),1);
     $("t80Hist").innerHTML=bins.map(bp=>'<div title="m'+bp[0]+': '+bp[1].toFixed(1)+'%" style="height:'+(bp[1]/mx*100).toFixed(1)+'%"></div>').join("");
