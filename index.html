@@ -210,7 +210,7 @@
       <label for="batc">BAT long-survivor plateau <span id="vBatc">0%</span><span class="derived-tag" id="batcDerivedTag" hidden>implied</span></label>
       <input type="range" id="batc" min="0" max="30" step="1" value="0"/>
       <div class="bands" id="band-batc"></div>
-      <small class="source-line">Mixture-model cure plateau — patients on a flat long-term survival curve. <em>Not</em> the same as 3-yr OS (see readout): with 0% plateau, a 13-mo exponential median still yields ~15% alive at 3 years via the Weibull tail. Kurosawa whole-cohort no-HCT ~14% 3-yr OS (<a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Haematologica 2010</a>). Main lever toward a losing HR.</small>
+      <small class="source-line">Mixture-model cure <strong>plateau</strong> (batc) — flat long-term survivors added on top of the Weibull decline. <em>Not</em> the same as 3-yr OS (see readout): at 13-mo BAT median, batc=0 still yields ~15% at 3yr from the tail alone. Kurosawa ~14% is a <em>3-yr OS</em> biology cap, not a plateau prior (<a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Haematologica 2010</a>). <span id="batcCapHint"></span></small>
     </div>
     </div>
 
@@ -809,6 +809,23 @@
       </table></div>
     </div>
   </details>
+
+  <!-- CATALYSTS / RELATED TRIALS -->
+  <div class="facts" id="panelSlsCatalysts">
+    <div class="card">
+      <h2>Catalysts &amp; related trials <span style="font-weight:400;text-transform:none;letter-spacing:0"><span class="tag v">verified</span> registry/SELLAS · <span class="tag c">community</span> unverified · <span class="tag m">model</span> not in valuation</span></h2>
+      <p class="cw-note" style="margin-top:0">Separate from SELLAS-run AML trials modeled in Tabs 2–3. A positive PTCL readout is a <b>biology/tolerability signal for the CDK9 class</b> (same molecule as GFH009/SLS-009), not a direct input to OS-ratio sliders or AML peak-sales math.</p>
+      <div class="fgrid">
+        <div><b>GenFleet PTCL Ph Ib/II:</b> GFH009 = SLS-009 / tambiciclib (same molecule) — open-label single-arm monotherapy in r/r PTCL, ~95 pts; Phase II primary = ORR <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT05934513" target="_blank" rel="noopener">[NCT05934513]</a></span></div>
+        <div><b>Sponsor:</b> GenFleet Therapeutics (China) — <em>not</em> SELLAS-run; SELLAS lists trial as GenFleet-sponsored and fully funded <span class="tag v">verified</span> <span class="cite"><a href="https://sellaslifesciences.com/clinical-trials/" target="_blank" rel="noopener">[SELLAS trials]</a></span></div>
+        <div><b>Registry timing (estimates):</b> primary completion Dec 30, 2025; study completion Jun 30, 2026 — registry projections, may lag <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT05934513" target="_blank" rel="noopener">[NCT]</a></span></div>
+        <div><b>Community timing:</b> r/sellaslifesciences claims DB lock ~Jun 30 → topline Jul–Aug 2026 — <em>not verified</em> <span class="tag c">community</span></div>
+        <div><b>SELLAS AML trials (distinct timeline):</b> r/r combo + frontline Ph2 (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>) are SELLAS-run; months away from new registrational readouts <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">[NCT]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Announces-Enrollment-of-First-Patient-in-Newly-Diagnosed-First-Line-AML-Trial-of-SLS009/default.aspx" target="_blank" rel="noopener">[Mar 2026]</a></span></div>
+        <div><b>Phase 1 historical (different trial):</b> NCT04588922 lymphoma cohort — SELLAS cites 36.4% response in PTCL subset at RP2D 100 mg weekly; early dose-finding, not the dedicated PTCL Ph Ib/II <span class="tag v">verified</span> <span class="cite"><a href="https://sellaslifesciences.com/clinical-trials/" target="_blank" rel="noopener">[SELLAS trials]</a> · <a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">[NCT04588922]</a></span></div>
+        <div><b>Not in this model:</b> PTCL ORR read-through is not folded into Tab 2 OS-ratio sliders or Tab 3 AML peak-sales inputs <span class="tag m">model</span></div>
+      </div>
+    </div>
+  </div>
 
   <!-- COMMUNITY DD — SLS-009 (lazy) -->
   <details class="cw-panel" id="panelSlsCommunity">
@@ -1409,6 +1426,7 @@
       <h3>ASXL1 / TP53 relevance</h3>
       <p>In the Phase 2 study (r/r AML with MDS-related changes, after prior venetoclax), responses were enriched in patients with <b>ASXL1 mutations</b> — a subgroup with historically poor prognosis — and preclinical work shows activity in <b>ASXL1-mutated and TP53-knockout</b> AML lines. SELLAS reports the combination met its primary endpoints in that r/r setting and is moving toward a frontline study. <span class="tag a">Company-reported</span> <span class="tag m">Theoretical MOA</span></p>
       <p class="bio-honesty"><b>Honesty flag:</b> the SLS-009 efficacy data are from an <b>early, single-arm</b> Phase 2 (no randomized control); response rates and the ASXL1 signal are promising but not yet confirmed against a comparator. Frontline benefit is a hypothesis a randomized trial would have to test. <span class="tag a">Company-reported / single-arm</span></p>
+      <p class="bio-honesty" style="margin-top:8px"><b>Related catalyst (not modeled here):</b> GenFleet runs a separate Phase Ib/II monotherapy trial of GFH009 (same molecule) in r/r PTCL (<a href="https://clinicaltrials.gov/study/NCT05934513" target="_blank" rel="noopener">NCT05934513</a>) — see <a href="#" onclick="document.querySelector('.tabbtn[data-tab=sls009]').click();return false;">Tab 2 · Catalysts</a> for timing and scope. PTCL ORR read-through ≠ AML valuation inputs. <span class="tag m">model</span></p>
       <ul class="bio-sources">
         <li>SLS-009 (GFH009) trial record — CDK9 inhibitor + AZA/VEN, ASXL1 cohorts: <a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a></li>
         <li>Zeidan et al., ASH 2024 abstract — Phase 2a SLS-009 + AZA/VEN in r/r AML: <a href="https://ash.confex.com/ash/2024/webprogram/Paper198686.html" target="_blank" rel="noopener">ASH 2024 #198686</a></li>

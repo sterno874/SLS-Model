@@ -178,3 +178,10 @@ test("explain tab deep link target exists in header", () => {
   assert.match(html, /href="#explain"/);
   assert.match(html, /data-tab="explain"/);
 });
+
+test("SLS-009 tab includes GenFleet PTCL catalyst panel", () => {
+  const sls = matchAll(/<div id="tab-sls009"[\s\S]*?<!-- \/tab-sls009 -->/g, html)[0][0];
+  assert.match(sls, /id="panelSlsCatalysts"/);
+  assert.match(sls, /NCT05934513/);
+  assert.match(sls, /clinicaltrials\.gov\/study\/NCT05934513/);
+});

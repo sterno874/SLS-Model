@@ -255,6 +255,24 @@ Best Available Guess uses **2.8 mo** benchmark — modest upward drift from comp
 6. **CDK9 class not unique** — voruciclib, QHRD107 also in development (⚠️ community ASH 2024 posts)
 
 ❌ Community claims of "100% CR" or "guaranteed FDA approval" are **not supported** by primary sources ([superseded by 44–50% at optimal dose](https://ashpublications.org/blood/article/146/Supplement%201/3423/552036/)).
+### 3.5 GenFleet PTCL Catalyst (Related Trial — Not Modeled)
+
+**GFH009** is the same molecule as SLS-009 / tambiciclib. GenFleet Therapeutics (China) sponsors a **separate** Phase Ib/II open-label single-arm monotherapy trial in relapsed/refractory PTCL:
+
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Trial ID | [NCT05934513](https://clinicaltrials.gov/study/NCT05934513) | ClinicalTrials.gov |
+| Sponsor | GenFleet — **not** SELLAS-run | [SELLAS clinical trials page](https://sellaslifesciences.com/clinical-trials/) |
+| Design | Open-label single-arm monotherapy, r/r PTCL, ~95 pts | NCT05934513 |
+| Phase II primary | ORR | NCT05934513 |
+| Est. primary completion | Dec 30, 2025 | NCT05934513 (registry estimate) |
+| Est. study completion | Jun 30, 2026 | NCT05934513 (registry estimate; may lag) |
+
+**Historical context (different trial):** In the Phase 1 lymphoma cohort of [NCT04588922](https://clinicaltrials.gov/study/NCT04588922), SELLAS cites **36.4% response in the PTCL subset** at RP2D 100 mg weekly — early dose-finding, not the dedicated PTCL Ph Ib/II ([SELLAS clinical trials](https://sellaslifesciences.com/clinical-trials/)).
+
+**Community timing (⚠️ unverified):** Reddit posts speculate DB lock ~Jun 30 → topline Jul–Aug 2026. Tag as community theory, not verified fact.
+
+**Model boundary (🔬):** PTCL ORR read-through is a **biology/tolerability signal for the CDK9 class**, not folded into Tab 2 OS-ratio sliders or Tab 3 AML peak-sales math. SELLAS AML trials ([NCT04588922](https://clinicaltrials.gov/study/NCT04588922) r/r combo + frontline Ph2) remain on a separate timeline.
 
 ---
 
@@ -406,7 +424,9 @@ Oncology M&A convention: **4–8× peak sales** (⚠️ market convention, not f
 
 ### Clinical Trials
 - REGAL Phase 3: [NCT04229979](https://clinicaltrials.gov/study/NCT04229979)
-- SLS-009 Phase 2 r/r: [NCT05309745](https://clinicaltrials.gov/study/NCT05309745)
+- SLS-009 Phase 2 r/r: [NCT04588922](https://clinicaltrials.gov/study/NCT04588922)
+- GenFleet GFH009 PTCL Ph Ib/II: [NCT05934513](https://clinicaltrials.gov/study/NCT05934513)
+- SELLAS clinical trials listing (GenFleet PTCL acknowledgment): [sellaslifesciences.com/clinical-trials](https://sellaslifesciences.com/clinical-trials/)
 
 ### REGAL Design & Statistics
 - Jamy O, Cicic D. REGAL design review. *Future Oncol* 2025. [PMC11760237](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/)
