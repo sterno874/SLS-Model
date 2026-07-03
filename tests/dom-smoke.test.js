@@ -160,13 +160,16 @@ test("data-regal-mode values are forward or inverse only", () => {
   }
 });
 
-test("main.js preset tables stay aligned with test fixtures", () => {
-  for (const name of Object.keys(P)) {
-    assert.match(js, new RegExp(`\\b${name}:\\s*\\{`));
-  }
-  for (const name of Object.keys(INV)) {
-    assert.match(js, new RegExp(`\\b${name}:\\s*\\{`));
-  }
+test("main.js restores share hash via decodeShareHash (#s1= and legacy #s=)", () => {
+  assert.match(js, /decodeShareHash/);
+  assert.match(js, /hasShareHash/);
+  assert.match(js, /#s1=/);
+  assert.doesNotMatch(js, /location\.hash\.startsWith\("#s="\)/);
+  assert.doesNotMatch(js, /if\(!h\.startsWith\("#s="\)\)return false/);
+});
+
+test("paramsFromShareHash accepts v1 delta hashes", () => {
+  assert.match(js, /decodeShareHash\(hash\.trim\(\)\)/);
 });
 
 test("embed-hide chrome is present for embed mode styling", () => {

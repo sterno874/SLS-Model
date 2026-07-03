@@ -51,10 +51,9 @@ import {
   inverseSolve
 } from './math/survival.js';
 import {
-  b64urlEncode,
-  b64urlDecode,
   parseEmbedMode,
   buildShareHash,
+  decodeShareHash,
   paramsFromPreset as paramsFromPresetPure,
   isPlausible,
   computeValuationMetrics as computeValuationMetricsPure,
@@ -409,14 +408,21 @@ function scenarioMetrics(p,binding){
     pw:fastPwin(p,b,+$("cutoff").value,2500),bat3:sBAT(36,p)*100,gpsc:p.gpsc*100,
     batMed:medianOf(sBAT,p),gpsCure:p.gpsc*100};
 }
+function hasShareHash(hash){
+  if(!hash||!hash.trim())return false;
+  let h=hash.trim();if(!h.startsWith("#"))h="#"+h;
+  return h.startsWith("#s1=")||h.startsWith("#s=");
+}
+function gpsParamsFromShareState(s){
+  if(!s||!s.gps)return null;
+  const g=s.gps;
+  return{osmode:'itt',bat:g.bat,batc:g.batc/100,batk:g.batk||1,gpsc:g.gpsc/100,gpsu:g.gpsu,
+    delay:g.delay,xtx:g.xtx/100,cens:g.cens/100,mid:g.mid,k:g.k,fh:!!g.fhTest,
+    stratF:g.stratF!=null?g.stratF:STRATF,zfut:g.zfut!=null?g.zfut:ZFUT,binding:!!g.mcFloor};
+}
 function paramsFromShareHash(hash){
   if(!hash||!hash.trim())return null;
-  let h=hash.trim();if(!h.startsWith('#'))h='#'+h;if(!h.startsWith('#s='))return null;
-  try{const s=JSON.parse(b64urlDecode(h.slice(3)));if(!s||!s.gps)return null;
-    return{osmode:'itt',bat:s.gps.bat,batc:s.gps.batc/100,batk:s.gps.batk||1,gpsc:s.gps.gpsc/100,gpsu:s.gps.gpsu,
-      delay:s.gps.delay,xtx:s.gps.xtx/100,cens:s.gps.cens/100,mid:s.gps.mid,k:s.gps.k,fh:!!s.gps.fhTest,
-      stratF:s.gps.stratF!=null?s.gps.stratF:STRATF,zfut:s.gps.zfut!=null?s.gps.zfut:ZFUT,binding:!!s.gps.mcFloor};
-  }catch(e){return null;}
+  try{const s=decodeShareHash(hash.trim());return gpsParamsFromShareState(s);}catch(e){return null;}
 }
 function initScmpSelects(){
   const opts=[{v:'',l:'— pick preset —'}];
@@ -866,7 +872,12 @@ function applyState(s){
   }finally{restoringState=false;}
   return true;
 }
-function restoreFromHash(){const h=location.hash;if(!h.startsWith("#s="))return false;try{return applyState(JSON.parse(b64urlDecode(h.slice(3))));}catch(e){console.warn("Could not restore state from URL",e);showToast("Share link hash invalid — using defaults");history.replaceState(null,"",location.pathname+location.search);return false;}}
+function restoreFromHash(){
+  if(!hasShareHash(location.hash))return false;
+  const s=decodeShareHash(location.hash);
+  if(!s){console.warn("Could not restore state from URL: unrecognized or corrupt hash");showToast("Share link hash invalid — using defaults");history.replaceState(null,"",location.pathname+location.search);return false;}
+  try{return applyState(s);}catch(e){console.warn("Could not restore state from URL",e);showToast("Share link hash invalid — using defaults");history.replaceState(null,"",location.pathname+location.search);return false;}
+}
 function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";document.body.appendChild(t);}t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
 function updateHashQuiet(){if(restoringState)return;const nh=encodeStateToHash();if(location.hash!==nh)history.replaceState(null,"",location.pathname+location.search+nh);}
 onClick("btnShare",()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();});
@@ -1287,7 +1298,7 @@ function initApp(){
   initFactsAsOf();
   initScmpSelects();
   initChartInteraction();
-  if(!location.hash.startsWith("#s=")){
+  if(!hasShareHash(location.hash)){
     setRegalMode("forward");
     applyRegalPreset("best");
   }else{

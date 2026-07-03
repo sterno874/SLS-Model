@@ -13,6 +13,14 @@ import {
   SHARE_VALP,
   SHARE_FIELD_DEFS
 } from "../js/ui/state.js";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const mainJs = readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "js", "main.js"),
+  "utf8"
+);
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const hashLen = (h) => h.length;
@@ -184,4 +192,19 @@ test("parseEmbedMode reads embed flag from a delta hash", () => {
   const hash = buildShareHash({ ...clone(DEFAULT_STATE), embed: true });
   assert.equal(parseEmbedMode("", hash), true);
   assert.equal(parseEmbedMode("", buildShareHash(freshLoadState())), false);
+});
+
+test("main.js wires restoreFromHash to decodeShareHash (not legacy #s= only)", () => {
+  assert.match(mainJs, /decodeShareHash/);
+  assert.match(mainJs, /hasShareHash/);
+  assert.doesNotMatch(mainJs, /location\.hash\.startsWith\("#s="\)/);
+});
+
+test("biology tab round-trips in share hash", () => {
+  const s = freshLoadState();
+  s.tab = "biology";
+  const hash = buildShareHash(s);
+  const decoded = decodeShareHash(hash);
+  assert.equal(decoded.tab, "biology");
+  assert.deepEqual(decoded, s);
 });
