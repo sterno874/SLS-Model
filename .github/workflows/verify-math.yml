@@ -18,3 +18,5 @@ jobs:
         with:
           node-version: "20"
       - run: npm test
+      - run: npm run test:mutation
+        if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'

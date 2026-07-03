@@ -154,6 +154,17 @@ test("corrupt or unknown hashes decode to null (caller falls back)", () => {
   assert.equal(decodeShareHash(null), null);
 });
 
+test("b64url encode strips padding and url-unsafe chars; unicode round-trip", () => {
+  const enc = b64urlEncode('{"v":1,"tab":"value"}');
+  assert.ok(!enc.includes("+"));
+  assert.ok(!enc.includes("/"));
+  assert.ok(!enc.endsWith("="));
+  const unicode = "Δ≥±—share/test?foo=bar";
+  const enc2 = b64urlEncode(unicode);
+  assert.ok(!enc2.includes("+") && !enc2.includes("/"));
+  assert.equal(b64urlDecode(enc2), unicode);
+});
+
 test("decode tolerates a hash missing the leading # or with a URL prefix", () => {
   const s = freshLoadState();
   s.val.v_mult = 6;

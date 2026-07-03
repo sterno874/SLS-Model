@@ -6,6 +6,7 @@ import path from "node:path";
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const files = [
   "math.test.js",
+  "formulas.test.js",
   "presets.test.js",
   "share.test.js",
   "valuation.test.js",
