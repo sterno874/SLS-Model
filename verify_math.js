@@ -116,5 +116,14 @@ check("CURRENT_EVENT_ANCHOR count is 78",
 check("T80 exceeds anchor month for best preset",
   M.T80(best) > 63, "T80=" + M.T80(best).toFixed(1));
 
+const IFLOOR = 0.547;
+check("Best preset HR clears 0.636 but sits below interim floor (red hatch)",
+  M.hazardRatio(T2, best) < 0.636 && M.hazardRatio(T2, best) < IFLOOR,
+  M.hazardRatio(T2, best).toFixed(3));
+const bearPreset = mk({ bat: 10, batc: 0.22, gpsc: 0.12, gpsu: 28, delay: 0, xtx: 0.06, cens: 0.12 });
+check("Bear preset HR clears 0.636 and stays above interim floor (no red hatch)",
+  M.hazardRatio(T2, bearPreset) < 0.636 && M.hazardRatio(T2, bearPreset) > IFLOOR,
+  M.hazardRatio(T2, bearPreset).toFixed(3));
+
 console.log("\n--- Summary: " + pass + " passed, " + fail + " failed ---");
 process.exit(fail > 0 ? 1 : 0);

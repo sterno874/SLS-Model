@@ -11,6 +11,7 @@ Thanks for helping. This project is meant to be **poked at** — the goal is an 
 ## How
 - Fork, branch, edit `index.html` (it's a single self-contained file — HTML/CSS/JS, no build).
 - Test by opening it in a browser; check the JS parses (`node --check` on the `<script>` contents helps).
+- Run `node verify_math.js` before opening a PR — it extracts the inline survival/HR math from `index.html` and checks presets, inverse solver, share-url round-trip, and other critical paths (same check runs in GitHub Actions on push/PR to `main`).
 - Open a PR describing what you changed and why, with sources.
 
 ## Good first contributions

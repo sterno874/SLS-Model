@@ -607,7 +607,8 @@
         <div class="hrmark" id="hrMark"></div>
       </div>
       <div class="labels"><span>0.0</span><span>0.55 floor · 0.636 win</span><span>1.0 (no effect)</span></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:3px">Red hatch (HR&lt;0.55) = would have crossed the O'Brien-Fleming efficacy boundary (Z=2.34, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>) at the <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60-death interim</a>; REGAL did NOT stop, so interim HR was <b>above ~0.55</b>. Red line 0.636 = final win threshold (Z=2.01, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">source</a>). Topline most plausibly ~0.45–0.64 — near-threshold, not 0.13–0.35. <span class="tag m">Model output</span> at this timepoint.</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px"><b>Red hatch</b> (HR &lt; ~0.55) = would have crossed the O'Brien-Fleming interim efficacy boundary (Z=2.34, HR≲0.55; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>) at the <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60-death interim</a>; REGAL did NOT stop, so observed interim HR was <b>above ~0.55</b>. <b>Red line 0.636</b> = <em>final</em> win threshold (Z=2.01, same source). A model HR can sit in the hatch yet still “clear” 0.636 — that means the <em>final</em> bar is met at m58, not that the Jan 2025 interim would have stopped. <b>Binding vs non-binding IA</b> (Monte Carlo checkbox): binding soft-conditions on no early stop (~50% P(win)); non-binding treats IA as informational only (~78%). <span class="tag m">Model output</span> at this timepoint.</div>
+      <div id="hrGaugeNote" style="display:none;font-size:11.5px;margin-top:6px;padding:8px 10px;border-radius:8px;background:#fff4e0;border:1px solid #f0d090;color:#6b4e00"></div>
       <div id="oPower" style="font-size:12.5px;margin-top:8px;padding:8px 10px;border-radius:8px;background:#fafbfc;border:1px solid var(--line)"></div>
       <button type="button" class="link-val-btn no-print no-embed" id="btnUsePwin" title="Uses binding-interim MC P(win) if you ran Monte Carlo; otherwise point-estimate P(win) from current sliders">Use P(win) in Valuation →</button>
     </div>
@@ -862,7 +863,7 @@
       <div><b>Test:</b> Lan-DeMets O'Brien-Fleming (interim Z≈2.34, final Z≈2.01) + unweighted stratified log-rank primary <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Interim design:</b> O'Brien-Fleming, reviewed efficacy + futility + safety <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Enrollment:</b> first patient Feb 2021; 126 completed ~Apr 2024 <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
-      <div><b>Event timeline:</b> 60 (Dec'24) · 72 (26 Dec'25) · 78 (11 May'26) · &lt;80 (1 Jul'26) <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[PR]</a></span></div>
+      <div><b>Event timeline:</b> 60 (Dec'24) · 72 (26 Dec'25) · 78 (11 May'26) · still &lt;80 (no 80th-event PR through Jul 2026) <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[PR]</a></span></div>
       <div><b>Interim (60 deaths):</b> OBF efficacy boundary NOT crossed → not stopped early ⇒ interim HR &gt;~0.55; futility cleared. "Continue w/o modification" Jan'25 &amp; Aug'25 <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">[Jan'25]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Interim-Analysis-of-REGAL-Phase-3-Study/default.aspx" target="_blank" rel="noopener">[Aug'25]</a></span></div>
       <div><b>Computed OBF boundaries:</b> interim Z=2.34 → HR≤0.55 to stop early; final Z=2.01 → win needs HR≤0.638 <span class="tag" style="background:#eef1f4;color:#69707c">derived</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Blinding:</b> open-label at sites; sponsor blinded to aggregate results <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT]</a></span></div>
@@ -907,7 +908,7 @@
       <li><b>Community DD — u/uhguy85</b> — framing of 99.99% model output; enrollment-cadence / median-enrollment derivation. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1t6uts2/9999_regal_trial_success_rate_what_does_this_mean/" target="_blank" rel="noopener">99.99% explainer ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1td14uq/enrollment_cadence_impact_on_bat_mos_calculation/" target="_blank" rel="noopener">Enrollment cadence ↗</a></li>
       <li><b>Community DD — u/Remarkable-Big-9849</b> — BAT heterogeneity / transplant-bridge debate; biology rebuttals. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1u4hw6o/could_covid_have_improved_outcomes_in_aml_trials/" target="_blank" rel="noopener">COVID frailty hypothesis ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tqb3wa/a_bearish_take/" target="_blank" rel="noopener">Bear-thread biology ↗</a></li>
       <li><b>Community DD — u/neo2551</b> — scientific-process / community-rigor synthesis; links this webapp. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1ucz8ra/dd_scientific_process_and_nerds_for_the_win/" target="_blank" rel="noopener">Scientific process DD ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnond9/webapp_to_understand_cws_dd/" target="_blank" rel="noopener">Webapp post ↗</a></li>
-      <li><b>Control-arm overperformance meta-analysis</b> — Nalin et al., <i>Cancer</i> 2026 (PMC12882696): 385 phase 3 oncology RCTs; 43% with &gt;10% control-arm overperformance; OS-primary trials higher. Cited by Thetamancer for BAT-cap argument.</li>
+      <li><b>Control-arm overperformance meta-analysis</b> — Nalin et al., <i>Cancer</i> 2026 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12882696/" target="_blank" rel="noopener">PMC12882696</a>): 385 phase 3 oncology RCTs; 43% with &gt;10% control-arm overperformance; OS-primary trials higher. Cited by Thetamancer for BAT-cap argument.</li>
       <li><b>Interim &amp; design-power computation (this analysis)</b> — Lan–DeMets O'Brien-Fleming, one-sided α=0.025, looks at t=0.75 &amp; 1.0: interim Z=2.34, final Z=2.01 (HR≤0.638 to win). Schoenfeld check: 90% power at HR 0.636 needs ~205 events, so 80 events at 0.636 ≈ 50% power ⇒ 0.636 is the significance BAR, the ~90%-power alternative is ~0.48.</li>
     </ol>
     <h2 style="margin-top:18px">Statistical methods (primary sources)</h2>
@@ -1328,7 +1329,7 @@
       <div><b>Fully diluted (model default):</b> ~217–225M incl. warrants/options <span class="tag f">estimate</span> <span class="cite"><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001390478&amp;type=10-K" target="_blank" rel="noopener">[SEC]</a></span></div>
       <div><b>ATM facility:</b> up to $150M authorized; no shares sold to date <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[Q1 2026]</a></span></div>
       <div><b>Q1 2026 net loss:</b> $8.4M (~$9.3M/qtr opex) <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[Q1 2026]</a></span></div>
-      <div><b>Pipeline:</b> GPS REGAL Ph3 (AML CR2); SLS-009 Ph2 r/r + Ph2 frontline enrolling <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT04229979]</a> · <a href="https://clinicaltrials.gov/study/NCT05309745" target="_blank" rel="noopener">[NCT05309745]</a></span></div>
+      <div><b>Pipeline:</b> GPS REGAL Ph3 (AML CR2); SLS-009 Ph2 r/r (<a href="https://clinicaltrials.gov/study/NCT05309745" target="_blank" rel="noopener">NCT05309745</a>) + Ph2 frontline enrolling Mar 2026 (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>) <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[REGAL]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Announces-Enrollment-of-First-Patient-in-Newly-Diagnosed-First-Line-AML-Trial-of-SLS009/default.aspx" target="_blank" rel="noopener">[Mar 2026]</a></span></div>
       <div><b>WT1 platform scope:</b> GPS in AML, ovarian (completed Ph2), mesothelioma; GPS-Plus; China out-license <span class="tag v">verified</span> <span class="cite"><a href="https://s203.q4cdn.com/139585304/files/doc_presentations/2026/Feb/03/Sellas-Corporate-Overview-February-2026.pdf" target="_blank" rel="noopener">[corp deck]</a></span></div>
       <div><b>US AML incidence:</b> ~20,800/yr (SEER 2024); ~22,720 (ACS 2026) <span class="tag v">verified</span> <span class="cite"><a href="https://seer.cancer.gov/statfacts/html/amyl.html" target="_blank" rel="noopener">[SEER]</a> · <a href="https://www.cancer.org/cancer/types/acute-myeloid-leukemia/about/key-statistics.html" target="_blank" rel="noopener">[ACS]</a></span></div>
       <div><b>Relapse/refractory:</b> &gt;60% of CR patients relapse <span class="tag v">verified</span> <span class="cite"><a href="https://www.cancer.org/cancer/types/acute-myeloid-leukemia/about/key-statistics.html" target="_blank" rel="noopener">[ACS]</a></span></div>
@@ -1386,10 +1387,10 @@
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <nav id="bottomNav" class="bottom-nav no-print embed-hide" aria-label="Tab navigation">
-  <button type="button" data-tab="gps" class="active"><span class="bn-ico">📊</span>REGAL</button>
-  <button type="button" data-tab="sls009"><span class="bn-ico">💊</span>SLS-009</button>
-  <button type="button" data-tab="value"><span class="bn-ico">💰</span>Value</button>
-  <button type="button" data-tab="explain"><span class="bn-ico">📖</span>Explain</button>
+  <button type="button" data-tab="gps" class="active" aria-label="REGAL / GPS tab" aria-current="page"><span class="bn-ico" aria-hidden="true">📊</span>REGAL</button>
+  <button type="button" data-tab="sls009" aria-label="SLS-009 tab"><span class="bn-ico" aria-hidden="true">💊</span>SLS-009</button>
+  <button type="button" data-tab="value" aria-label="Valuation tab"><span class="bn-ico" aria-hidden="true">💰</span>Value</button>
+  <button type="button" data-tab="explain" aria-label="Explain tab"><span class="bn-ico" aria-hidden="true">📖</span>Explain</button>
 </nav>
 
 <footer class="embed-hide">
@@ -1456,7 +1457,7 @@ function refreshOpenPanels(){
 }
 const LN2 = Math.log(2);
 const N_ARM = 63, LMAX = 38;
-const T1=46,T2=58,T3=63,T4=65, E1=60,E2=72,E3=78, THRESH=0.636;
+const T1=46,T2=58,T3=63,T4=65, E1=60,E2=72,E3=78, THRESH=0.636, IFLOOR=0.547; // IFLOOR = OBF interim efficacy HR at 60 deaths (Z=2.34; Jamy & Cicic 2025); REGAL did NOT stop early
 const CURRENT_EVENT_ANCHOR={count:78,date:'2026-05-11',month:63,src:'https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html',label:'Q1 2026 PR'};
 const PR_SOURCES={60:{date:'2025-01-23',src:'https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html',label:'Jan 2025 interim'},
   72:{date:'2025-12-29',src:'https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html',label:'Dec 2025 72-event'},
@@ -1973,13 +1974,19 @@ function update(){
 
   const hr=hazardRatio(T2,p);
   // gauge
-  $("oHRnum").innerHTML=isNaN(hr)?"—":hr.toFixed(2)+(hr<THRESH?' — clears 0.636 (win)':' — misses 0.636');
+  $("oHRnum").innerHTML=isNaN(hr)?"—":hr.toFixed(2)+(hr<THRESH?' — clears <em>final</em> 0.636 threshold':' — misses final 0.636');
   $("hrThresh").style.left=(THRESH/HRMAX*100)+"%";
-  const IFLOOR=0.547; // observed interim HR had to be <= this to stop early at 60 deaths; it did not
   $("hrInterim").style.left="0%";$("hrInterim").style.width=(IFLOOR/HRMAX*100)+"%";
   $("hrInterim").style.background="repeating-linear-gradient(45deg,rgba(214,69,69,.28),rgba(214,69,69,.28) 4px,rgba(214,69,69,.1) 4px,rgba(214,69,69,.1) 8px)";
   $("hrInterim").style.borderRight="1px dashed var(--bad)";
   $("hrMark").style.left="calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"% - 1.5px)";
+  const gn=$("hrGaugeNote");
+  if(gn){
+    if(!isNaN(hr)&&hr<IFLOOR&&hr<THRESH){
+      gn.style.display="block";
+      gn.innerHTML='<b>Why red hatch + “clears 0.636”?</b> The hatch marks HRs that would have stopped the trial at the 60-death OBF interim (HR≲0.55; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a> · <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 IDMC continue</a>). REGAL did <em>not</em> stop — so an HR this low at m58 is inconsistent with the interim unless GPS benefit back-loaded after m46, or the model over-fits blinded pooled counts. “Clears 0.636” refers only to the <em>final</em> 80-death win line.';
+    }else{gn.style.display="none";gn.innerHTML="";}
+  }
 
   const ev1=eventsAt(T1,p),ev2=eventsAt(T2,p),ev3=eventsAt(T3,p),ev4=eventsAt(T4,p);
   $("e1").textContent=ev1.toFixed(0);$("e2").textContent=ev2.toFixed(0);$("e3").textContent=ev3.toFixed(0);$("e4").textContent=ev4.toFixed(0);
@@ -2161,7 +2168,7 @@ function applyState(s){
   else if(s.ui&&s.ui.explainLvl){curLvl=s.ui.explainLvl;renderTab("explain",true);}
   restoringState=false;return true;
 }
-function restoreFromHash(){const h=location.hash;if(!h.startsWith("#s="))return false;try{return applyState(JSON.parse(b64urlDecode(h.slice(3))));}catch(e){console.warn("Could not restore state from URL",e);return false;}}
+function restoreFromHash(){const h=location.hash;if(!h.startsWith("#s="))return false;try{return applyState(JSON.parse(b64urlDecode(h.slice(3))));}catch(e){console.warn("Could not restore state from URL",e);showToast("Share link hash invalid — using defaults");history.replaceState(null,"",location.pathname+location.search);return false;}}
 function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";document.body.appendChild(t);}t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
 function updateHashQuiet(){if(restoringState)return;const nh=encodeStateToHash();if(location.hash!==nh)history.replaceState(null,"",location.pathname+location.search+nh);}
 $("btnShare").onclick=()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();};
@@ -2603,8 +2610,8 @@ function renderTab(t,force){
 }
 function switchTab(t){
   activeTab=t;
-  document.querySelectorAll(".tabbtn").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
-  document.querySelectorAll("#bottomNav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
+  document.querySelectorAll(".tabbtn").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-selected",on?"true":"false");});
+  document.querySelectorAll("#bottomNav button").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-current",on?"page":"false");});
   ["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
   renderTab(t);
   if(!restoringState)updateHashQuiet();
