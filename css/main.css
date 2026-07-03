@@ -125,7 +125,8 @@
   .preset-start .presets{margin-bottom:0}
   .plausibility-warn{margin:0 0 var(--space-md);padding:var(--space-md);border-radius:10px;border:1px solid #f0d090;background:#fff4e0;color:#6b4e00;font-size:12.5px;font-weight:600;line-height:1.5}
   .plausibility-warn[hidden]{display:none!important}
-  .regal-limitations{margin:0 0 var(--space-md);padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#fafbfc;font-size:12.5px;line-height:1.55;color:var(--ink)}
+  .regal-limitations{max-width:calc(var(--content-max) - var(--page-pad) * 2);margin:var(--space-md) auto 0;padding:var(--space-md) var(--space-lg);border-radius:var(--radius);border:1px solid var(--line);background:#fafbfc;font-size:12.5px;line-height:1.6;color:var(--ink)}
+  .regal-limitations b:first-child{display:inline-block;margin-right:var(--space-xs)}
   .chart-wrap.chart-stale canvas{opacity:.35;filter:grayscale(.25)}
   .chart-stale-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;text-align:center;font-size:13px;font-weight:600;color:var(--ink);background:rgba(238,241,245,.55);border-radius:8px;pointer-events:none;line-height:1.45}
   .chart-stale-msg[hidden]{display:none!important}
@@ -276,7 +277,7 @@
     :root{--page-pad:var(--space-md);--section-gap:var(--space-md)}
     header{position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,27,38,.08);padding:var(--space-md) 0 var(--space-sm)}
     .wrap{padding:var(--space-md) var(--page-pad) var(--space-sm)}
-    .howworks,.methodpanel,.feat-panel,.cw-panel,.regal-analysis,.tab-intro-bar:not(.expl-intro){margin-left:var(--page-pad);margin-right:var(--page-pad)}
+    .howworks,.methodpanel,.feat-panel,.cw-panel,.regal-analysis,.regal-limitations,.tab-intro-bar:not(.expl-intro){margin-left:var(--page-pad);margin-right:var(--page-pad)}
     .tab-intro-bar,.tab-lead{padding-left:var(--page-pad);padding-right:var(--page-pad)}
     .facts{padding:var(--space-md) var(--page-pad) var(--space-2xl)}
     .tabnav{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scrollbar-width:none;margin:var(--space-sm) calc(-1 * var(--page-pad)) 0;padding:0 var(--page-pad) var(--space-xs)}
