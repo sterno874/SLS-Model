@@ -123,7 +123,7 @@
     <div class="preset-start" id="presetStart" data-regal-mode="forward">
       <div class="pgrp">Start here</div>
       <div class="presets presets-best">
-        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess ★<span class="p-sub">Default · neutral priors · full trajectory fit</span></button>
+        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess ★<span class="p-sub">Neutral priors · binding IA · full trajectory fit</span></button>
       </div>
     </div>
 
@@ -152,32 +152,29 @@
     <div class="pgrp" id="presetLabel" data-regal-mode="forward">Core cases</div>
     <div class="pgrp-hint" data-regal-mode="forward">Start with <b>Best Available Guess</b> — neutral priors + public data, not marketing optimism.</div>
     <div class="presets" data-regal-mode="forward">
-      <button class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess ★<span class="p-sub">Neutral · binding IA · full trajectory fit</span></button>
-      <button class="p" data-preset="bear" data-regal-mode="forward" title="Near-threshold miss: inflated BAT tail, minimal GPS cure — HR ~0.55–0.65 zone.">Bear (near-miss)<span class="p-sub">Conservative efficacy read</span></button>
-      <button class="p" data-preset="bull" data-regal-mode="forward" title="Bullish cure case: high GPS plateau, low BAT tail, no delay — optimistic but fits events.">Bull / DD cure<span class="p-sub">Optimistic efficacy</span></button>
-      <button class="p" data-preset="critique" data-regal-mode="forward" title="Independent critique view: modest GPS benefit + biological BAT-tail ceiling — ~⅔ P(win).">Critique (~⅔)<span class="p-sub">Modest GPS · BAT-tail ceiling</span></button>
+      <button class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess ★<span class="p-sub">Neutral priors · ~22% GPS cure · full trajectory fit</span></button>
+      <button class="p" data-preset="bear" data-regal-mode="forward" title="Conservative biology: modest GPS cure, stronger BAT — HR near 0.636 threshold but still fits 60/72/78.">Bear (near-miss)<span class="p-sub">Conservative efficacy · HR ~0.55 · full trajectory fit</span></button>
+      <button class="p" data-preset="bull" data-regal-mode="forward" title="Optimistic cure: high GPS plateau (~40%), low BAT tail, immediate onset — bullish DD read.">Bull / DD cure<span class="p-sub">Optimistic cure · HR ~0.17 · full trajectory fit</span></button>
+      <button class="p" data-preset="critique" data-regal-mode="forward" title="Independent critique: modest GPS benefit + biological BAT-tail ceiling — ~⅔ P(win).">Critique (~⅔)<span class="p-sub">Modest GPS · BAT-tail ceiling · full trajectory fit</span></button>
     </div>
     <div class="pgrp" data-regal-mode="forward">Interim-assumption variants</div>
     <div class="presets" id="presetInterim" data-regal-mode="forward">
-      <button class="p" data-preset="bind" data-regal-mode="forward" title="Same survival as Best Available Guess with binding efficacy interim enforced — ~50% P(win).">Binding interim (~50%)<span class="p-sub">Registrational default</span></button>
-      <button class="p" data-preset="nonbind" data-regal-mode="forward" title="Same survival priors but non-binding interim — informational IA only, ~78% P(win).">Non-binding (~78%)<span class="p-sub">Informational IA only</span></button>
-      <button class="p" data-preset="cw" data-regal-mode="forward" title="CW Part 1 anchored model: BAT 10m, GPS cure ~42%, uncured ~36m, non-binding interim. Source: u/Confident-Web-7118.">Optimistic cure (~85%)<span class="p-sub">CW DD · 42% cure · BAT 10m</span></button>
+      <button class="p" data-preset="bind" data-regal-mode="forward" title="Same survival as Best Available Guess with binding efficacy interim enforced — ~50% P(win).">Binding interim (~50%)<span class="p-sub">Registrational IA · same survival · full trajectory fit</span></button>
+      <button class="p" data-preset="nonbind" data-regal-mode="forward" title="Same survival priors but non-binding interim — informational IA only, ~78% P(win).">Non-binding (~78%)<span class="p-sub">Informational IA only · full trajectory fit</span></button>
+      <button class="p" data-preset="cw" data-regal-mode="forward" title="CW Part 1 anchored model: BAT 9m, GPS cure ~41%, uncured ~36m, non-binding interim. Source: u/Confident-Web-7118.">Optimistic cure (~85%)<span class="p-sub">CW DD · 41% cure · full trajectory fit</span></button>
     </div>
     <div class="pgrp" id="presetInvGrp" data-regal-mode="inverse" hidden>Inversion presets</div>
     <div class="pgrp-hint" id="presetInvHint" data-regal-mode="inverse" hidden>Set GPS cure fraction + BAT biology cap; implied medians and HR are derived.</div>
     <div class="presets" id="presetInv" data-regal-mode="inverse" hidden>
-      <button class="p p-def" data-inv="cw42" data-regal-mode="inverse" title="~42% GPS cure, BAT capped at Kurosawa 3-yr OS, non-binding interim. Source: u/Confident-Web-7118 DD.">Default (~42%)<span class="p-sub">Community DD · derive mOS</span></button>
-      <button class="p" data-inv="cw35" data-regal-mode="inverse" title="Moderate cure fraction — implied mOS closer to Phase 2 CR2.">Moderate cure (35%)<span class="p-sub">Mid-range tail</span></button>
-      <button class="p" data-inv="cw50" data-regal-mode="inverse" title="High cure — pushes implied BAT lower / GPS uncured higher.">High cure (50%)<span class="p-sub">Strong tail assignment</span></button>
-      <button class="p" data-inv="cwbind" data-regal-mode="inverse" title="Same ~42% cure but binding interim — lower P(win).">Binding interim<span class="p-sub">Conservative IA assumption</span></button>
+      <button class="p p-def" data-inv="cw42" data-regal-mode="inverse" title="~42% GPS cure, BAT capped at Kurosawa 3-yr OS, non-binding interim. Source: u/Confident-Web-7118 DD.">Default (~42%)<span class="p-sub">42% cure · derive mOS · full trajectory fit</span></button>
+      <button class="p" data-inv="cw35" data-regal-mode="inverse" title="Moderate cure fraction — implied mOS closer to Phase 2 CR2.">Moderate cure (35%)<span class="p-sub">35% cure · derive mOS · full trajectory fit</span></button>
+      <button class="p" data-inv="cw50" data-regal-mode="inverse" title="High cure — pushes implied BAT lower / GPS uncured higher.">High cure (50%)<span class="p-sub">50% cure · derive mOS · full trajectory fit</span></button>
+      <button class="p" data-inv="cwbind" data-regal-mode="inverse" title="Same ~42% cure but binding interim — lower P(win).">Binding interim<span class="p-sub">42% cure · binding IA · full trajectory fit</span></button>
     </div>
-    <div class="pgrp" id="presetEdgeLabel" data-regal-mode="forward">Special / edge cases</div>
-    <div class="pgrp-hint" data-regal-mode="forward">Direct-parameterization demos — identifiability ridge, failure modes, sensitivity.</div>
+    <div class="pgrp" id="presetEdgeLabel" data-regal-mode="forward">Identifiability demo</div>
+    <div class="pgrp-hint" data-regal-mode="forward">Null-effect ridge — HR ≈ 1 yet still fits the blinded event anchors.</div>
     <div class="presets" id="presetEdge" data-regal-mode="forward">
-      <button class="p" data-preset="noeffect" data-regal-mode="forward" title="Null effect with shared ~25–30% long-survivor tail — still fits 60/72/78 (identifiability ridge).">No effect (fits too!)<span class="p-sub">ridge demo — fits anchors · HR≈1</span></button>
-      <button class="p" data-preset="fail" data-regal-mode="forward" title="What a losing readout needs: high BAT tail + weak GPS separation.">What failure needs<span class="p-sub">fits anchors · HR &gt; 0.636</span></button>
-      <button class="p" data-preset="delay" data-regal-mode="forward" title="4-month GPS onset delay — late separation penalized under standard log-rank.">Vaccine delay 4m<span class="p-sub">Late GPS effect</span></button>
-      <button class="p" data-preset="backload" data-regal-mode="forward" title="Back-loaded enrollment shifts event timing — sensitivity check.">Backloaded enroll<span class="p-sub">Enrollment shape</span></button>
+      <button class="p" data-preset="noeffect" data-regal-mode="forward" title="Null effect with shared ~25–30% long-survivor tail — still fits 60/72/78 (identifiability ridge).">No effect (ridge)<span class="p-sub">HR ≈ 1 · identifiability ridge · full trajectory fit</span></button>
     </div>
 
     <div class="bandkey" id="bandkeyForward" data-regal-mode="forward">

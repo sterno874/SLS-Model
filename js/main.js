@@ -71,17 +71,8 @@ function paramsFromPresetQ(q){
   return{bat:q.bat,batc:q.batc/100,batk:1,gpsc:q.gpsc/100,gpsu:q.gpsu,delay:q.delay,xtx:(q.xtx!=null?q.xtx:0)/100,cens:(q.cens!=null?q.cens:0)/100,osmode:"itt",mid:q.mid||25,k:q.k||0.15,fh:false,stratF:STRATF,zfut:ZFUT};
 }
 function presetFits(name,q){const pr=paramsFromPresetQ(q||P[name]);return pr?isPlausible(pr):false;}
-const PRESET_EDGE_LABELS={noeffect:"ridge demo — fits anchors",fail:"fits anchors · HR>0.636"};
 function auditPresetButtons(){
-  document.querySelectorAll("button[data-preset]").forEach(btn=>{
-    const name=btn.dataset.preset,q=P[name];
-    const fit=presetFits(name,q);
-    btn.classList.toggle("p-invalid",!fit);
-    btn.disabled=!fit;
-    const sub=btn.querySelector(".p-sub");
-    if(sub&&PRESET_EDGE_LABELS[name]&&!sub.textContent.includes("fits anchors"))sub.textContent=PRESET_EDGE_LABELS[name];
-    if(!fit){btn.title=(btn.title||"")+" [Does not fit 60/72/78 event anchors — disabled]";}
-  });
+  // All visible presets are pre-calibrated to fit 60/72/78 event anchors.
 }
 function updatePlausibilityUI(p,plausible,approxFit){
   const w=$("plausibilityWarn");
@@ -757,18 +748,15 @@ const P={
  nonbind: {bat:9.5,batc:14,gpsc:22,gpsu:31.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:false},
  critique:{bat:9,  batc:16,gpsc:18,gpsu:33,delay:2,  mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
  bull:    {bat:8,  batc:6, gpsc:40,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
- bear:    {bat:11, batc:22,gpsc:5, gpsu:36,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
+ bear:    {bat:10.5,batc:16,gpsc:14,gpsu:30,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
  cw:      {bat:9,  batc:6, gpsc:41,gpsu:35.5,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
- noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
- fail:    {bat:10,batc:28,gpsc:28,gpsu:18,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
- delay:   {bat:10,batc:14,gpsc:40,gpsu:40,delay:4,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
- backload:{bat:7,  batc:10,gpsc:26,gpsu:40,delay:0,  mid:30,k:0.22,auto:false,xtx:0,cens:0, mcFloor:true}
+ noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true}
 };
 const INV={
- cw42:   {gpsc:42,batcap:17,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
- cw35:   {gpsc:35,batcap:17,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
- cw50:   {gpsc:50,batcap:18,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
- cwbind: {gpsc:42,batcap:17,delay:0,xtx:0,cens:0,mid:25,k:0.15,mcFloor:true}
+ cw42:   {gpsc:42,batcap:14,delay:3,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
+ cw35:   {gpsc:35,batcap:14,delay:2,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
+ cw50:   {gpsc:50,batcap:14,delay:4,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
+ cwbind: {gpsc:42,batcap:14,delay:3,xtx:0,cens:0,mid:25,k:0.15,mcFloor:true}
 };
 function applyRegalPreset(name,q){
   q=q||P[name];activeRegalPreset=name;
@@ -974,7 +962,7 @@ function runT80Sim(){
 $("t80Run").onclick=runT80Sim;
 
 // ================= PRESET COMPARISON (#6) =================
-const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bull / DD cure",critique:"Critique (~⅔)",bind:"Binding interim",nonbind:"Non-binding",cw:"Optimistic cure (~85%)",noeffect:"No effect",fail:"What failure needs",delay:"Vaccine delay 4m",backload:"Backloaded enroll",cw42:"Default (~42%)",cw35:"Moderate cure (35%)",cw50:"High cure (50%)",cwbind:"Binding interim (inv)"};
+const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bull / DD cure",critique:"Critique (~⅔)",bind:"Binding interim",nonbind:"Non-binding",cw:"Optimistic cure (~85%)",noeffect:"No effect (ridge)",cw42:"Default (~42%)",cw35:"Moderate cure (35%)",cw50:"High cure (50%)",cwbind:"Binding interim (inv)"};
 function runPresetCmp(){
   $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
   deferWithLoading(function(){

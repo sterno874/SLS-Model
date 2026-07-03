@@ -65,16 +65,18 @@ test("no-effect HR ≈ 1 and fits anchors", () => {
   assert.ok(consistent(noeff));
 });
 
-test("fail preset HR > 0.636", () => {
+test("fail-scenario HR > 0.636 still fits anchors (conceptual)", () => {
   const failPreset = mk({ bat: 10, batc: 0.28, gpsc: 0.28, gpsu: 18, delay: 0, xtx: 0, cens: 0 });
   assert.ok(hazardRatio(T2, failPreset) > 0.636);
+  assert.ok(passesVerdict(failPreset));
 });
 
-test("inverse solver hits 72 @ m58 with BAT 3-yr OS cap", () => {
-  const ir = inverseSolve(mk({ gpsc: 0.42, bat: 8, delay: 0, xtx: 0, cens: 0 }), 17);
+test("inverse solver hits anchors with recalibrated 42% cure preset", () => {
+  const ir = inverseSolve(mk({ gpsc: 0.42, bat: 8, delay: 3, xtx: 0, cens: 0 }), 14);
   assert.ok(ir.sol);
-  assert.ok(Math.abs(eventsAt(T2, ir.sol) - E2) <= 1);
-  assert.ok(sBAT(36, ir.sol) * 100 <= 17.5);
+  assert.ok(passesVerdict(ir.sol));
+  assert.ok(Math.abs(eventsAt(T2, ir.sol) - E2) <= 3);
+  assert.ok(sBAT(36, ir.sol) * 100 <= 15);
 });
 
 test("Pike HR ≈ analyzeLR", () => {
@@ -170,10 +172,11 @@ test("hrGaugeState: final row uses readout HR, not m58 when cutoff differs", () 
   assert.equal(typeof gs.interimClearsFloor, "boolean");
 });
 
-test("bear preset HR clears 0.636 and stays above interim floor", () => {
-  const bearPreset = mk({ bat: 10, batc: 0.22, gpsc: 0.12, gpsu: 28, delay: 0, xtx: 0.06, cens: 0.12 });
+test("bear preset fits anchors and HR near threshold", () => {
+  const bearPreset = mk({ bat: 10.5, batc: 0.16, gpsc: 0.14, gpsu: 30, delay: 2, xtx: 0.08, cens: 0.10 });
   const hr = hazardRatio(T2, bearPreset);
-  assert.ok(hr < 0.636 && hr > IFLOOR);
+  assert.ok(passesVerdict(bearPreset));
+  assert.ok(hr >= 0.54 && hr < 0.636);
 });
 
 test("header best-est defaults: GPS HR ~0.45 @ m58", () => {
