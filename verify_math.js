@@ -9,7 +9,9 @@ if (!m) { console.error("Could not extract script"); process.exit(1); }
 const core = m[1].split("function setRegalMode")[0].replace(/^const \$ = id => document\.getElementById\(id\);\n/, "")
   + "\nfunction eventsAtAnchored(T,p,bins){bins=bins||110;if(T<T3)return eventsAt(T,p,bins);const modelAtAnchor=eventsAt(T3,p,bins);return E3+(eventsAt(T,p,bins)-modelAtAnchor);}\n"
   + "function T80PrPace(){const rate=(E3-E2)/(T3-T2);return T3+(80-E3)/rate;}\n"
-  + "function T80(p){let lo=T3,hi=130;if(eventsAtAnchored(hi,p,110)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAtAnchored(m,p,110)<80)lo=m;else hi=m;}return (lo+hi)/2;}\n";
+  + "function T80(p){let lo=T3,hi=130;if(eventsAtAnchored(hi,p,110)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAtAnchored(m,p,110)<80)lo=m;else hi=m;}return (lo+hi)/2;}\n"
+  + "function t80Analysis(p,cutoff,bins){bins=bins||110;const t80=T80(p);if(t80<=cutoff)return{t80,Tan:t80,Dan:80};return{t80,Tan:cutoff,Dan:eventsAtAnchored(cutoff,p,bins)};}\n"
+  + "function Tfor(events,p){const evAt=(T,b)=>events>=E3?eventsAtAnchored(T,p,b):eventsAt(T,p,b);let lo=events>=E3?T3:20,hi=130;if(evAt(hi,60)<events)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(evAt(m,60)<events)lo=m;else hi=m;}return (lo+hi)/2;}\n";
 const M = { Math, performance: { now: () => 0 }, console };
 M.$ = id => ({ value: id === "batcap" ? "17" : "0", checked: false });
 vm.createContext(M);
@@ -126,6 +128,18 @@ check("T80 PR pace linear est. ~m64.7 (72→78 pace)",
 check("T80 anchored at 78@m63 lands mid-late 2026 for best preset",
   M.T80(best) > 63 && M.T80(best) < 72,
   "T80=" + M.T80(best).toFixed(1) + " -> " + fmtCalMonth(M.T80(best)));
+
+check("t80Analysis Dan @ m72 uses anchored events when model under-predicts m63",
+  M.eventsAt(63, best) < 78 && M.t80Analysis(best, 72).Dan >= 78,
+  "Dan=" + M.t80Analysis(best, 72).Dan.toFixed(1) + " vs raw e72=" + M.eventsAt(72, best).toFixed(1));
+
+check("Tfor(80) anchored forward lands before unanchored cumulative search would",
+  M.Tfor(80, best) < 72 && M.Tfor(80, best) >= 63,
+  "Tfor80=" + M.Tfor(80, best).toFixed(1));
+
+check("Readout power: anchored Dan exceeds raw eventsAt when 80th not reached by cutoff",
+  M.t80Analysis(best, 84).Dan > M.eventsAt(72, best),
+  "Dan@72=" + M.t80Analysis(best, 72).Dan.toFixed(1));
 
 const IFLOOR = 0.547;
 check("Best preset HR clears 0.636 but sits below interim floor (red hatch)",

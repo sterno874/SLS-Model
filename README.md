@@ -30,6 +30,23 @@ Clinical: REGAL design paper (Jamy & Cicic, *Future Oncol* 2025, PMC11760237); C
 
 Community due-diligence framing (the lead-time/IRM argument, fitted-scenario tables, binding-vs-weighted-test discussion) is attributed to **"Confident Web" (u/Confident-Web-7118)** and incorporated as *adjustable scenarios, not established fact*.
 
+### Event anchoring policy (REGAL)
+
+Confirmed PR milestones are **locked** where forward projection applies:
+
+| Events | Month | Source |
+|--------|-------|--------|
+| 60 | ~46 | Jan 2025 interim PR |
+| 72 | ~58 | Dec 2025 PR |
+| 78 | ~63 (11 May 2026) | Q1 2026 PR |
+| 80 | TBD | protocol |
+
+- **Forward projection** (80th-event timing, readout power when cutoff &gt; m63, MC conditional power): `eventsAtAnchored` locks 78 @ m63; only model increments beyond the anchor count.
+- **Consistency scoring** (`consistent`, `eventErr`, inverse solver, Poisson likelihood, preset e46/e58/e63 columns): full trajectory from t=0 via `eventsAt` — intentionally tests whether parameters reproduce announced counts; UI labels these as **model-implied** vs **confirmed PR** anchors.
+- **Milestone backtest**: truncated Poisson likelihood through each historical `dataThrough` month — does not re-fit with hindsight.
+
+Regression checks for anchoring live in `verify_math.js` (`T80`, `t80Analysis`, `Tfor`, `eventsAtAnchored`).
+
 ### Community DD validation (REGAL tab)
 
 A **Community perspectives (validated)** panel (lazy-loaded on expand) synthesizes high-signal posts from **u/Thetamancer**, **u/uhguy85**, **u/Remarkable-Big-9849**, **u/neo2551**, and cross-checks **u/uhdisj41** against primary sources (ClinicalTrials.gov, SELLAS IR/GlobeNewswire, SEC, Jamy/Cicic design paper, Kurosawa 2010, Nalin et al. 2026 control-arm meta-analysis). Each claim is tagged ✅ verified / ⚠️ partial / ❌ not as fact / 🔬 model output. Reddit URLs are linked; model-only numbers (e.g. 99.99% MC success, Bayes 62× strawman, unverified BAT HSCT fractions) are excluded from factual display or explicitly caveated.

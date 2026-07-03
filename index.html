@@ -621,7 +621,7 @@
     </div>
 
     <div class="consist">
-      <div style="font-weight:700;margin-bottom:4px">Consistency with announced numbers</div>
+      <div style="font-weight:700;margin-bottom:4px">Consistency with announced numbers <span class="tag m" style="font-size:9px;font-weight:600">model-implied counts vs PR anchors</span></div>
       <div class="row"><span>Events @ m46 (announced 60) <span class="cite"><a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">[source]</a></span></span><span><b id="e1">–</b> &nbsp;<span id="b1" class="badge">–</span></span></div>
       <div class="row"><span>Events @ m58 (announced 72) <span class="cite"><a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">[source]</a></span></span><span><b id="e2">–</b> &nbsp;<span id="b2" class="badge">–</span></span></div>
       <div class="row"><span>Events @ m63 (announced 78) <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[source]</a></span></span><span><b id="e3">–</b> &nbsp;<span id="b3" class="badge">–</span></span></div>
@@ -750,7 +750,7 @@
     <span id="presetCmpStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     <div class="table-wrap" style="max-height:420px;overflow-y:auto">
       <table class="preset-cmp" id="presetCmpTable">
-        <thead><tr><th>Preset</th><th>Mode</th><th>HR</th><th>e46</th><th>e58</th><th>e63</th><th>P(win)</th><th>BAT 3yr</th><th>GPS cure</th></tr></thead>
+        <thead><tr><th>Preset</th><th>Mode</th><th>HR</th><th>e46 (mod)</th><th>e58 (mod)</th><th>e63 (mod)</th><th>P(win)</th><th>BAT 3yr</th><th>GPS cure</th></tr></thead>
         <tbody id="presetCmpBody"><tr><td colspan="9" style="text-align:center;color:var(--muted)">Click Compute all presets</td></tr></tbody>
       </table>
     </div>
@@ -1513,6 +1513,8 @@ function eventsAt(T,p,bins){const raw=armDeaths(T,p,sBATbase,bins)+armDeaths(T,p
 // Forward projection locked to confirmed PR anchors (78 @ m63); model increments only beyond anchor
 function eventsAtAnchored(T,p,bins){bins=bins||110;if(T<T3)return eventsAt(T,p,bins);const modelAtAnchor=eventsAt(T3,p,bins);return E3+(eventsAt(T,p,bins)-modelAtAnchor);}
 function T80PrPace(){const rate=(E3-E2)/(T3-T2);return T3+(80-E3)/rate;}
+function T80(p){let lo=T3,hi=130;if(eventsAtAnchored(hi,p,110)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAtAnchored(m,p,110)<80)lo=m;else hi=m;}return (lo+hi)/2;}
+function t80Analysis(p,cutoff,bins){bins=bins||110;const t80=T80(p);if(t80<=cutoff)return{t80,Tan:t80,Dan:80};return{t80,Tan:cutoff,Dan:eventsAtAnchored(cutoff,p,bins)};}
 function mcPathToT80(q,bins){bins=bins||110;let t=T3;while(eventsAtAnchored(t,q,bins)<80&&t<120)t+=0.5;return t;}
 
 // ---------- HR (Pike) ----------
@@ -1521,7 +1523,7 @@ function hazardRatio(T,p){const h=0.5;let Ob=0,Og=0,Eb=0,Eg=0;for(let t=0;t<T;t+
 function analyzeLR(T,p){const h=1;const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;const wt=fh?(1-poolS(t,p)):1;U+=wt*(db-dt*nb/nt);V+=wt*wt*dt*(nb/nt)*(ng/nt);}const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb);const z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);return{hr:hr,z:z};}
 // conditional power given the interim landed in the CONTINUE zone [zfut,ZEFF]; returns P(continue) & conditional power
 function condPow(thIA,th80,Dan,zfut){const zf=(zfut!=null?zfut:ZFUT);const rho=Math.sqrt(60/Dan),s=Math.sqrt(Math.max(1e-6,1-rho*rho));let num=0,den=0;const M=24,lo=zf,hi=ZEFF,h=(hi-lo)/M;for(let i=0;i<=M;i++){const z=lo+i*h,wt=(i===0||i===M)?1:(i%2?4:2),f=phi(z-thIA);den+=wt*f;num+=wt*f*Phi((th80+rho*(z-thIA)-ZFINAL)/s);}den*=h/3;num*=h/3;return{Pc:den, cp:den>1e-12?num/den:0};}
-function Tfor(events,p){let lo=20,hi=140;if(eventsAt(hi,p,60)<events)return hi;for(let i=0;i<18;i++){const m=(lo+hi)/2;if(eventsAt(m,p,60)<events)lo=m;else hi=m;}return (lo+hi)/2;}
+function Tfor(events,p){const evAt=(T,b)=>events>=E3?eventsAtAnchored(T,p,b):eventsAt(T,p,b);let lo=events>=E3?T3:20,hi=130;if(evAt(hi,60)<events)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(evAt(m,60)<events)lo=m;else hi=m;}return (lo+hi)/2;}
 
 // ---------- medians ----------
 function medianOf(fn,p){let prev=1;for(let t=0.1;t<=240;t+=0.1){const s=fn(t,p);if(s<=0.5){const t0=t-0.1;return t0+(prev-0.5)/(prev-s)*0.1;}prev=s;}return null;}
@@ -1727,7 +1729,7 @@ applyEmbedMode();
 function getCurrentPwin(){
   if(lastMcPwin!=null&&!isNaN(lastMcPwin))return{pw:lastMcPwin,src:'Monte Carlo posterior (binding interim if checked)'};
   const p=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value;
-  const t80=T80(p);let Tan,Dan;if(t80<=cutoff){Tan=t80;Dan=80;}else{Tan=cutoff;Dan=eventsAt(cutoff,p);}
+  const{t80,Tan,Dan}=t80Analysis(p,cutoff);
   const thIA=analyzeLR(46,p).z,th80=analyzeLR(Tan,p).z;
   const pw=binding?condPow(thIA,th80,Dan,p.zfut).cp:Phi(th80-ZFINAL);
   lastPointPwin=pw;
@@ -1808,8 +1810,8 @@ function runScenarioDiff(){
   const ma=scenarioMetrics(a.params,a.binding),mb=scenarioMetrics(b.params,b.binding);
   $("scmpHdrA").textContent=a.label;$("scmpHdrB").textContent=b.label;
   const rows=[
-    ['HR @ m58',ma.hr,mb.hr,false],['Events @ m46',ma.e46,mb.e46,null],['Events @ m58',ma.e58,mb.e58,null],
-    ['Events @ m63',ma.e63,mb.e63,null],['P(win)',ma.pw*100,mb.pw*100,true],['BAT 3-yr OS %',ma.bat3,mb.bat3,true],
+    ['HR @ m58',ma.hr,mb.hr,false],    ['Events @ m46 (model)',ma.e46,mb.e46,null],['Events @ m58 (model)',ma.e58,mb.e58,null],
+    ['Events @ m63 (model; PR=78)',ma.e63,mb.e63,null],['P(win)',ma.pw*100,mb.pw*100,true],['BAT 3-yr OS %',ma.bat3,mb.bat3,true],
     ['GPS cure %',ma.gpsc,mb.gpsc,true],['BAT median mOS',ma.batMed,mb.batMed,true]
   ];
   $("scmpBody").innerHTML=rows.map(r=>{
@@ -1825,19 +1827,23 @@ function runScenarioDiff(){
 }
 function updateEventSensitivity(){
   const m79=+$("ev79").value,m80=+$("ev80").value;
-  $("vEv79").textContent='m'+m79;$("vEv80").textContent='m'+m80;
+  $("vEv79").textContent='m'+m79+' ('+fmtCalMonth(m79)+')';$("vEv80").textContent='m'+m80+' ('+fmtCalMonth(m80)+')';
+  if(m79<T3){$("evSensOut").innerHTML='<span style="color:var(--bad)">79th event must be at or after confirmed anchor m'+T3+' (78 events).</span>';return;}
   if(m80<=m79){$("evSensOut").innerHTML='<span style="color:var(--bad)">80th event month must be after 79th.</span>';return;}
-  const p=readParams(),binding=$("mcFloor").checked;
-  const baseHr=hazardRatio(T2,p),basePw=fastPwin(p,binding,+$("cutoff").value,2500);
+  const p=readParams(),binding=$("mcFloor").checked,cutoff=Math.max(m80,+$("cutoff").value);
+  const baseHr=hazardRatio(T2,p),basePw=fastPwin(p,binding,cutoff,2500);
   const pace79=m79-T3,pace80=m80-m79;
-  const prCo=12/12,prDec='Company PR pace after 72 @ m58: ~12 deaths in 12 mo (<a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">Dec 2025</a>); +6 in ~5 mo to 78 (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">May 2026</a>) ≈ slower.';
+  const prDec='Company PR pace after 72 @ m58: ~12 deaths in 12 mo (<a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">Dec 2025</a>); +6 in ~5 mo to 78 (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">May 2026</a>) ≈ slower.';
   const slowFactor=pace80>pace79?1.05:0.98;
   const adj=Object.assign({},p,{gpsc:Math.min(0.75,p.gpsc*slowFactor),batc:Math.max(0,p.batc*(2-slowFactor))});
-  const adjHr=hazardRatio(T2,adj),adjPw=fastPwin(adj,binding,Math.max(m80,+$("cutoff").value),2000);
-  const t80=T80(p);
-  $("evSensOut").innerHTML='<b>Scenario:</b> 79th @ m'+m79+' · 80th @ m'+m80+' (+'+(m80-T3)+' mo from 78 @ m63)<br>'+
-    prDec+'<br><b>Baseline</b> (current sliders): HR '+baseHr.toFixed(2)+' · P(win) '+(100*basePw).toFixed(0)+'% · projected 80th ~m'+t80.toFixed(0)+'<br>'+
-    '<b>Deceleration-adjusted</b> (±GPS cure / BAT tail): HR '+adjHr.toFixed(2)+' ('+(adjHr-baseHr>0?'+':'')+(adjHr-baseHr).toFixed(2)+') · P(win) '+(100*adjPw).toFixed(0)+'% ('+( (adjPw-basePw)*100).toFixed(0)+'pp) · fit quality '+(consistent(adj)?'<span style="color:var(--good)">OK</span>':'<span style="color:var(--warn)">relaxed</span>');
+  const adjHr=hazardRatio(T2,adj),adjPw=fastPwin(adj,binding,cutoff,2000);
+  const t80=T80(p),tPace=T80PrPace();
+  const aAt80=analyzeLR(m80,p),thIA=analyzeLR(46,p).z;
+  const pwAt80=binding?condPow(thIA,aAt80.z,80,p.zfut).cp:Phi(aAt80.z-ZFINAL);
+  $("evSensOut").innerHTML='<b>Scenario (78 locked @ m'+T3+'):</b> 79th @ m'+m79+' ('+fmtCalMonth(m79)+', +'+pace79.toFixed(0)+' mo) · 80th @ m'+m80+' ('+fmtCalMonth(m80)+', +'+pace80.toFixed(0)+' mo after 79th)<br>'+
+    prDec+'<br><b>Baseline</b> (anchored projection): HR '+baseHr.toFixed(2)+' · P(win) '+(100*basePw).toFixed(0)+'% · model 80th ~m'+t80.toFixed(0)+' ('+fmtCalMonth(t80)+') · PR pace m'+tPace.toFixed(1)+'<br>'+
+    '<b>If 80th @ m'+m80+'</b> (80 events, anchored): readout HR '+aAt80.hr.toFixed(2)+' · P(win) '+(100*pwAt80).toFixed(0)+'% · vs baseline '+( (pwAt80-basePw)*100).toFixed(0)+'pp<br>'+
+    '<b>Deceleration-adjusted curves</b> (±GPS cure / BAT tail heuristic): HR '+adjHr.toFixed(2)+' ('+(adjHr-baseHr>0?'+':'')+(adjHr-baseHr).toFixed(2)+') · P(win) '+(100*adjPw).toFixed(0)+'% · fit quality '+(consistent(adj)?'<span style="color:var(--good)">OK</span>':'<span style="color:var(--warn)">relaxed</span>');
 }
 function chartMonthFromEvent(cx,cy){
   if(!chartLayout)return null;
@@ -1986,9 +1992,8 @@ function update(){
   const dR=rmst(sGPS,p,48)-rmst(sBAT,p,48);
   $("oRmst").innerHTML=(dR>=0?'+':'')+dR.toFixed(1)+' <small>mo</small>';
   const cutoff=+$("cutoff").value; $("vCut").textContent=cutoff;
-  const t80=T80(p); let Tan,Dan;
-  if(t80<=cutoff){Tan=t80;Dan=80;} else {Tan=cutoff;Dan=eventsAt(cutoff,p);}
-  $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(0)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small>';
+  const{t80,Tan,Dan}=t80Analysis(p,cutoff);
+  $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(0)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small> <span class="tag m" style="font-size:9px;vertical-align:1px">from 78@m63</span>';
   const aFin=analyzeLR(Tan,p), thIA=analyzeLR(46,p).z, th80=aFin.z;
   const binding=$("mcFloor").checked;
   const pStop=1-Phi(ZEFF-thIA);
@@ -2015,7 +2020,9 @@ function update(){
   }
 
   const ev1=eventsAt(T1,p),ev2=eventsAt(T2,p),ev3=eventsAt(T3,p),ev4=eventsAt(T4,p);
-  $("e1").textContent=ev1.toFixed(0);$("e2").textContent=ev2.toFixed(0);$("e3").textContent=ev3.toFixed(0);$("e4").textContent=ev4.toFixed(0);
+  $("e1").textContent=ev1.toFixed(1);$("e2").textContent=ev2.toFixed(1);
+  $("e3").innerHTML=ev3.toFixed(1)+' <span class="tag m" style="font-size:9px">model</span> · confirmed <b>78</b>';
+  $("e4").textContent=ev4.toFixed(1);
   const ok1=Math.abs(ev1-E1)<=4,mid1=Math.abs(ev1-E1)<=8;
   const ok2=Math.abs(ev2-E2)<=3,mid2=Math.abs(ev2-E2)<=7;
   const ok3=Math.abs(ev3-E3)<=3,mid3=Math.abs(ev3-E3)<=7;
@@ -2041,7 +2048,6 @@ function noteText(){
 }
 
 // ---------- Monte Carlo (posterior over final HR) ----------
-function T80(p){let lo=T3,hi=130;if(eventsAtAnchored(hi,p,110)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAtAnchored(m,p,110)<80)lo=m;else hi=m;}return (lo+hi)/2;}
 function rn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
 function clampf(f,v){const c=CFG.find(x=>x.field===f);return Math.max(c.min*c.sc,Math.min(c.max*c.sc,v));}
@@ -2060,7 +2066,7 @@ function runMC(){
     const logL=lpois(60,l1)+lpois(12,l2)+lpois(6,l3)+Math.log(Math.max(1e-12,poisLE(1,l4)));
     const Lev=Math.exp(logL); if(Lev<1e-11)continue;
     const thIA=analyzeLR(46,p).z;                                   // proper interim log-rank z (~60 events @ m46)
-    const t80=T80(p); let Tan,Dan; if(t80<=cutoff){Tan=t80;Dan=80;} else {Tan=cutoff;Dan=eventsAt(cutoff,p,80);}
+    const{t80,Tan,Dan}=t80Analysis(p,cutoff,80);
     const aFin=analyzeLR(Tan,p); if(isNaN(aFin.hr))continue; const th80=aFin.z;
     let w,pw;
     if(binding){ const r=condPow(thIA,th80,Dan,p.zfut); w=Lev*r.Pc; pw=r.cp; }   // weight by P(continue); win = conditional power (banks early wins, power-neutral)
@@ -2079,7 +2085,7 @@ function runMCInverse(){
     const ir=inverseSolve(p,cap);
     if(!ir.sol||ir.err>25)continue;
     const s=ir.sol;
-    const t80=T80(s);let Tan,Dan;if(t80<=cutoff){Tan=t80;Dan=80;}else{Tan=cutoff;Dan=eventsAt(cutoff,s,80);}
+    const{t80,Tan,Dan}=t80Analysis(s,cutoff,80);
     const aFin=analyzeLR(Tan,s);if(isNaN(aFin.hr))continue;
     const thIA=analyzeLR(46,s).z,th80=aFin.z;
     let pw;
@@ -2218,7 +2224,7 @@ function fastPwin(p,binding,cutoff,nDraws,dataThrough){
     if(thru>=58){const e58=eventsAt(58,q,80);if(Math.abs(e58-72)>15)continue;}
     const Lev=Math.exp(poisLogLThrough(q,thru));
     if(Lev<1e-11)continue;
-    const thIA=analyzeLR(46,q).z,t80=T80(q);let Tan,Dan;if(t80<=cutoff){Tan=t80;Dan=80;}else{Tan=cutoff;Dan=eventsAt(cutoff,q,80);}
+    const thIA=analyzeLR(46,q).z;const{t80,Tan,Dan}=t80Analysis(q,cutoff,80);
     const aFin=analyzeLR(Tan,q);if(isNaN(aFin.hr))continue;
     let w,pw;if(binding){const r=condPow(thIA,aFin.z,Dan,q.zfut);w=Lev*r.Pc;pw=r.cp;}else{w=Lev*Phi(thIA-q.zfut);pw=Phi(aFin.z-ZFINAL);}
     W+=w;WP+=w*pw;}
