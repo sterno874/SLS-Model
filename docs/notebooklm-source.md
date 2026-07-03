@@ -366,7 +366,7 @@ Oncology M&A convention: **4–8× peak sales** (⚠️ market convention, not f
 - GPS cure fractions (14–50% range across presets)
 - Binding vs non-binding interim IA interpretation
 - Penetration, pricing, M&A multiples, platform lump sum
-- u/Confident-Web-7118 DD scenario fits (incorporated as "Optimistic cure" presets)
+- u/Confident-Web-7118 DD scenario fits (incorporated as CW published point and inverse cure-sweep presets)
 - Buyer lists and "$5–20B TAM" bull posts ([community](https://www.reddit.com/r/sellaslifesciences/comments/1kq581k/bull_case_a_quite_evident_one/)) — logical but ❌ no disclosed M&A talks
 
 ### ❓ Unknown Until Unblinding
