@@ -127,7 +127,7 @@
     <div class="preset-start" id="presetStart" data-regal-mode="forward">
       <div class="pgrp">Start here</div>
       <div class="presets presets-best">
-        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess ★<span class="p-sub">Neutral priors · binding IA · full trajectory fit</span></button>
+        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 42% GPS cure (Phase 2/WT1 MOA band), Kurosawa BAT 3-yr OS cap (~14%), 3-mo GPS onset delay. Forward sliders = inverseSolve(cw42) output locked to 60/72/78 anchors. Binding interim (registrational default).">Best Available Guess ★<span class="p-sub">42% cure · anchor-locked · binding IA</span></button>
       </div>
     </div>
 
@@ -192,21 +192,21 @@
     <div class="ctrl-group" id="grpBat">
       <h3>BAT arm (control)</h3>
     <div class="ctrl" id="invBatCapWrap" data-regal-mode="inverse" hidden>
-      <label for="batcap">BAT 3-year OS cap (biology) <span id="vBatCap">17%</span></label>
-      <input type="range" id="batcap" min="12" max="22" step="1" value="17"/>
+      <label for="batcap">BAT 3-year OS cap (biology) <span id="vBatCap">14%</span></label>
+      <input type="range" id="batcap" min="12" max="22" step="1" value="14"/>
       <small class="source-line">Anchor-constrained inversion caps BAT long-tail by historical no-HCT relapsed AML data (Kurosawa whole-cohort ~14% 3-yr OS [<a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Haematologica 2010</a>] — includes non-CR2; CR2/no-HCT subgroups higher, e.g. intermediate ~19%). Solver picks BAT tail ≤ this cap. Higher cap = more room for a strong control arm (harder win).</small>
     </div>
 
     <div class="ctrl" id="batWrap" data-regal-mode="forward">
-      <label for="bat">BAT median — excl. long-survivors <span id="vBat">10.0 m</span><span class="derived-tag" id="batDerivedTag" hidden>implied</span></label>
-      <input type="range" id="bat" min="6" max="20" step="0.5" value="10"/>
+      <label for="bat">BAT median — excl. long-survivors <span id="vBat">13.0 m</span><span class="derived-tag" id="batDerivedTag" hidden>implied</span></label>
+      <input type="range" id="bat" min="6" max="20" step="0.5" value="13"/>
       <div class="bands" id="band-bat"></div>
       <small class="source-line">Median of non-tail BAT component (from randomization). Design assumes 8.0m (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>); ven-era CR2 ~8–12m (<a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">Stahl 2021</a>).</small>
     </div>
 
     <div class="ctrl" id="batcWrap" data-regal-mode="forward">
-      <label for="batc">BAT long-survivor fraction <span id="vBatc">14%</span><span class="derived-tag" id="batcDerivedTag" hidden>implied</span></label>
-      <input type="range" id="batc" min="0" max="30" step="1" value="14"/>
+      <label for="batc">BAT long-survivor fraction <span id="vBatc">0%</span><span class="derived-tag" id="batcDerivedTag" hidden>implied</span></label>
+      <input type="range" id="batc" min="0" max="30" step="1" value="0"/>
       <div class="bands" id="band-batc"></div>
       <small class="source-line">Favorable-risk BAT patients who survive years. Published no-HCT relapsed AML: whole-cohort ~14% 3-yr OS, CR2/no-HCT subgroups ~19–78% by risk (<a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Kurosawa 2010</a>). Main lever toward a losing HR.</small>
     </div>
@@ -215,22 +215,22 @@
     <div class="ctrl-group" id="grpGps">
       <h3>GPS arm (vaccine)</h3>
     <div class="ctrl" id="gpscWrap">
-      <label for="gpsc">GPS cure fraction <span id="vGpsc">22%</span></label>
-      <input type="range" id="gpsc" min="0" max="75" step="1" value="22"/>
+      <label for="gpsc">GPS cure fraction <span id="vGpsc">42%</span></label>
+      <input type="range" id="gpsc" min="0" max="75" step="1" value="42"/>
       <div class="bands" id="band-gpsc"></div>
       <small class="source-line">GPS patients on permanent plateau. Phase 2 CR2: no plateau (<a href="https://pubmed.ncbi.nlm.nih.gov/?term=Brayer+WT1+vaccination+AML+MDS+pilot+synthetic+analog+peptides" target="_blank" rel="noopener">Brayer 2015</a>); CR1 ~47% 3-yr (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>). Highly uncertain.</small>
     </div>
 
     <div class="ctrl" id="gpsuWrap" data-regal-mode="forward">
-      <label for="gpsu">GPS uncured median OS <span id="vGpsu">32.0 m</span><span class="derived-tag" id="gpsuDerivedTag" hidden>implied</span></label>
-      <input type="range" id="gpsu" min="6" max="40" step="0.5" value="32"/>
+      <label for="gpsu">GPS uncured median OS <span id="vGpsu">54.1 m</span><span class="derived-tag" id="gpsuDerivedTag" hidden>implied</span></label>
+      <input type="range" id="gpsu" min="6" max="55" step="0.5" value="54.1"/>
       <div class="bands" id="band-gpsu"></div>
       <small class="source-line">Survival of non-cured GPS patients. Phase 2 CR2 whole-arm mOS 16.3 mo (<a href="https://pubmed.ncbi.nlm.nih.gov/?term=Brayer+WT1+vaccination+AML+MDS+pilot+synthetic+analog+peptides" target="_blank" rel="noopener">Brayer 2015</a>). m63 events pull fits high (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78-event update</a>).</small>
     </div>
 
     <div class="ctrl">
-      <label for="delay">GPS onset delay <span id="vDelay">1.5 m</span></label>
-      <input type="range" id="delay" min="0" max="6" step="0.5" value="1.5"/>
+      <label for="delay">GPS onset delay <span id="vDelay">3.0 m</span></label>
+      <input type="range" id="delay" min="0" max="6" step="0.5" value="3"/>
       <div class="bands" id="band-delay"></div>
       <small class="source-line">Months before GPS separates from BAT (immune ramp-up). GPS primes over ~3 mo per protocol (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
     </div>
@@ -239,8 +239,8 @@
     <div class="ctrl-group" id="grpTrial">
       <h3>Trial parameters</h3>
     <div class="ctrl">
-      <label for="xtx">Transplant after enrollment <span id="vXtx">6%</span></label>
-      <input type="range" id="xtx" min="0" max="25" step="1" value="6"/>
+      <label for="xtx">Transplant after enrollment <span id="vXtx">0%</span></label>
+      <input type="range" id="xtx" min="0" max="25" step="1" value="0"/>
       <div class="bands" id="band-xtx"></div>
       <small class="source-line">% of EACH arm transplanted post-enrollment (eligibility at entry only). Transplanted CR2 ~40–50% long-term (<a href="https://pubmed.ncbi.nlm.nih.gov/?term=Forman+Rowe+myth+second+remission+acute+leukemia+adult" target="_blank" rel="noopener">Forman &amp; Rowe 2013</a>). Shared tail shrinks GPS gap.</small>
     </div>
@@ -252,8 +252,8 @@
     </div>
 
     <div class="ctrl">
-      <label for="cens">Censoring / dropout <span id="vCens">12%</span></label>
-      <input type="range" id="cens" min="0" max="30" step="1" value="12"/>
+      <label for="cens">Censoring / dropout <span id="vCens">0%</span></label>
+      <input type="range" id="cens" min="0" max="30" step="1" value="0"/>
       <div class="bands" id="band-cens"></div>
       <small class="source-line">Lost-to-follow-up before death. Phase 2 GPS ~15% (<a href="https://www.onclive.com/view/maintenance-galinpepimut-s-appears-effective-and-safe-in-aml-in-second-cr" target="_blank" rel="noopener">Brayer/OncLive</a>). Differential dropout by arm not modeled.</small>
     </div>
@@ -378,7 +378,7 @@
     <div id="mcPanelHint" class="panel-lead">Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">+12</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">+6</a>, still &lt;80). Win = stratified log-rank significance; HR &lt; 0.636 threshold from <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>. <span class="tag m">Model output</span> — only as good as the priors.</div>
     <div class="mc-toolbar">
       <button class="p p-run" id="mcRun">▶ Run 200k draws</button>
-      <button class="p" id="mcNeutral" data-regal-mode="forward">Set neutral (literature) priors</button>
+      <button class="p" id="mcNeutral" data-regal-mode="forward">Set Best Available Guess priors</button>
       <label><input type="checkbox" id="mcFloor" checked> binding efficacy interim (soft-condition on no early stop)</label>
       <label>analysis cutoff month <input type="range" id="cutoff" min="66" max="84" step="1" value="72"><b id="vCut">72</b></label>
       <span id="mcStatus" class="run-status">not run yet — click to run</span>
@@ -413,7 +413,7 @@
       </div>
     </div>
     <div class="ctrl"><label for="bf_e58">Observed events @ m58 <span id="bfE58">72</span></label><input type="range" id="bf_e58" min="65" max="78" step="1" value="72"/></div>
-    <div class="ctrl"><label for="bf_cure">GPS cure fraction (alternative hypothesis) <span id="bfCure">22%</span></label><input type="range" id="bf_cure" min="5" max="60" step="1" value="22"/></div>
+    <div class="ctrl"><label for="bf_cure">GPS cure fraction (alternative hypothesis) <span id="bfCure">42%</span></label><input type="range" id="bf_cure" min="5" max="60" step="1" value="42"/></div>
     <div id="bfResult" class="result-box"></div>
   </div>
 </details>

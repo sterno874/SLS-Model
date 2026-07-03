@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { T1, T2, hazardRatio, consistent, passesVerdict, eventsAt, T3, E3, inverseSolve } from "../js/math/survival.js";
 import { paramsFromPresetQ, mk } from "./helpers.js";
-import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES } from "./fixtures/presets.js";
+import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES, RIDGE_PRESET_NAMES } from "./fixtures/presets.js";
 
 for (const name of PLAUSIBLE_PRESET_NAMES) {
   test(`forward preset "${name}" passes consistent()`, () => {
@@ -20,15 +20,25 @@ for (const name of PLAUSIBLE_PRESET_NAMES) {
   });
 }
 
+for (const name of RIDGE_PRESET_NAMES) {
+  test(`ridge preset "${name}" fits anchors with HR ≈ 1 by design`, () => {
+    const p = paramsFromPresetQ(P[name]);
+    assert.ok(passesVerdict(p), `ridge preset ${name} should still pass event trajectory`);
+    assert.ok(Math.abs(hazardRatio(T2, p) - 1) < 0.02);
+  });
+}
+
 test("bear preset HR near win threshold", () => {
   const p = paramsFromPresetQ(P.bear);
   const hr = hazardRatio(T2, p);
   assert.ok(hr >= 0.54 && hr < 0.636, `bear HR ${hr} should be near but below 0.636`);
 });
 
-test("noeffect preset HR near unity", () => {
-  const p = paramsFromPresetQ(P.noeffect);
-  assert.ok(Math.abs(hazardRatio(T2, p) - 1) < 0.02);
+test("capbreach preset fits anchors but HR misses win threshold", () => {
+  const p = paramsFromPresetQ(P.capbreach);
+  assert.ok(passesVerdict(p));
+  const hr = hazardRatio(T2, p);
+  assert.ok(hr > 0.636, `capbreach HR ${hr} should miss 0.636 threshold`);
 });
 
 test("cw preset HR below win threshold", () => {

@@ -136,35 +136,46 @@ Both arms include optional **post-enrollment transplant ITT tail** (~6%/arm) and
 
 Both use the same mixture-cure machinery; only the **direction of fit** reverses. Community practitioner framing: u/Confident-Web-7118 ([Part 1 DD](https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/)); critique: u/uhdisj41 ([identifiability thread](https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/)). ⚠️ Community DD = adjustable scenarios, not established fact.
 
-### 2.5 Preset Scenarios with Model Numbers (🔬 Model Output)
+### 2.4.1 Best Available Guess Methodology (biology-first → inverse → forward verify)
 
-All presets below **fit** the 60/72/78 event trajectory within tolerance (verified by `npm test` preset regression).
+The **Best Available Guess ★** preset is **not** a neutral literature anchor fit. It follows a three-step pipeline:
 
-| Preset | GPS cure | BAT tail | BAT median | HR @ m58 | HR @ readout (~m63+) | P(win) MC | Interim binding |
-|--------|----------|----------|------------|----------|----------------------|-----------|-----------------|
-| **Best Available Guess ★** | 22% | 14% | 9.5 mo | **0.452** | **0.463** | ~**50%** | Yes (registrational default) |
-| Binding interim | 22% | 14% | 9.5 mo | 0.452 | 0.463 | ~50% | Yes |
-| Non-binding interim | 22% | 14% | 9.5 mo | 0.452 | 0.463 | ~**78%** | No (informational IA) |
-| Critique (~⅔) | 18% | 16% | 9.0 mo | 0.468 | 0.483 | ~**66%** | Yes |
-| Bear (near-miss) | 14% | 16% | 10.5 mo | **0.550** | 0.565 | Lower | Yes |
-| Bull / DD cure | 40% | 6% | 8.0 mo | **0.174** | 0.183 | High | No |
-| Optimistic cure (~85%, CW) | 41% | 6% | 9.0 mo | **0.183** | 0.191 | ~85% | No |
-| No effect (ridge) | 28% | 28% | 14.0 mo | **1.000** | 1.000 | ~0% | Yes |
+1. **Biology-first:** Fix GPS cure at **42%** — upper band of Phase 2/WT1 MOA-informed estimates (35–42%; CR1 ~47% 3-yr plateau is selection-biased; CR2 showed no plateau but ~64% immune-response rate supports a substantial cure fraction).
+2. **Inverse solve:** Run `inverseSolve` with **cw42** settings (42% cure, 3-mo onset delay, BAT 3-yr OS cap **14%** per Kurosawa transplant-ineligible CR2) → implied BAT median **13.0 mo**, BAT tail **0%**, GPS uncured mOS **54.1 mo**.
+3. **Forward verify:** Copy solver output into the forward `best` preset sliders; confirm `passesVerdict` on 60/72/78 anchors and readout HR **~0.25** (well below 0.636 win threshold, unlike the old ~0.47 neutral fit).
 
-**Inverse presets** (GPS cure fixed → derived medians):
+This aligns forward and inverse default scenarios: clicking **Best Available Guess** or inverse **GPS 42% cure (CW inverse)** should show the same survival parameters and HR readout.
 
-| Inverse preset | GPS cure | Implied BAT median | Implied GPS uncured mOS | HR @ m58 | HR @ readout |
-|----------------|----------|--------------------|-------------------------|----------|--------------|
-| Default (~42%, CW) | 42% | 13.0 mo | 54.1 mo | **0.254** | **0.249** |
-| Moderate cure (35%) | 35% | 11.8 mo | 54.8 mo | 0.233 | 0.233 |
-| High cure (50%) | 50% | 13.8 mo | 47.8 mo | 0.288 | 0.279 |
-| Binding interim (42%) | 42% | 13.0 mo | 54.1 mo | 0.254 | 0.249 | P(win) lower vs non-binding |
+### 2.5 CW DD Stress-Test Presets (🔬 Model Output)
+
+Each precanned scenario is a deliberate **Confident Web DD-style stress test** — one specific issue from u/Confident-Web-7118 or u/uhdisj41 critique, not arbitrary slider positions. All anchor-fitting presets **fit** 60/72/78 within tolerance (`npm test` preset regression).
+
+| Preset | CW stress test | Mode | GPS cure | BAT tail | HR @ m58 | Fits anchors? |
+|--------|----------------|------|----------|----------|----------|---------------|
+| **Best Available Guess ★** | Biology-first → inverse → forward verify | forward | **42%** | **0%** | **0.254** | Yes |
+| Binding IA (~50%) | Interim binding cap / registrational IA | forward | 42% | 0% | 0.254 | Yes |
+| Non-binding IA (~78%) | Non-binding interim upper bound | forward | 42% | 0% | 0.254 | Yes |
+| BAT tail holds survivors | Heterogeneous BAT long-tail near-miss | forward | 14% | 16% | **0.550** | Yes |
+| Bull: strong GPS cure | Optimistic cure / low BAT tail | forward | 40% | 6% | **0.174** | Yes |
+| Critique: ~⅔ coin flip | uhdisj41 moderate GPS (~66% P(win)) | forward | 18% | 16% | 0.468 | Yes |
+| CW published point (~85%) | CW Part 1 forward parameters | forward | 41% | 6% | **0.183** | Yes |
+| Implausible BAT cap (stress) | Biology cap breach (BAT 3-yr OS ~70%) | forward | 12% | 20% | **0.644** | Yes (events); HR miss |
+| Ridge: null effect fits anchors | Identifiability ridge HR ≈ 1 | forward | 28% | 28% | **1.000** | Yes (by design) |
+
+**Inverse anchor-locked** (GPS cure fixed → derived medians):
+
+| Preset | CW stress test | GPS cure | Implied BAT mOS | Implied GPS uncured | HR @ m58 |
+|--------|----------------|----------|-----------------|---------------------|----------|
+| GPS 42% cure (CW inverse) | CW bullish cure anchor | 42% | 13.0 mo | 54.1 mo | **0.254** |
+| GPS 35% cure (conservative) | Conservative cure sweep | 35% | 11.8 mo | 54.8 mo | 0.233 |
+| GPS 50% cure (high sweep) | High cure sweep | 50% | 13.8 mo | 47.8 mo | 0.288 |
+| 42% cure + binding IA | Binding interim on inverse fit | 42% | 13.0 mo | 54.1 mo | 0.254 |
 
 **Interim HR vs readout HR — two different bars:**
 - **Interim efficacy floor @ m46 (60 events):** HR must be **≤ 0.547** to stop early for efficacy (REGAL did **not** stop) ✅
 - **Final win threshold @ 80 events:** HR must be **< 0.636** to win
-- **Best Available Guess model-implied interim HR @ m46: ~0.443** — clears the floor (consistent with IDMC "continue") 🔬
-- **Readout HR (~0.46–0.48)** can differ from **m58 HR (~0.45)** as additional events accrue and enrollment weights shift 🔬
+- **Best Available Guess model-implied interim HR @ m46: ~0.29** — well below the 0.547 floor (consistent with IDMC "continue") 🔬
+- **Readout HR ~0.25** (m58 HR ~0.25) — materially below the old neutral-anchor ~0.47 fit; reflects biology-first 42% cure + anchor-locked inversion 🔬
 
 ### 2.6 Monte Carlo P(win) Methodology (🔬 Model Output)
 
@@ -181,7 +192,7 @@ Methods: Lan-DeMets O'Brien-Fleming ([PubMed](https://pubmed.ncbi.nlm.nih.gov/63
 
 **The central statistical problem:** Public data are **pooled** death counts. The map `(S_GPS, S_BAT) → N_deaths` is **many-to-one**. Arm-level HR is **not identifiable** without the arm split or strong structural assumptions.
 
-**Demonstration:** The "No effect (ridge)" preset fits 60/72/78 with **HR ≈ 1.0** — assigning ~28% long-survivor tail to **both** arms equally. 🔬
+**Demonstration:** The "Ridge: null effect fits anchors" preset fits 60/72/78 with **HR ≈ 1.0** — assigning ~28% long-survivor tail to **both** arms equally. 🔬
 
 **GPS-cure ↔ BAT-heterogeneity ridge:** A high GPS cure fraction with a weak BAT tail can produce the same pooled event trajectory as a modest GPS benefit with a strong BAT long-tail. Community DD debate ([CW vs u/uhdisj41](https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/)) centers on this ridge.
 
@@ -362,7 +373,7 @@ Oncology M&A convention: **4–8× peak sales** (⚠️ market convention, not f
 - Which arm each of the 78 deaths belongs to
 - Actual stratified Cox HR and p-value from the SAP
 - Differential censoring by arm
-- Whether REGAL topline HR will match model-implied ~0.45–0.55 range
+- Whether REGAL topline HR will match model-implied ~0.24–0.35 range (biology-first) vs older neutral-fit ~0.45–0.55 band
 
 ---
 

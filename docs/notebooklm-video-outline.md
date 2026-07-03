@@ -47,7 +47,7 @@
 - Interim efficacy floor (not crossed): HR **≤ 0.547** at 60 events
 - Nov 2022: blinded pooled mOS ~2× longer than design expected
 - **Visual:** `images/regal-mixture-cure-survival.png`
-- 🔬 Best Available Guess model: readout HR ~**0.46**, interim HR @ m46 ~**0.44**
+- 🔬 Best Available Guess model: readout HR ~**0.25**, interim HR @ m46 ~**0.29**
 - Key honesty: event pace suggests pooled survival above historical CR2 — but magnitude is unidentifiable pre-unblind
 
 ---
@@ -62,7 +62,7 @@
 - Mixture-cure GPS + Weibull BAT + transplant ITT tail
 - Monte Carlo: sample priors → Poisson-weight by event increments → P(win)
 - Binding interim: ~**50%** P(win) | Non-binding: ~**78%** — same survival, different IA assumption
-- Preset tour: Bear HR ~0.55 (near-miss) | Best ~0.46 | Bull ~0.17 | No-effect ridge HR = 1.0
+- Preset tour: Bear HR ~0.55 (near-miss) | Best ~0.25 | Bull ~0.17 | No-effect ridge HR = 1.0
 - Identifiability ridge: null-effect world **also fits** 60/72/78
 - Close: P(win) is a **model output**, not a company forecast
 

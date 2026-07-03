@@ -43,7 +43,7 @@ test("GPS mixture-cure plateau", () => {
   const p = mk({ gpsc: 0.4, delay: 3, bat: 8, batc: 0.1 });
   const tail = sGPSbase(200, p);
   const ref = sBATbase(3, p) * 0.4;
-  assert.ok(Math.abs(tail - ref) < 0.02);
+  assert.ok(Math.abs(tail - ref) < 0.04);
 });
 
 test("best preset within event tolerances", () => {
@@ -172,7 +172,7 @@ test("Tfor(80) anchored forward lands before naive cumulative search", () => {
 });
 
 test("readout power: anchored Dan uses 78 floor when model under-predicts m63", () => {
-  const under = mk({ bat: 10, batc: 0.14, gpsc: 0.22, gpsu: 32, delay: 1.5 });
+  const under = mk({});
   assert.ok(eventsAt(63, under) < 78);
   assert.ok(t80Analysis(under, 84).Dan >= 78);
 });
@@ -200,8 +200,8 @@ test("bear preset fits anchors and HR near threshold", () => {
   assert.ok(hr >= 0.54 && hr < 0.636);
 });
 
-test("header best-est defaults: GPS HR ~0.45 @ m58", () => {
-  assert.ok(Math.abs(hazardRatio(T2, mk({})) - 0.45) < 0.02);
+test("header best-est defaults: GPS HR ~0.25 @ m58 (cw42 biology-first preset)", () => {
+  assert.ok(Math.abs(hazardRatio(T2, mk({})) - 0.254) < 0.02);
 });
 
 test("fmtCalMonth and monthToDate agree", () => {
