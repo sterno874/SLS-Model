@@ -294,11 +294,36 @@
   .bottom-nav button{border:none;background:transparent;border-radius:10px;padding:8px 4px;min-height:44px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1.2}
   .bottom-nav button .bn-ico{font-size:18px;line-height:1}
   .bottom-nav button.active{color:var(--accent);background:#eef3fe}
-  /* readout tracker */
-  .readout-tracker{margin:0 18px 14px;padding:14px 18px;border:2px solid var(--accent);border-radius:12px;background:linear-gradient(135deg,#eef3fe 0%,#fbfcfe 100%);font-size:13px;line-height:1.55}
-  .readout-tracker h3{margin:0 0 8px;font-size:14px;color:var(--ink)}
-  .readout-tracker .rt-big{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent)}
-  .readout-tracker .rt-row{display:flex;flex-wrap:wrap;gap:12px 20px;margin-top:8px}
+  /* readout clock — compact trial countdown (REGAL tab top-right) */
+  #tab-gps{position:relative}
+  #tab-gps .howworks{margin-right:118px}
+  .readout-clock{position:absolute;top:6px;right:18px;z-index:25;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:11px;line-height:1.35;--rc-pct:97.5}
+  .rc-face{position:relative;width:68px;height:68px;padding:0;border:1px solid #c9daf8;border-radius:50%;background:linear-gradient(145deg,#fff 0%,#eef3fe 100%);box-shadow:0 2px 10px rgba(47,111,237,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:box-shadow .15s,border-color .15s}
+  .rc-face:hover,.rc-face[aria-expanded=true]{border-color:var(--accent);box-shadow:0 3px 14px rgba(47,111,237,.22)}
+  .rc-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .rc-ring-bg{fill:none;stroke:#dde8fd;stroke-width:2.2}
+  .rc-ring-fill{fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:100 100;stroke-dashoffset:calc(100 - var(--rc-pct));transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .35s ease}
+  .rc-center{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;line-height:1}
+  .rc-count{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);letter-spacing:-.02em}
+  .rc-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:1px}
+  .rc-meta{display:flex;align-items:center;gap:4px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .rc-t80 b{color:var(--ink);font-weight:700}
+  .rc-refresh{border:1px solid var(--line);background:#fff;border-radius:50%;width:22px;height:22px;padding:0;font-size:13px;line-height:1;cursor:pointer;color:var(--accent);display:flex;align-items:center;justify-content:center}
+  .rc-refresh:hover{border-color:var(--accent);background:#eef3fe}
+  .rc-popover{position:absolute;top:calc(100% + 6px);right:0;width:min(300px,calc(100vw - 36px));padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 8px 28px rgba(20,27,38,.14);font-size:12.5px;line-height:1.55;z-index:30}
+  .rc-popover[hidden]{display:none}
+  .rc-popover h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+  .rc-popover .rt-row{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+  .rc-popover .rt-foot{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
+  .rc-popover .rt-foot a{color:var(--accent)}
+  @media(max-width:640px){
+    #tab-gps .howworks{margin-right:62px}
+    .readout-clock{top:4px;right:10px}
+    .rc-face{width:54px;height:54px}
+    .rc-count{font-size:18px}
+    .rc-label{font-size:7px}
+    .rc-meta{display:none}
+  }
   /* chart tooltip */
   .chart-tooltip{position:absolute;pointer-events:none;background:#141b26;color:#fff;padding:8px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;z-index:50;opacity:0;transition:opacity .12s;max-width:240px;font-variant-numeric:tabular-nums}
   .chart-tooltip.show{opacity:1}
@@ -318,7 +343,7 @@
   /* embed mode */
   body.embed-mode{background:#fff}
   body.embed-mode header{padding:8px 12px 4px;background:#fff;box-shadow:none;position:static}
-  body.embed-mode header h1,.embed-hide,.embed-mode .howworks,.embed-mode footer,.embed-mode .hdr-tools,.embed-mode .tabnav,.embed-mode #bottomNav,.embed-mode .methodbtn,.embed-mode .readout-tracker,.embed-mode .link-val-btn,.embed-mode .no-embed{display:none!important}
+  body.embed-mode header h1,.embed-hide,.embed-mode .howworks,.embed-mode footer,.embed-mode .hdr-tools,.embed-mode .tabnav,.embed-mode #bottomNav,.embed-mode .methodbtn,.embed-mode .readout-clock,.embed-mode .link-val-btn,.embed-mode .no-embed{display:none!important}
   body.embed-mode .wrap,.embed-mode .facts,.embed-mode .regal-analysis,.embed-mode .feat-panel,.embed-mode .cw-panel{padding-left:8px;padding-right:8px;margin-left:0;margin-right:0}
   body.embed-mode .tabbtn.active{display:inline-block!important}
   @media(max-width:768px){
@@ -355,6 +380,33 @@
 </header>
 
 <div id="tab-gps" class="tabpage">
+<!-- READOUT CLOCK — compact trial countdown -->
+<div class="readout-clock no-embed" id="readoutClock">
+  <button type="button" class="rc-face" id="rcToggle" aria-expanded="false" aria-controls="rcPopover" title="REGAL readout tracker — click for details">
+    <svg class="rc-ring" viewBox="0 0 36 36" aria-hidden="true">
+      <circle class="rc-ring-bg" cx="18" cy="18" r="15.9"/>
+      <circle class="rc-ring-fill" id="rcRingFill" cx="18" cy="18" r="15.9" pathLength="100"/>
+    </svg>
+    <span class="rc-center">
+      <span class="rc-count" id="rtRemain">2</span>
+      <span class="rc-label">to go</span>
+    </span>
+  </button>
+  <div class="rc-meta">
+    <span class="rc-t80">T80 <b id="rcT80Num">—</b></span>
+    <button type="button" class="rc-refresh" id="rtRefresh" title="Refresh T80 estimate" aria-label="Refresh estimate">↻</button>
+  </div>
+  <div class="rc-popover" id="rcPopover" hidden role="dialog" aria-label="Readout tracker details">
+    <h4>Readout tracker <span class="tag f">cited</span></h4>
+    <div>Events remaining: <b style="font-size:18px;color:var(--accent)"><span id="rtRemainPop">2</span></b> <span style="color:var(--muted)">(80 − <span id="rtAnchor">78</span> anchor)</span></div>
+    <div class="rt-row">
+      <span id="rtT80">Median time to 80th event: <b>—</b></span>
+      <span id="rtP90">90th percentile: <b>—</b></span>
+      <span id="rtAsOf" style="color:var(--muted);font-size:12px">As of <span id="rtAsOfDate">2026-05-11</span></span>
+    </div>
+    <div class="rt-foot">Anchor: <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 events @ m63</a> (Q1 2026 PR). Ring = <span id="rcPctLabel">97.5</span>% to 80th event.</div>
+  </div>
+</div>
   <details class="howworks">
     <summary>How this works — KM curves, event matching, HR &amp; Monte Carlo</summary>
     <div class="howworks-body">
@@ -390,18 +442,6 @@
     <h4 style="margin-top:12px">Math verification (Jul 2026)</h4>
     <div style="font-size:12.5px;line-height:1.55">Audited inline functions against the formulas above: mixture-cure / Weibull survival (<code>S<sub>BAT</sub>=c+(1−c)·exp(−(t/λ)<sup>k</sup>)</code>, median scale <code>λ=bat/ln2<sup>1/k</sup></code>); ITT transplant mix; enrollment-weighted expected deaths; Pike HR <code>(O/E)<sub>GPS</sub>/(O/E)<sub>BAT</sub></code> at m58; stratified log-rank Z + OBF conditional power (<code>ρ=√(60/D)</code>); Poisson increment likelihood; inverse least-squares fit; SLS-009 fold/HR-equiv <code>bench/arm</code> under exponential assumption; valuation <code>peak=starts×pen×years×price</code>, EV=peak×multiple+platform. Spot checks: “No effect” preset HR≈1.000; CW cure preset HR≈0.19; inverse solver hits 72 events @ m58. Regression harness: <code>node verify_math.js</code>.</div>
   </div>
-
-<!-- READOUT TRACKER -->
-<div class="readout-tracker no-embed" id="readoutTracker">
-  <h3>Readout tracker <span class="tag f">cited</span></h3>
-  <div>Events remaining: <span class="rt-big" id="rtRemain">2</span> <span style="color:var(--muted);font-size:13px">(80 − <span id="rtAnchor">78</span> current anchor)</span></div>
-  <div class="rt-row">
-    <span id="rtT80">Median time to 80th event: <b>—</b></span>
-    <span id="rtP90">90th percentile: <b>—</b></span>
-    <span id="rtAsOf" style="color:var(--muted);font-size:12px">As of <span id="rtAsOfDate">2026-05-11</span></span>
-  </div>
-  <div style="font-size:11px;color:var(--muted);margin-top:6px">Anchor: <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 events @ m63</a> (Q1 2026 PR). <button class="p" id="rtRefresh" style="min-height:auto;padding:4px 10px;font-size:11px;margin-left:6px">Refresh estimate</button></div>
-</div>
 
 <div class="wrap">
   <!-- CONTROLS -->
@@ -1729,11 +1769,16 @@ function usePwinInValuation(){
 let readoutTimer=null;
 function scheduleReadoutUpdate(){clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
 function updateReadoutTracker(){
-  const remain=80-CURRENT_EVENT_ANCHOR.count;
+  const remain=80-CURRENT_EVENT_ANCHOR.count,pct=CURRENT_EVENT_ANCHOR.count/80*100;
   $("rtRemain").textContent=remain;
+  if($("rtRemainPop"))$("rtRemainPop").textContent=remain;
   $("rtAnchor").textContent=CURRENT_EVENT_ANCHOR.count;
   $("rtAsOfDate").textContent=fmtAsOf(CURRENT_EVENT_ANCHOR.date);
+  const clock=$("readoutClock");
+  if(clock)clock.style.setProperty("--rc-pct",pct.toFixed(2));
+  if($("rcPctLabel"))$("rcPctLabel").textContent=pct.toFixed(1);
   const p=readParams(),t80=T80(p);
+  if($("rcT80Num"))$("rcT80Num").textContent="~m"+t80.toFixed(0);
   $("rtT80").innerHTML='Median time to 80th event: <b>~m'+t80.toFixed(0)+'</b> '+monthLabel(t80);
   const times=[];for(let i=0;i<2000;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;
     let t=T3;while(eventsAt(t,q,60)<80&&t<120)t+=0.5;times.push(t);}
@@ -1742,6 +1787,21 @@ function updateReadoutTracker(){
   $("rtP90").innerHTML='90th percentile: <b>~m'+p90.toFixed(1)+'</b>';
 }
 function runT80Quick(){updateReadoutTracker();}
+function toggleReadoutPopover(open){
+  const pop=$("rcPopover"),btn=$("rcToggle");if(!pop||!btn)return;
+  const show=open!=null?open:pop.hidden;
+  pop.hidden=!show;btn.setAttribute("aria-expanded",show?"true":"false");
+}
+function initReadoutClock(){
+  const btn=$("rcToggle"),pop=$("rcPopover");
+  if(btn)btn.onclick=e=>{e.stopPropagation();toggleReadoutPopover();};
+  if($("rtRefresh"))$("rtRefresh").onclick=e=>{e.stopPropagation();runT80Quick();};
+  document.addEventListener("click",e=>{
+    if(!pop||pop.hidden)return;
+    if(!e.target.closest("#readoutClock"))toggleReadoutPopover(false);
+  });
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")toggleReadoutPopover(false);});
+}
 function scenarioMetrics(p,binding){
   if(!p)return null;
   const b=binding!=null?binding:!!$("mcFloor").checked;
@@ -2590,7 +2650,7 @@ function initApp(){
   if(activeTab!=="gps")renderTab(activeTab,true);
   if($("btnUsePwin"))$("btnUsePwin").onclick=usePwinInValuation;
   if($("scmpRun"))$("scmpRun").onclick=runScenarioDiff;
-  if($("rtRefresh"))$("rtRefresh").onclick=runT80Quick;
+  initReadoutClock();
   ["ev79","ev80"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",updateEventSensitivity);});
   ["panelScmp","panelEvtSens"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open&&id==="panelEvtSens")updateEventSensitivity();});});
 }
