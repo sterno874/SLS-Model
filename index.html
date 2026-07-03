@@ -137,6 +137,17 @@
   .cw-table td:first-child,.cw-table th:first-child{text-align:left}
   .cw-table .hl{background:#eef3fe}
   .cw-note{font-size:11.5px;color:var(--muted);margin:6px 0 10px}
+  .val-ok{color:#12692f;font-weight:700;font-size:10px}
+  .val-part{color:#8a5a00;font-weight:700;font-size:10px}
+  .val-no{color:#9a3b3b;font-weight:700;font-size:10px}
+  .val-model{color:#5b3ea8;font-weight:700;font-size:10px}
+  .contrib{margin:16px 0;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .contrib h4{margin:0 0 6px;font-size:13px}
+  .contrib ul{margin:6px 0 0;padding-left:18px;font-size:12px;line-height:1.55}
+  .contrib li{margin:4px 0}
+  .valtbl{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0 4px}
+  .valtbl th,.valtbl td{border:1px solid var(--line);padding:4px 7px;text-align:left;vertical-align:top}
+  .valtbl th{background:#f4f6f8;font-weight:600}
   /* header toolbar + toast */
   .hdr-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 4px}
   .hdr-tools button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink)}
@@ -667,6 +678,15 @@
 
     <h3>BAT biology cap (3-yr OS)</h3>
     <p>CW caps BAT long-tail at <b>~15–18% 3-yr OS</b> (Kurosawa CR2 transplant-ineligible ~14%; intermediate-risk ~19%). Anchor-constrained inversion preset <b>Default (~42%)</b> uses 17% cap — matches CW biology-consistent framing. TRUE CR2-onset BAT biologically ~8–11 mo before randomization lift; topline IRM ~12–15 mo is not "world-record BAT." <span class="cite"><a href="https://www.reddit.com/r/sellaslifesciences/comments/1toy09e/feeling_really_great_about_the_biology/" target="_blank" rel="noopener">[CW biology post]</a></span></p>
+    <p class="cw-note"><span class="tag u">Excluded as fact</span> Part 2 posterior <b>P(success) ≈ 99.9%</b> and headline <b>Bayes ~62×</b> vs a no-cure null — 🔬 model outputs only; see <b>Community perspectives (validated)</b> below and the Bayes-factor panel.</p>
+  </div>
+</details>
+
+<!-- COMMUNITY DD — validated synthesis (lazy-loaded) -->
+<details class="cw-panel" id="panelCommunity">
+  <summary style="cursor:pointer;font-size:14px;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px"><span style="color:var(--accent);font-size:11px">▸</span> Community perspectives (validated) <span class="tag v">primary-checked</span></summary>
+  <div id="communityDDHost" style="margin-top:12px">
+    <p class="cw-note">Expand to load contributor synthesis (lazy). Tags: <span class="val-ok">✅ verified</span> · <span class="val-part">⚠️ partial</span> · <span class="val-no">❌ not as fact</span> · <span class="val-model">🔬 model/opinion</span></p>
   </div>
 </details>
 
@@ -721,7 +741,12 @@
       <li><b>SELLAS Nov 14, 2022 update</b> — blinded pooled mOS "approximately two-fold longer than originally anticipated" (design pooled 10.3m → ~20m). <a href="https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Nov 2022)</a></li>
       <li><b>AVALON — Todisco et al. <i>Cancer</i> 2023</b> — Italian real-world Ven+HMA cohort (190 pts incl. relapsed/refractory AML); R/R median OS in the single digits, durable survival gated on transplant. <a href="https://acsjournals.onlinelibrary.wiley.com/doi/10.1002/cncr.34608" target="_blank">Cancer 2023</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/41224500/" target="_blank">2025 transplant-bridge subanalysis</a></li>
       <li><b>Community due-diligence — u/Confident-Web-7118 (REGAL)</b> Cure-fraction mixture model, event deceleration (72 @ m58), IRM / lead-time tables, BAT mOS prediction (~11.4 mo), non-binding interim framing. <a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">Part 1 DD ↗</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1r8rb45/sls_part_2_and_final_deepest_due_diligence_for/" target="_blank" rel="noopener">Part 2 DD ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM / randomization window ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1toy09e/feeling_really_great_about_the_biology/" target="_blank" rel="noopener">Biology update ↗</a> · <a href="https://247wallst.com/investing/2026/03/20/sellas-stock-up-346-in-a-year-as-cancer-vaccine-trial-nears-its-final-8-deaths/" target="_blank" rel="noopener">24/7 Wall St. ↗</a>. Incorporated as <b>Optimistic cure (~85%)</b> forward preset and anchor-constrained inversion mode (<span class="tag a">assumption</span>).</li>
-      <li><b>Independent critique of Confident Web DD</b> (u/uhdisj41) — identifiability ridge, Bayes-factor inflation, BAT-tail biology. <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">Reddit critique ↗</a>. Informed the "Critique (~⅔)" preset.</li>
+      <li><b>Independent critique of Confident Web DD</b> (u/uhdisj41) — identifiability ridge, Bayes-factor inflation, BAT-tail biology. <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">Reddit critique ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tocmlg/dd_questions_for_cw_and_thetamancer/" target="_blank" rel="noopener">DD questions (May 2026) ↗</a>. Informed the "Critique (~⅔)" preset.</li>
+      <li><b>Community DD — u/Thetamancer</b> — event-fit Monte Carlo stress tests (Memorial Day DD). <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnqqp3/memorial_day_dd_200_monte_carlo_simulations/" target="_blank" rel="noopener">Memorial Day DD ↗</a></li>
+      <li><b>Community DD — u/uhguy85</b> — framing of 99.99% model output; enrollment-cadence / median-enrollment derivation. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1t6uts2/9999_regal_trial_success_rate_what_does_this_mean/" target="_blank" rel="noopener">99.99% explainer ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1td14uq/enrollment_cadence_impact_on_bat_mos_calculation/" target="_blank" rel="noopener">Enrollment cadence ↗</a></li>
+      <li><b>Community DD — u/Remarkable-Big-9849</b> — BAT heterogeneity / transplant-bridge debate; biology rebuttals. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1u4hw6o/could_covid_have_improved_outcomes_in_aml_trials/" target="_blank" rel="noopener">COVID frailty hypothesis ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tqb3wa/a_bearish_take/" target="_blank" rel="noopener">Bear-thread biology ↗</a></li>
+      <li><b>Community DD — u/neo2551</b> — scientific-process / community-rigor synthesis; links this webapp. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1ucz8ra/dd_scientific_process_and_nerds_for_the_win/" target="_blank" rel="noopener">Scientific process DD ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnond9/webapp_to_understand_cws_dd/" target="_blank" rel="noopener">Webapp post ↗</a></li>
+      <li><b>Control-arm overperformance meta-analysis</b> — Nalin et al., <i>Cancer</i> 2026 (PMC12882696): 385 phase 3 oncology RCTs; 43% with &gt;10% control-arm overperformance; OS-primary trials higher. Cited by Thetamancer for BAT-cap argument.</li>
       <li><b>Interim &amp; design-power computation (this analysis)</b> — Lan–DeMets O'Brien-Fleming, one-sided α=0.025, looks at t=0.75 &amp; 1.0: interim Z=2.34, final Z=2.01 (HR≤0.638 to win). Schoenfeld check: 90% power at HR 0.636 needs ~205 events, so 80 events at 0.636 ≈ 50% power ⇒ 0.636 is the significance BAR, the ~90%-power alternative is ~0.48.</li>
     </ol>
     <h2 style="margin-top:18px">Statistical methods (primary sources)</h2>
@@ -1721,10 +1746,95 @@ function updatePrintSummary(){
     "Events: "+eventsAt(T1,p).toFixed(0)+"/"+E1+" @ m46 · "+eventsAt(T2,p).toFixed(0)+"/"+E2+" @ m58 · "+eventsAt(T3,p).toFixed(0)+"/"+E3+" @ m63";
 }
 
+// ================= COMMUNITY DD (lazy) =================
+let communityDDLoaded=false;
+function communityDDHtml(){
+  return '<p class="cw-note">Synthesis of high-signal r/sellaslifesciences (and cross-post) DD from named contributors. Every factual bullet below was checked against primary sources (ClinicalTrials.gov, SELLAS IR/GlobeNewswire, SEC, Jamy/Cicic design paper, Kurosawa 2010, peer-reviewed critiques). Reddit posts supply <em>framing and models</em>, not trial outcomes.</p>'+
+  '<p class="cw-note"><span class="val-ok">✅ verified</span> matches primary source · <span class="val-part">⚠️ partial</span> directionally right, numbers differ · <span class="val-no">❌</span> do not state as fact · <span class="val-model">🔬</span> model output / opinion</p>'+
+  '<div class="contrib"><h4>u/Confident-Web-7118 <span class="tag v">integrated above</span></h4>'+
+  '<p><b>Who:</b> Long-form REGAL mixture-cure modeler; large WSB/ValueInvesting DD threads. <span class="cite"><a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank">Part 1</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1r8rb45/sls_part_2_and_final_deepest_due_diligence_for/" target="_blank">Part 2</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank">IRM</a></span></p>'+
+  '<p><b>Core thesis:</b> Blinded event deceleration (72 @ m58, 78 @ m63) fits a GPS cure-fraction better than a homogeneous BAT null; anchor-constrained inversion yields BAT mOS ~11 mo after biology caps.</p>'+
+  '<ul>'+
+  '<li><span class="val-ok">✅</span> Event anchors 60 / 72 / 78 and final trigger 80 — <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank">SELLAS PRs</a></li>'+
+  '<li><span class="val-ok">✅</span> Win bar HR &lt; 0.636 (~BAT 8.0 vs GPS 12.6 mo design) — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">Jamy/Cicic 2025</a></li>'+
+  '<li><span class="val-ok">✅</span> IRM / lead-time inflation logic (Suissa left-truncation) — <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank">Suissa 2008</a></li>'+
+  '<li><span class="val-part">⚠️</span> BAT 3-yr OS cap ~15–18% — Kurosawa CR2 ineligible 14% <span class="val-ok">✅</span>; exact REGAL BAT tail unknown</li>'+
+  '<li><span class="val-model">🔬</span> Bayes ~62× vs no-cure null — <span class="val-no">❌</span> not robust if BAT has long tail (<a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank">uhdisj41</a>)</li>'+
+  '<li><span class="val-model">🔬</span> Part 2 P(success) 99.9%, BAT mOS 11.4 mo — model outputs; not disclosed trial data</li>'+
+  '</ul></div>'+
+  '<div class="contrib"><h4>u/Thetamancer</h4>'+
+  '<p><b>Who:</b> Quantitative Monte Carlo modeler (R); independent stress-test parallel to CW. Best post: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnqqp3/memorial_day_dd_200_monte_carlo_simulations/" target="_blank">Memorial Day DD (200M+ sims)</a> (score ~91).</p>'+
+  '<p><b>Core thesis:</b> Reverse-fit synthetic REGAL trials to public event milestones; under wide BAT stress (mOS 8–25 mo, Weibull k, up to 30% BAT durable tail), scenarios matching 60/72/78 events usually yield HR &lt; 0.636 at the 80th death. Biological + procedural caps make high-BAT failure scenarios implausible.</p>'+
+  '<ul>'+
+  '<li><span class="val-ok">✅</span> N≈126, enrollment milestones, 13.5 mo median follow-up @ interim — <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia/default.aspx" target="_blank">Jan 2025 IR</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">design</a></li>'+
+  '<li><span class="val-ok">✅</span> 80% GPS-specific T-cell response in blinded random sample — <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia/default.aspx" target="_blank">Jan 2025 IR</a> (immunogenicity ≠ OS — see uhdisj41)</li>'+
+  '<li><span class="val-model">🔬</span> Three-subgroup GPS (non-responder / responder / durable tail up to 70%) — structural assumption; Phase 2 CR2 n=10 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">Brayer via design paper</a>) shows ~20–30% durable, not 70%</li>'+
+  '<li><span class="val-model">🔬</span> Back-loaded enrollment most plausible; uniform enrollment stress-test — <span class="val-part">⚠️</span> company confirms back-loaded completion (<a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank">Apr 2024 PR</a>)</li>'+
+  '<li><span class="val-part">⚠️</span> “No oncology trial had control overperformance &gt;~90%” — Nalin 2026 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12882696/" target="_blank">PMC12882696</a>) reports median overperformance 35% (IQR 20–48%) among overperformers, not a published 90% max; REGAL needing ~140% vs 8 mo protocol is 🔬 arithmetic, not a direct trial precedent</li>'+
+  '<li><span class="val-model">🔬</span> Durable-subgroup overlap / BAT tail cap — REGAL stratifies long-CR1, MRD, cyto (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">NCT</a>); prognostic factors correlate — treating them as independent stacks overstates BAT. Debated with bears in <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tqb3wa/a_bearish_take/" target="_blank">bear thread</a></li>'+
+  '<li><span class="val-model">🔬</span> Model 4 (drop interim HR &gt;0.5 floor): IDMC may continue despite low interim HR — <span class="val-ok">✅</span> IDMC recommended continue without modification (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank">PR</a>); OBF early-stop HR≲0.55 is <span class="val-part">⚠️ derived</span>, not published arm-level HR</li>'+
+  '</ul></div>'+
+  '<div class="contrib"><h4>u/uhguy85</h4>'+
+  '<p><b>Who:</b> Community explainer focused on interpreting ML outputs and enrollment timing. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1t6uts2/9999_regal_trial_success_rate_what_does_this_mean/" target="_blank">99.99% explainer</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1td14uq/enrollment_cadence_impact_on_bat_mos_calculation/" target="_blank">Enrollment cadence</a></p>'+
+  '<p><b>Core thesis:</b> “99.99%” is the fraction of <em>simulated</em> parameter draws that reproduce public milestones <em>and</em> HR &lt; 0.636 — not stock certainty or fraud-free guarantee.</p>'+
+  '<ul>'+
+  '<li><span class="val-ok">✅</span> HR &lt; 0.636 is the pre-specified win threshold — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">design</a></li>'+
+  '<li><span class="val-ok">✅</span> Jan 2025 PR: &lt;50% deceased ~10 mo post-enrollment; median follow-up 13.5 mo — <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia/default.aspx" target="_blank">IR</a></li>'+
+  '<li><span class="val-part">⚠️</span> Median enrollment ≈ Nov 2023 from follow-up arithmetic — reasonable derivation, not company-reported</li>'+
+  '<li><span class="val-model">🔬</span> Late enrollment ⇒ BAT mOS 9–11 mo, higher implied GPS cure — model opinion; conflicts with slower event pace if BAT were <em>too</em> short</li>'+
+  '<li><span class="val-model">🔬</span> Dissent on interim HR floor: trial may continue even if unblinded interim HR is very low (non-binding efficacy stop) — aligns with Thetamancer Model 4; arm-level interim HR <span class="val-no">❌</span> unknown</li>'+
+  '</ul></div>'+
+  '<div class="contrib"><h4>u/Remarkable-Big-9849</h4>'+
+  '<p><b>Who:</b> Biology-focused debater (PhD-level citations in threads). <a href="https://www.reddit.com/r/sellaslifesciences/comments/1u4hw6o/could_covid_have_improved_outcomes_in_aml_trials/" target="_blank">COVID frailty post</a> · top comments on <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tqb3wa/a_bearish_take/" target="_blank">bear thread</a>.</p>'+
+  '<p><b>Core thesis:</b> Statistical fits must respect BAT biology — ven+HMA BAT, transplant-bridge tails, and academic-center selection can lift pooled survival without GPS efficacy; cure fractions &gt;~65% are imprudent vs interim death counts.</p>'+
+  '<ul>'+
+  '<li><span class="val-ok">✅</span> BAT includes venetoclax / HMA / LDAC per investigator choice — <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">NCT</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">design</a></li>'+
+  '<li><span class="val-ok">✅</span> OS ITT: allo-transplant after randomization <em>not</em> censored — <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">NCT</a> (transplant-ineligible at entry ≠ no downstream transplant)</li>'+
+  '<li><span class="val-part">⚠️</span> “Up to ~⅓ of BAT bridging to HSCT with 30–70% 3-yr OS” — mechanistic argument; fraction <span class="val-no">❌</span> not disclosed blinded</li>'+
+  '<li><span class="val-no">❌</span> COVID selectively removed frail CR2 patients — explicit hypothesis only; no epidemiologic proof in post</li>'+
+  '<li><span class="val-model">🔬</span> GPS cure &gt;65% inconsistent with ~30 BAT deaths @ interim — arithmetic plausibility check, not primary data</li>'+
+  '</ul></div>'+
+  '<div class="contrib"><h4>u/neo2551</h4>'+
+  '<p><b>Who:</b> Quant/data-science background; community-process meta-DD; built early webapp precursor. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1ucz8ra/dd_scientific_process_and_nerds_for_the_win/" target="_blank">Scientific process</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnond9/webapp_to_understand_cws_dd/" target="_blank">Webapp post</a></p>'+
+  '<p><b>Core thesis:</b> Bull case strengthened by falsifiable community debate; trial success tied to BAT 3-yr OS staying below ~25% (otherwise event math still allows win but with thinner margin).</p>'+
+  '<ul>'+
+  '<li><span class="val-model">🔬</span> “&gt;90% success if BAT 3-yr OS &lt;25%” — community model synthesis, not SELLAS disclosure</li>'+
+  '<li><span class="val-ok">✅</span> Kurosawa CR2 ineligible 3-yr OS ~14% anchor — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3011608/" target="_blank">Haematologica 2010</a></li>'+
+  '<li><span class="val-model">🔬</span> Community rigor as investment factor — opinion; useful for process, not clinical proof</li>'+
+  '</ul></div>'+
+  '<div class="contrib"><h4>Cross-check: u/uhdisj41 (critique)</h4>'+
+  '<p><a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank">Original critique</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tocmlg/dd_questions_for_cw_and_thetamancer/" target="_blank">Questions for CW &amp; Thetamancer</a></p>'+
+  '<ul>'+
+  '<li><span class="val-ok">✅</span> Blinded pooled counts sit on GPS-cure ↔ BAT-heterogeneity ridge — identifiability acknowledged in-app</li>'+
+  '<li><span class="val-ok">✅</span> Brayer CR2 GPS mOS 16.3 mo (n=10) vs 5.4 mo control — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">design paper Table</a></li>'+
+  '<li><span class="val-part">⚠️</span> Immune response ≠ OS benefit — Maslak CR1 immune–survival correlation p≈0.08–0.11 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">design cites Maslak 2018</a>); 80% REGAL immunogenicity still <span class="val-no">❌</span> does not cap durable GPS fraction</li>'+
+  '<li><span class="val-model">🔬</span> Cap durable GPS at 25–30% (Phase 2-consistent) before claiming success — stress test implemented via Critique preset / biology caps</li>'+
+  '</ul></div>'+
+  '<table class="valtbl"><thead><tr><th>Claim (selected)</th><th>Primary source</th><th>Status</th></tr></thead><tbody>'+
+  '<tr><td>80 events trigger final OS analysis</td><td><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">Jamy/Cicic 2025</a></td><td><span class="val-ok">✅</span></td></tr>'+
+  '<tr><td>78 events @ 11 May 2026 (blinded)</td><td><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank">Q1 2026 PR</a></td><td><span class="val-ok">✅</span></td></tr>'+
+  '<tr><td>IDMC continue w/o modification @ 60 events</td><td><a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank">Jan 2025 PR</a></td><td><span class="val-ok">✅</span></td></tr>'+
+  '<tr><td>80% GPS immune response (sample)</td><td><a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia/default.aspx" target="_blank">Jan 2025 IR</a></td><td><span class="val-ok">✅</span></td></tr>'+
+  '<tr><td>BAT design mOS 8.0 mo</td><td><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">Design paper</a></td><td><span class="val-ok">✅</span></td></tr>'+
+  '<tr><td>CW / TM “99.99%” or “99.9%” success</td><td>Community MC models</td><td><span class="val-model">🔬</span> not trial data</td></tr>'+
+  '<tr><td>BAT mOS 19+ required for failure (TM back-loaded)</td><td>Thetamancer MC</td><td><span class="val-model">🔬</span></td></tr>'+
+  '<tr><td>No trial ever &gt;90% control overperformance</td><td><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12882696/" target="_blank">Nalin 2026</a></td><td><span class="val-no">❌</span> as stated</td></tr>'+
+  '<tr><td>~⅓ BAT transplant bridge</td><td>Remarkable-Big estimate</td><td><span class="val-no">❌</span> unverified</td></tr>'+
+  '<tr><td>COVID frailty selection in CR2</td><td>Hypothesis only</td><td><span class="val-no">❌</span></td></tr>'+
+  '</tbody></table>'+
+  '<p class="cw-note" style="margin-top:10px"><b>Excluded from factual display:</b> CW Bayes 62× and P(success) 99.9% without strawman label; literal “99.99% stock win”; Thetamancer 90% max overperformance claim; Remarkable-Big HSCT bridge fraction; COVID frailty mechanism — all retained only as tagged 🔬/❌ above.</p>';
+}
+function loadCommunityDD(){
+  if(communityDDLoaded)return;
+  communityDDLoaded=true;
+  const host=$("communityDDHost");
+  if(host)host.innerHTML=communityDDHtml();
+}
+
 // ================= MOBILE COLLAPSE (#9) =================
 function initMobileCollapse(){
   if(window.innerWidth>768)return;
-  ["howworks","panelTornado","panelBayes","panelIRM","panelT80","panelPresetCmp","panelBacktest","panelCW"].forEach(id=>{
+  ["howworks","panelTornado","panelBayes","panelIRM","panelT80","panelPresetCmp","panelBacktest","panelCW","panelCommunity"].forEach(id=>{
     const el=$(id);if(el&&el.tagName==="DETAILS")el.open=false;
   });
 }
@@ -1748,7 +1858,7 @@ function initApp(){
   tabsRendered.gps=true;
   if(activeTab!=="gps")renderTab(activeTab,true);
 }
-["panelIRM","panelBayes","panelBacktest"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open)refreshOpenPanels();});});
+["panelIRM","panelBayes","panelBacktest","panelCommunity"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open){if(id==="panelCommunity")loadCommunityDD();else refreshOpenPanels();}});});
 requestAnimationFrame(()=>{
   setTimeout(()=>{
     try{initApp();}finally{hideLoading();}
