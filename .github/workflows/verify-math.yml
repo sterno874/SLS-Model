@@ -1,4 +1,4 @@
-name: Verify math
+name: Verify
 
 on:
   push:
@@ -17,4 +17,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: node verify_math.js
+      - run: npm test

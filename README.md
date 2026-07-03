@@ -3,7 +3,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 &nbsp;**Live:** https://sls-model.vercel.app
 
-A single-file, primary-sourced, open-source interactive model of SELLAS's pipeline and valuation. Everything is transparent and hackable: **every adjustable input is an undisclosed assumption**, every verified number is locked with its source, and the exact math behind each tab is one click away.
+A primary-sourced, open-source interactive model of SELLAS's pipeline and valuation — split into HTML, CSS, and ES-module JavaScript for maintainability. Everything is transparent and hackable: **every adjustable input is an undisclosed assumption**, every verified number is locked with its source, and the exact math behind each tab is one click away.
 
 > ⚠️ **Educational / analytical only — not investment, medical, legal, or financial advice.** The trial is blinded; nothing here predicts the outcome. It shows the *space of possibilities* and how sensitive it is to assumptions.
 
@@ -45,16 +45,42 @@ Confirmed PR milestones are **locked** where forward projection applies:
 - **Consistency scoring** (`consistent`, `eventErr`, inverse solver, Poisson likelihood, preset e46/e58/e63 columns): full trajectory from t=0 via `eventsAt` — intentionally tests whether parameters reproduce announced counts; UI labels these as **model-implied** vs **confirmed PR** anchors.
 - **Milestone backtest**: truncated Poisson likelihood through each historical `dataThrough` month — does not re-fit with hindsight.
 
-Regression checks for anchoring live in `verify_math.js` (`T80`, `t80Analysis`, `Tfor`, `eventsAtAnchored`).
+Regression checks for anchoring live in `tests/math.test.js` (`T80`, `t80Analysis`, `Tfor`, `eventsAtAnchored`).
 
 ### Community DD validation (REGAL tab)
 
 A **Community perspectives (validated)** panel (lazy-loaded on expand) synthesizes high-signal posts from **u/Thetamancer**, **u/uhguy85**, **u/Remarkable-Big-9849**, **u/neo2551**, and cross-checks **u/uhdisj41** against primary sources (ClinicalTrials.gov, SELLAS IR/GlobeNewswire, SEC, Jamy/Cicic design paper, Kurosawa 2010, Nalin et al. 2026 control-arm meta-analysis). Each claim is tagged ✅ verified / ⚠️ partial / ❌ not as fact / 🔬 model output. Reddit URLs are linked; model-only numbers (e.g. 99.99% MC success, Bayes 62× strawman, unverified BAT HSCT fractions) are excluded from factual display or explicitly caveated.
 
 ## Run locally
-Just open `index.html` in any modern browser. No build step, no dependencies, no server-side storage. Vercel Web Analytics loads only on `*.vercel.app` deployments (not local file open).
+Serve the repo root as static files (ES modules require HTTP — `file://` will not load `js/main.js`):
 
-Math regression: `node verify_math.js` (also runs in GitHub Actions on push/PR to `main` — see `.github/workflows/verify-math.yml`).
+```bash
+python3 -m http.server 8080
+# open http://localhost:8080/
+```
+
+Or open via any static host. No build step, no npm dependencies, no server-side storage. Vercel Web Analytics loads only on `*.vercel.app` deployments (not local file open).
+
+Math regression: `npm test` (or `node verify_math.js`) — loads `js/math/survival.js` via the test suite in `tests/`. Also runs in GitHub Actions on push/PR to `main` (see `.github/workflows/verify-math.yml`).
+
+## File structure
+
+```
+SLS-Model/
+├── index.html          # HTML shell, meta/OG tags, analytics snippet, AGPL footer
+├── css/
+│   └── main.css        # All styles (~340 lines)
+├── js/
+│   ├── main.js         # App init, tabs, REGAL/SLS-009/valuation/explain UI, MC, share URL
+│   └── math/
+│       └── survival.js # Pure survival/HR/event math (CI-tested via verify_math.js)
+├── tests/              # Node test runner (math, presets, share URL, valuation)
+├── verify_math.js      # Back-compat alias → npm test
+├── package.json        # `"type": "module"`; npm test only (no build)
+├── vercel.json         # Static deploy config
+└── tools/
+    └── finalize_split.cjs  # Re-split from monolithic index.html (maintenance)
+```
 
 ## Shareable scenario links
 Every slider, tab, preset, and mode can be encoded in the URL hash — **fully client-side, zero server storage**:
