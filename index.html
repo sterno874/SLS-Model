@@ -137,12 +137,81 @@
   .cw-table td:first-child,.cw-table th:first-child{text-align:left}
   .cw-table .hl{background:#eef3fe}
   .cw-note{font-size:11.5px;color:var(--muted);margin:6px 0 10px}
+  /* header toolbar + toast */
+  .hdr-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 4px}
+  .hdr-tools button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .hdr-tools button:hover{border-color:var(--accent);color:var(--accent)}
+  .hdr-tools button.primary{border-color:var(--accent);background:#eef3fe;color:var(--accent)}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#141b26;color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:transform .25s,opacity .25s;z-index:9999;pointer-events:none}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+  /* feature panels */
+  .feat-panel{margin:0 18px 14px;padding:14px 18px;border:1px solid var(--line);border-radius:12px;background:#fbfcfe;font-size:12.5px;line-height:1.55}
+  .feat-panel>summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px}
+  .feat-panel>summary::-webkit-details-marker{display:none}
+  .feat-panel>summary::before{content:"▸";color:var(--accent);font-size:11px;transition:transform .15s}
+  .feat-panel[open]>summary::before{transform:rotate(90deg)}
+  .tornado-row{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:11.5px}
+  .tornado-lbl{min-width:110px;text-align:right;color:var(--muted);font-weight:600}
+  .tornado-bar{flex:1;height:14px;background:#eef0f3;border-radius:3px;position:relative;overflow:hidden}
+  .tornado-bar .neg{position:absolute;right:50%;height:100%;background:var(--bad);opacity:.65;border-radius:3px 0 0 3px}
+  .tornado-bar .pos{position:absolute;left:50%;height:100%;background:var(--good);opacity:.65;border-radius:0 3px 3px 0}
+  .tornado-val{min-width:52px;font-variant-numeric:tabular-nums;font-weight:700}
+  .bf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+  @media(max-width:640px){.bf-grid{grid-template-columns:1fr}}
+  .bf-box{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .bf-box h4{margin:0 0 6px;font-size:12px}
+  .irm-inp{width:56px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums}
+  .irm-delta{font-size:10px;color:var(--muted)}
+  .irm-delta.pos{color:var(--good)}.irm-delta.neg{color:var(--bad)}
+  .preset-cmp{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0;font-variant-numeric:tabular-nums}
+  .preset-cmp th,.preset-cmp td{border:1px solid var(--line);padding:4px 6px;text-align:right}
+  .preset-cmp th{text-align:left;background:#f4f6f8;font-weight:600;position:sticky;top:0}
+  .preset-cmp td:first-child,.preset-cmp th:first-child{text-align:left}
+  .preset-cmp .win{color:var(--good);font-weight:700}
+  .preset-cmp .lose{color:var(--bad);font-weight:700}
+  .milestone-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+  @media(max-width:720px){.milestone-cards{grid-template-columns:1fr}}
+  .mcard{padding:12px;border:1px solid var(--line);border-radius:10px;background:#fff}
+  .mcard .mt{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .mcard .mv{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;margin:4px 0}
+  .t80-hist{display:flex;align-items:flex-end;gap:2px;height:100px;border-bottom:1px solid var(--line);margin:8px 0}
+  .t80-hist div{flex:1;background:var(--accent);opacity:.7;border-radius:2px 2px 0 0;min-height:2px}
+  /* sticky header mobile */
+  @media(max-width:768px){
+    header{position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,27,38,.08);padding-bottom:8px}
+    .howworks,.feat-panel,.cw-panel{/* collapsed by default via JS */ }
+    .howworks:not(.mob-collapsed),.feat-panel:not(.mob-collapsed),.cw-panel:not(.mob-collapsed){}
+    .howworks.mob-collapsed,.feat-panel.mob-collapsed,.cw-panel.mob-collapsed{/* closed */ }
+    .tabnav{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+    .tabbtn{flex-shrink:0;font-size:12.5px;padding:8px 12px}
+    .hdr-tools{width:100%}
+  }
+  @media print{
+    header,.tabnav,.hdr-tools,.card input,.card input[type=range],.presets,.modenav,.mc-toolbar,.pgrp,.pgrp-hint,.bandkey,.chk,.ctrl-group,.tabbtn:not(.active),footer button,.methodbtn,details>summary,.feat-panel>summary,.cw-panel>summary{display:none!important}
+    body{background:#fff;font-size:11pt}
+    .tabpage[hidden]{display:block!important}
+    #tab-sls009,#tab-value,#tab-explain{display:none!important}
+    .wrap{grid-template-columns:1fr}
+    .card{break-inside:avoid;box-shadow:none;border:1px solid #ccc}
+    .howworks,.feat-panel,.cw-panel,details{border:none}
+    .howworks-body,.feat-panel>div,.cw-panel>div{display:block!important}
+    .print-only{display:block!important}
+    .no-print{display:none!important}
+    canvas{max-height:280px}
+  }
+  .print-only{display:none}
+  .print-summary{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;font-size:12px}
 </style>
 </head>
 <body>
 <header>
   <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
   <div class="sub" style="margin-bottom:2px">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
+  <div class="hdr-tools no-print">
+    <button type="button" class="primary" id="btnShare" title="Copy URL with all slider state encoded in the hash — zero server storage">🔗 Copy share link</button>
+    <button type="button" id="btnPrint" title="Print report with charts and scenario summary">🖨 Print report</button>
+    <label style="font-size:12px;display:flex;gap:5px;align-items:center;margin:0"><input type="checkbox" id="showUncertainty"/> Show uncertainty bands</label>
+  </div>
   <div class="tabnav">
     <button class="tabbtn active" data-tab="gps">1 · REGAL / GPS (Phase 3)</button>
     <button class="tabbtn" data-tab="sls009">2 · SLS-009 (Phase 2)</button>
@@ -427,8 +496,92 @@
   </div>
 </div>
 
+<!-- SENSITIVITY TORNADO -->
+<details class="feat-panel" id="panelTornado">
+  <summary>Sensitivity tornado — which inputs move P(win) most? <span class="tag m">model</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">One-at-a-time perturbation of key parameters (±20% or ±1σ band) from the current scenario. Bars show ΔP(win) in percentage points — green = higher win probability when perturbed in the favorable direction. Uses a fast approximate MC (5k draws per perturbation). <span class="tag a">assumption</span></p>
+    <button class="p" id="tornadoRun" style="font-weight:700;padding:6px 12px;margin-bottom:8px">▶ Compute tornado</button>
+    <span id="tornadoStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+    <div id="tornadoChart"></div>
+  </div>
+</details>
+
+<!-- BAYES FACTOR MODULE -->
+<details class="feat-panel" id="panelBayes">
+  <summary>Bayes factor — strawman null vs heterogeneous BAT null <span class="tag m">model</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">Compares two competing null hypotheses against observed pooled event counts. CW's ~62× Bayes factor (<a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">Part 1 DD</a>) uses a <b>strawman</b> (everyone dies fast, no tail). Under a <b>heterogeneous BAT null</b> with a long tail (<a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">uhdisj41 critique</a>), marginal BF collapses toward ~1× because blinded pooled counts cannot discriminate the shapes. Approximate Poisson likelihood ratio — honest caveats apply.</p>
+    <div class="bf-grid">
+      <div class="bf-box">
+        <h4>Strawman null (CW implicit)</h4>
+        <div style="font-size:12px;color:var(--muted)">Exponential BAT (mOS ~8m), no GPS cure, no long tail</div>
+      </div>
+      <div class="bf-box">
+        <h4>Heterogeneous BAT null (critique)</h4>
+        <div style="font-size:12px;color:var(--muted)">BAT Weibull + 18% long-survivor tail, GPS weak (5% cure)</div>
+      </div>
+    </div>
+    <div class="ctrl" style="margin:8px 0"><label>Observed events @ m58 <span id="bfE58">72</span></label><input type="range" id="bf_e58" min="65" max="78" step="1" value="72"/></div>
+    <div class="ctrl"><label>GPS cure fraction (alternative hypothesis) <span id="bfCure">22%</span></label><input type="range" id="bf_cure" min="5" max="60" step="1" value="22"/></div>
+    <div id="bfResult" style="margin-top:10px;padding:12px;border-radius:10px;background:#fafbfc;border:1px solid var(--line);font-size:13px;font-weight:600"></div>
+  </div>
+</details>
+
+<!-- INTERACTIVE IRM TABLE -->
+<details class="feat-panel" id="panelIRM">
+  <summary>Interactive IRM table — REGAL-report ↔ TRUE CR2 conversion <span class="tag a">assumption</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">Adjust the lead-time / randomization-window lift to convert between <b>IRM</b> (from randomization, what REGAL reports) and <b>TRUE CR2-onset</b> medians. Uses current model survival curves for implied HR and alive counts. CW reference values shown as anchors. Source: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM post</a> · <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank" rel="noopener">Suissa 2008</a></p>
+    <div class="ctrl"><label>Avg lead time (CR2 → randomization) <span id="irmLead">3.0 m</span></label><input type="range" id="irm_lead" min="1" max="5" step="0.5" value="3"/></div>
+    <table class="cw-table" id="irmTable">
+      <thead><tr><th>Parameter</th><th>Model (current)</th><th>CW reference</th><th>Δ from CW</th></tr></thead>
+      <tbody id="irmBody"></tbody>
+    </table>
+  </div>
+</details>
+
+<!-- TIME TO 80TH EVENT -->
+<details class="feat-panel" id="panelT80">
+  <summary>Time-to-80th-event simulator <span class="tag m">model</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">Monte Carlo simulation of months until the 80th death, given current survival curves and enrollment model. Anchors: <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72 @ m58</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 @ m63</a> (still &lt;80).</p>
+    <button class="p" id="t80Run" style="font-weight:700;padding:6px 12px;margin-bottom:8px">▶ Simulate 10k paths</button>
+    <span id="t80Status" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+    <div id="t80Stats" style="font-size:13px;font-weight:600;margin:8px 0"></div>
+    <div id="t80Hist" class="t80-hist"></div>
+  </div>
+</details>
+
+<!-- PRESET COMPARISON -->
+<details class="feat-panel" id="panelPresetCmp">
+  <summary>Preset comparison dashboard <span class="tag m">model</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">All REGAL forward and inverse presets computed side-by-side — no clicking through one by one. P(win) uses a fast approximate MC (3k draws). May take a few seconds.</p>
+    <button class="p" id="presetCmpRun" style="font-weight:700;padding:6px 12px;margin-bottom:8px">▶ Compute all presets</button>
+    <span id="presetCmpStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+    <div style="overflow-x:auto;max-height:420px;overflow-y:auto">
+      <table class="preset-cmp" id="presetCmpTable">
+        <thead><tr><th>Preset</th><th>Mode</th><th>HR</th><th>e46</th><th>e58</th><th>e63</th><th>P(win)</th><th>BAT 3yr</th><th>GPS cure</th></tr></thead>
+        <tbody id="presetCmpBody"><tr><td colspan="9" style="text-align:center;color:var(--muted)">Click Compute all presets</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</details>
+
+<!-- MILESTONE BACKTEST -->
+<details class="feat-panel" id="panelBacktest">
+  <summary>Milestone backtest — what would P(win) have been then? <span class="tag m">model</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">At each historical milestone, shows what P(win) and HR would have been using only the data available then — but with the <em>current</em> model structure applied to truncated information. Honest caveat: this is retrospective modeling, not what was knowable in real time.</p>
+    <div class="milestone-cards" id="backtestCards"></div>
+  </div>
+</details>
+
+<div class="print-only print-summary" id="printSummary"></div>
+
 <!-- COMMUNITY DD — IRM / LEAD-TIME (u/Confident-Web-7118) -->
-<details class="cw-panel">
+<details class="cw-panel" id="panelCW">
   <summary style="cursor:pointer;font-size:14px;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px"><span style="color:var(--accent);font-size:11px">▸</span> Community DD — u/Confident-Web-7118 IRM / lead-time analysis <span class="tag a">assumption</span></summary>
   <div style="margin-top:12px">
     <p class="cw-note"><span class="tag m">Replication note</span> Tables below quote <b>u/Confident-Web-7118</b>'s published modeling outputs (not our solver). This app's anchor-constrained inversion uses the same event anchors and mixture-cure framing but different parameterization — implied medians/HR may differ slightly; use the sliders/MC to compare. Primary sources: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM / randomization window ↗</a> · <a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">Part 1 DD ↗</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1r8rb45/sls_part_2_and_final_deepest_due_diligence_for/" target="_blank" rel="noopener">Part 2 DD ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1toy09e/feeling_really_great_about_the_biology/" target="_blank" rel="noopener">Biology/stats update ↗</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">Critique (uhdisj41) ↗</a></p>
@@ -809,6 +962,8 @@
   <div class="facts"><div class="card"><div id="explbody" style="font-size:14px;line-height:1.65"></div></div></div>
 </div><!-- /tab-explain -->
 
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
 <footer style="padding:16px 22px 40px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);margin-top:20px">
   SELLAS ($SLS) Interactive Model · Copyright © 2026 sterno874 and contributors · Free software under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU AGPL-3.0-or-later</a>. This program comes with ABSOLUTELY NO WARRANTY. You may redistribute and modify it under the AGPL; if you run a modified version on a server you must offer users its source. Source: <a href="https://github.com/sterno874/SLS-Model" target="_blank">github.com/sterno874/SLS-Model</a>. &nbsp;Educational/analytical only — <b>not investment, legal, medical, or financial advice.</b> Community DD sources cited in References (e.g. u/Confident-Web-7118).
 </footer>
@@ -1021,6 +1176,18 @@ function renderBands(p){
 }
 
 // ---------- chart ----------
+let showUncertainty=false;
+function mcEnvelope(p,nDraws){
+  nDraws=nDraws||400;const tmax=60,pts=[];const ctr=Object.assign({},p);
+  for(let t=0;t<=tmax;t+=1)pts.push({t,bat:[],gps:[],pool:[]});
+  for(let i=0;i<nDraws;i++){
+    const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut};
+    for(const f of MCFIELDS) q[f]=clampf(f,ctr[f]+SD[f]*rn()*0.5);
+    for(let j=0;j<pts.length;j++){const t=pts[j].t;pts[j].bat.push(sBAT(t,q));pts[j].gps.push(sGPS(t,q));pts[j].pool.push(poolS(t,q));}
+  }
+  function qtl(a,q){const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(q*s.length))];}
+  return pts.map(pt=>({t:pt.t,bLo:qtl(pt.bat,.05),bHi:qtl(pt.bat,.95),gLo:qtl(pt.gps,.05),gHi:qtl(pt.gps,.95),pLo:qtl(pt.pool,.05),pHi:qtl(pt.pool,.95)}));
+}
 function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function draw(p){
   const cv=$("chart"),dpr=window.devicePixelRatio||1,W=920,H=430;
@@ -1037,15 +1204,24 @@ function draw(p){
   ctx.beginPath();ctx.moveTo(L,Y(0.5));ctx.lineTo(W-R,Y(0.5));ctx.stroke();
   ctx.beginPath();ctx.moveTo(X(36),Tp);ctx.lineTo(X(36),H-B);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle="#9aa1ac";ctx.textAlign="left";ctx.fillText("36 mo",X(36)+4,Tp+10);
+  if(showUncertainty){
+    const env=mcEnvelope(p,300);
+    function fillBand(loFn,hiFn,color){ctx.fillStyle=color;ctx.beginPath();let started=false;
+      for(let i=0;i<env.length;i++){const x=X(env[i].t),y=Y(hiFn(env[i]));if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);}
+      for(let i=env.length-1;i>=0;i--){ctx.lineTo(X(env[i].t),Y(loFn(env[i])));}
+      ctx.closePath();ctx.fill();}
+    fillBand(e=>e.gLo,e=>e.gHi,"rgba(47,111,237,.12)");
+    fillBand(e=>e.bLo,e=>e.bHi,"rgba(214,69,69,.12)");
+    fillBand(e=>e.pLo,e=>e.pHi,"rgba(138,143,153,.08)");
+  }
   function curve(fn,color,w,dash){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.setLineDash(dash||[]);ctx.beginPath();for(let t=0;t<=tmax;t+=0.5){const x=X(t),y=Y(fn(t,p));t===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);}
   curve(poolS,"rgba(138,143,153,.75)",2,[6,4]);
   curve(sBAT,getCSS('--bat'),2.6);
   curve(sGPS,getCSS('--gps'),2.6);
-  // legend
   ctx.font="12px sans-serif";ctx.textAlign="left";
   const lx=X(38),ly=Tp+8;
-  ctx.fillStyle=getCSS('--gps');ctx.fillRect(lx,ly,14,3);ctx.fillStyle="#333";ctx.fillText("GPS",lx+18,ly+4);
-  ctx.fillStyle=getCSS('--bat');ctx.fillRect(lx,ly+16,14,3);ctx.fillStyle="#333";ctx.fillText("BAT",lx+18,ly+20);
+  ctx.fillStyle=getCSS('--gps');ctx.fillRect(lx,ly,14,3);ctx.fillStyle="#333";ctx.fillText("GPS"+(showUncertainty?" ±5–95%":""),lx+18,ly+4);
+  ctx.fillStyle=getCSS('--bat');ctx.fillRect(lx,ly+16,14,3);ctx.fillStyle="#333";ctx.fillText("BAT"+(showUncertainty?" ±5–95%":""),lx+18,ly+20);
   ctx.fillStyle="rgba(138,143,153,.75)";ctx.fillRect(lx,ly+32,14,3);ctx.fillStyle="#333";ctx.fillText("Pooled",lx+18,ly+36);
 }
 
@@ -1207,7 +1383,8 @@ function renderMC(acc,tried){
     h+='<div title="HR '+b.toFixed(2)+'–'+(b+0.05).toFixed(2)+': '+pc.toFixed(1)+'%" style="flex:1;height:'+(pc/maxp*100).toFixed(1)+'%;background:'+col+';border-radius:2px 2px 0 0;min-height:'+(pc>0?2:0)+'px"></div>';});
   h+='</div><div style="display:flex;gap:2px;font-size:9px;color:var(--muted);margin-top:2px">';
   bins.forEach(function(bp){h+='<div style="flex:1;text-align:center">'+((Math.round(bp[0]*100))%10===0?bp[0].toFixed(1):"")+'</div>';});
-  h+='</div><div style="font-size:11px;color:var(--muted);margin-top:5px">Green = HR below the 0.636 win threshold · red = miss. X-axis = final HR at 80 deaths. Bar height = % of fitting draws.</div>';
+  h+='</div><div style="font-size:11px;color:var(--muted);margin-top:5px">Green = HR below the 0.636 win threshold · red = miss. X-axis = final HR at 80 deaths. Bar height = % of fitting draws. <b>Markers:</b> 5th '+lo.toFixed(2)+' · median '+med.toFixed(2)+' · 95th '+hi.toFixed(2)+'</div>';
+  h+='<div style="position:relative;height:0;margin-top:-132px;pointer-events:none"><div style="position:absolute;left:'+(lo-0.30)/0.75*100+'%;top:0;width:2px;height:130px;background:#111;opacity:.4" title="5th pct"></div><div style="position:absolute;left:'+(med-0.30)/0.75*100+'%;top:0;width:2px;height:130px;background:#111;opacity:.7" title="median"></div><div style="position:absolute;left:'+(hi-0.30)/0.75*100+'%;top:0;width:2px;height:130px;background:#111;opacity:.4" title="95th pct"></div></div>';
   $("mcHist").innerHTML=h;
 }
 
@@ -1254,16 +1431,246 @@ document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInve
 ["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",update)});
 $("mcRun").addEventListener("click",function(){$("mcRun").disabled=true;$("mcStatus").textContent="running…";setTimeout(function(){try{runMC();}finally{$("mcRun").disabled=false;}},30);});
 $("mcNeutral").addEventListener("click",function(){applyRegalPreset("best");$("mcStatus").textContent="Best Available Guess priors set — click Run";});
-buildBands();refreshRegalPresetHighlight();update();
+
+// ================= SHAREABLE URL STATE (#1) =================
+let activeTab="gps",restoringState=false;
+function b64urlEncode(str){return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+function b64urlDecode(str){str=str.replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";return decodeURIComponent(escape(atob(str)));}
+function captureState(){
+  return{v:1,tab:activeTab,regalMode,activeRegalPreset,activeInvPreset,activeSlsPreset,activeValPreset,
+    gps:{bat:+$("bat").value,batc:+$("batc").value,batk:+$("batk").value,gpsc:+$("gpsc").value,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value,cens:+$("cens").value,mid:+$("mid").value,k:+$("k").value,batcap:+$("batcap").value,autofit:$("autofit").checked,fhTest:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value,mcFloor:$("mcFloor").checked,cutoff:+$("cutoff").value},
+    sls:{sls_os:+$("sls_os").value,sls_bench:+$("sls_bench").value,sls_orr:+$("sls_orr").value,fl_base:+$("fl_base").value,fl_sls:+$("fl_sls").value,tp_base:+$("tp_base").value,tp_sls:+$("tp_sls").value,sls_flev:+$("sls_flev").value},
+    val:{v_cr2:+$("v_cr2").value,v_cr1:+$("v_cr1").value,v_gpen:+$("v_gpen").value,v_gprice:+$("v_gprice").value,v_gyears:+$("v_gyears").value,v_flpool:+$("v_flpool").value,v_rrpool:+$("v_rrpool").value,v_spen:+$("v_spen").value,v_sprice:+$("v_sprice").value,v_syears:+$("v_syears").value,v_platform:+$("v_platform").value,v_mult:+$("v_mult").value,v_shares:+$("v_shares").value,v_riskadj:$("v_riskadj").checked,v_pgps:+$("v_pgps").value,v_psls:+$("v_psls").value},
+    ui:{showUncertainty,irm_lead:+$("irm_lead").value,bf_e58:+$("bf_e58").value,bf_cure:+$("bf_cure").value}};
+}
+function encodeStateToHash(){return "#s="+b64urlEncode(JSON.stringify(captureState()));}
+function applyState(s){
+  if(!s||s.v!==1)return false;restoringState=true;
+  if(s.gps){const g=s.gps;for(const k of ["bat","batc","batk","gpsc","gpsu","delay","xtx","cens","mid","k","batcap","stratF","zfut","cutoff"])if(g[k]!=null&&$(k))$(k).value=g[k];if(g.autofit!=null)$("autofit").checked=g.autofit;if(g.fhTest!=null)$("fhTest").checked=g.fhTest;if(g.mcFloor!=null)$("mcFloor").checked=g.mcFloor;}
+  if(s.sls){for(const k in s.sls)if($(k))$(k).value=s.sls[k];}
+  if(s.val){for(const k in s.val){if($(k))$(k).value=s.val[k];if(k==="v_riskadj"&&$("v_riskadj"))$("v_riskadj").checked=s.val[k];}}
+  if(s.ui){if(s.ui.showUncertainty!=null){showUncertainty=s.ui.showUncertainty;$("showUncertainty").checked=showUncertainty;}if(s.ui.irm_lead!=null)$("irm_lead").value=s.ui.irm_lead;if(s.ui.bf_e58!=null)$("bf_e58").value=s.ui.bf_e58;if(s.ui.bf_cure!=null)$("bf_cure").value=s.ui.bf_cure;}
+  activeRegalPreset=s.activeRegalPreset||activeRegalPreset;activeInvPreset=s.activeInvPreset||activeInvPreset;
+  activeSlsPreset=s.activeSlsPreset||activeSlsPreset;activeValPreset=s.activeValPreset||activeValPreset;
+  if(s.regalMode)setRegalMode(s.regalMode);
+  refreshRegalPresetHighlight();highlightPresets("button[data-sls]","sls",activeSlsPreset);highlightPresets("button[data-val]","val",activeValPreset);
+  update();renderSLS();renderVal();renderIRM();updateBayes();
+  if(s.tab)switchTab(s.tab);restoringState=false;return true;
+}
+function restoreFromHash(){const h=location.hash;if(!h.startsWith("#s="))return false;try{return applyState(JSON.parse(b64urlDecode(h.slice(3))));}catch(e){console.warn("Could not restore state from URL",e);return false;}}
+function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";document.body.appendChild(t);}t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
+function updateHashQuiet(){if(restoringState)return;const nh=encodeStateToHash();if(location.hash!==nh)history.replaceState(null,"",location.pathname+location.search+nh);}
+$("btnShare").onclick=()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();};
+$("btnPrint").onclick=()=>{updatePrintSummary();window.print();};
+$("showUncertainty").onchange=function(){showUncertainty=this.checked;update();};
+
+// ================= FAST P(WIN) APPROX =================
+function fastPwin(p,binding,cutoff,nDraws){
+  nDraws=nDraws||3000;const ctr=Object.assign({},p);let W=0,WP=0;
+  for(let i=0;i<nDraws;i++){const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut};
+    for(const f of MCFIELDS) q[f]=clampf(f,ctr[f]+SD[f]*rn());
+    const e58=eventsAt(58,q,80);if(Math.abs(e58-72)>15)continue;
+    const e46=eventsAt(46,q,80),e63=eventsAt(63,q,80),e65=eventsAt(65,q,80);
+    const l1=e46,l2=Math.max(0,e58-e46),l3=Math.max(0,e63-e58),l4=Math.max(0,e65-e63);
+    const Lev=Math.exp(lpois(60,l1)+lpois(12,l2)+lpois(6,l3)+Math.log(Math.max(1e-12,poisLE(1,l4))));
+    if(Lev<1e-11)continue;
+    const thIA=analyzeLR(46,q).z,t80=T80(q);let Tan,Dan;if(t80<=cutoff){Tan=t80;Dan=80;}else{Tan=cutoff;Dan=eventsAt(cutoff,q,80);}
+    const aFin=analyzeLR(Tan,q);if(isNaN(aFin.hr))continue;
+    let w,pw;if(binding){const r=condPow(thIA,aFin.z,Dan,q.zfut);w=Lev*r.Pc;pw=r.cp;}else{w=Lev*Phi(thIA-q.zfut);pw=Phi(aFin.z-ZFINAL);}
+    W+=w;WP+=w*pw;}
+  return W>0?WP/W:NaN;
+}
+function paramsFromPreset(name,q,mode){
+  const base={osmode:"itt",batk:1,fh:false,stratF:STRATF,zfut:ZFUT};
+  q=q||(mode==="inverse"?INV[name]:P[name]);if(!q)return null;
+  if(mode==="inverse"){const ir=inverseSolve(Object.assign({},base,{gpsc:q.gpsc/100,delay:q.delay||0,xtx:(q.xtx||0)/100,cens:(q.cens||0)/100,mid:q.mid||25,k:q.k||0.15,bat:8}),q.batcap||17);return ir.sol?Object.assign({},ir.sol,{batk:1,fh:false,stratF:STRATF,zfut:ZFUT}):null;}
+  return Object.assign({},base,{bat:q.bat,batc:q.batc/100,gpsc:q.gpsc/100,gpsu:q.gpsu,delay:q.delay,xtx:(q.xtx||0)/100,cens:(q.cens||0)/100,mid:q.mid||25,k:q.k||0.15});
+}
+
+// ================= TORNADO (#2) =================
+function runTornado(){
+  $("tornadoStatus").textContent="computing…";$("tornadoRun").disabled=true;
+  setTimeout(()=>{
+    const base=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value;
+    const basePw=fastPwin(base,binding,cutoff,5000);
+    const baseHr=hazardRatio(T2,base);
+    const specs=[
+      {lbl:"GPS cure",field:"gpsc",pct:0.20,good:"up"},
+      {lbl:"BAT tail",field:"batc",pct:0.20,good:"down"},
+      {lbl:"BAT median",field:"bat",pct:0.20,good:"up"},
+      {lbl:"GPS uncured",field:"gpsu",pct:0.20,good:"up"},
+      {lbl:"Censoring",field:"cens",pct:0.20,good:"down"},
+      {lbl:"Binding IA",field:"_bind",toggle:true}
+    ];
+    const results=[];
+    for(const sp of specs){
+      if(sp.toggle){
+        const pwLo=fastPwin(base,false,cutoff,3000),pwHi=fastPwin(base,true,cutoff,3000);
+        results.push({lbl:sp.lbl,lo:pwLo-basePw,hi:pwHi-basePw});
+      }else{
+        const c=CFG.find(x=>x.field===sp.field),ctr=base[sp.field];
+        const dLo=ctr*(1-sp.pct),dHi=ctr*(1+sp.pct);
+        const pLo=Object.assign({},base,{[sp.field]:Math.max(c.min*c.sc,dLo)});
+        const pHi=Object.assign({},base,{[sp.field]:Math.min(c.max*c.sc,dHi)});
+        const pwLo=fastPwin(pLo,binding,cutoff,3000),pwHi=fastPwin(pHi,binding,cutoff,3000);
+        results.push({lbl:sp.lbl,lo:pwLo-basePw,hi:pwHi-basePw});
+      }
+    }
+    results.sort((a,b)=>Math.max(Math.abs(a.lo),Math.abs(a.hi))-Math.max(Math.abs(b.lo),Math.abs(b.hi))).reverse();
+    const maxD=Math.max(0.01,...results.flatMap(r=>[Math.abs(r.lo),Math.abs(r.hi)]));
+    let h='<div style="font-size:12px;margin-bottom:6px">Baseline P(win)='+(100*basePw).toFixed(0)+'%, HR='+baseHr.toFixed(2)+'</div>';
+    results.forEach(r=>{
+      const loW=Math.abs(r.lo)/maxD*45,hiW=Math.abs(r.hi)/maxD*45;
+      h+='<div class="tornado-row"><div class="tornado-lbl">'+r.lbl+'</div><div class="tornado-bar">';
+      if(r.lo<0)h+='<div class="neg" style="width:'+loW+'%"></div>';
+      if(r.hi>0)h+='<div class="pos" style="width:'+hiW+'%"></div>';
+      h+='</div><div class="tornado-val">'+(r.lo*100).toFixed(0)+' / +'+(r.hi*100).toFixed(0)+'pp</div></div>';
+    });
+    $("tornadoChart").innerHTML=h;$("tornadoStatus").textContent="done";$("tornadoRun").disabled=false;
+  },30);
+}
+$("tornadoRun").onclick=runTornado;
+
+// ================= BAYES FACTOR (#3) =================
+function nullStrawman(){return{bat:8,batc:0,batk:1,gpsc:0,gpsu:8,delay:0,xtx:0,cens:0,osmode:"itt",mid:25,k:0.15,fh:false,stratF:STRATF,zfut:ZFUT};}
+function nullHetero(){return{bat:10,batc:0.18,batk:0.85,gpsc:0.05,gpsu:14,delay:0,xtx:0,cens:0,osmode:"itt",mid:25,k:0.15,fh:false,stratF:STRATF,zfut:ZFUT};}
+function altHyp(curePct){return{bat:10,batc:0.14,batk:1,gpsc:curePct/100,gpsu:32,delay:1.5,xtx:0.06,cens:0.12,osmode:"itt",mid:25,k:0.15,fh:false,stratF:STRATF,zfut:ZFUT};}
+function poisLogL(p,e46,e58,e63){
+  const e58v=eventsAt(58,p,100),e46v=eventsAt(46,p,100),e63v=eventsAt(63,p,100);
+  const l2=Math.max(0,e58v-e46v),l3=Math.max(0,e63v-e58v);
+  return lpois(e46,e46v)+lpois(e58-e46,l2)+lpois(e63-e58,l3);
+}
+function updateBayes(){
+  const e58=+$("bf_e58").value,cure=+$("bf_cure").value;
+  $("bfE58").textContent=e58;$("bfCure").textContent=cure+"%";
+  const alt=altHyp(cure),ns=nullStrawman(),nh=nullHetero();
+  const e46=60,e63=78;
+  const lAlt=poisLogL(alt,e46,e58,e63),lStraw=poisLogL(ns,e46,e58,e63),lHet=poisLogL(nh,e46,e58,e63);
+  const bfStraw=Math.exp(lAlt-lStraw),bfHet=Math.exp(lAlt-lHet);
+  const bfMarg=Math.exp(lAlt-Math.log(Math.exp(lStraw)+Math.exp(lHet)));
+  $("bfResult").innerHTML="BF (alt vs strawman null): <b>"+bfStraw.toFixed(1)+"×</b> — CW's ~62× claim uses this comparison<br>"+
+    "BF (alt vs heterogeneous BAT null): <b>"+bfHet.toFixed(2)+"×</b> — collapses toward 1 under realistic competing null<br>"+
+    "Marginal BF (alt vs both nulls): <b>"+bfMarg.toFixed(2)+"×</b><br>"+
+    '<span style="font-weight:400;font-size:12px;color:var(--muted)">Approximate Poisson likelihood ratio on pooled event increments — not a full Bayesian model. Sources: <a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank">CW Part 1</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank">uhdisj41 critique</a></span>';
+}
+["bf_e58","bf_cure"].forEach(id=>$(id).addEventListener("input",updateBayes));
+
+// ================= INTERACTIVE IRM (#4) =================
+const CW_REF={irm:12.61,hr:0.37,bat3:19.6,batAlive:11.3,gpsAlive:34.7,pool:18.7};
+function armAlive(T,p,fn){let a=0;for(let i=0;i<180;i++){const e0=LMAX*i/180,e1=LMAX*(i+1)/180,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);if(em>=T)continue;a+=N_ARM*w*fn(T-em,p);}return a*(1-p.cens*0.5);}
+function renderIRM(){
+  const lead=+$("irm_lead").value;$("irmLead").textContent=lead.toFixed(1)+" m";
+  const p=readParams();const irmBat=medianOf(sBAT,p),irmGps=medianOf(sGPS,p),irmPool=medianOf(poolS,p);
+  const hr=hazardRatio(T2,p),bat3=sBAT(36,p)*100;
+  const batA=armAlive(63,p,sBAT),gpsA=armAlive(63,p,sGPS);
+  const trueBat=irmBat!=null?Math.max(1,irmBat-lead):null;
+  const rows=[
+    ["BAT IRM (from rand)",irmBat!=null?irmBat.toFixed(1)+" m":"—","10 mo (CW anchor)",irmBat!=null?(irmBat-10).toFixed(1)+" m":""],
+    ["TRUE CR2-onset BAT mOS",trueBat!=null?trueBat.toFixed(1)+" m":"—","~8–11 mo",""],
+    ["Pooled IRM",irmPool!=null?irmPool.toFixed(1)+" m":"—",CW_REF.pool+" mo",irmPool!=null?(irmPool-CW_REF.pool).toFixed(1)+" m":""],
+    ["HR @ m58",isNaN(hr)?"—":hr.toFixed(2),CW_REF.hr.toFixed(2),isNaN(hr)?"":(hr-CW_REF.hr).toFixed(2)],
+    ["BAT 3-yr OS",bat3.toFixed(0)+"%",CW_REF.bat3+"%",(bat3-CW_REF.bat3).toFixed(0)+"pp"],
+    ["BAT alive @ m63",batA.toFixed(1),CW_REF.batAlive,(batA-CW_REF.batAlive).toFixed(1)],
+    ["GPS alive @ m63",gpsA.toFixed(1),CW_REF.gpsAlive,(gpsA-CW_REF.gpsAlive).toFixed(1)]
+  ];
+  $("irmBody").innerHTML=rows.map(r=>{const d=r[3];const cls=d&&parseFloat(d)>0?"pos":(d&&parseFloat(d)<0?"neg":"");
+    return "<tr><td>"+r[0]+"</td><td><b>"+r[1]+"</b></td><td>"+r[2]+"</td><td class='irm-delta "+cls+"'>"+(d||"—")+"</td></tr>";}).join("");
+}
+$("irm_lead").addEventListener("input",renderIRM);
+
+// ================= T80 SIMULATOR (#5) =================
+function runT80Sim(){
+  $("t80Status").textContent="simulating…";$("t80Run").disabled=true;
+  setTimeout(()=>{
+    const p=readParams(),N=10000,times=[];
+    for(let i=0;i<N;i++){
+      const q=Object.assign({},p);q.bat+=rn()*0.5;q.gpsc=Math.max(0,Math.min(0.75,q.gpsc+rn()*0.03));
+      let t=T3;while(eventsAt(t,q,60)<80&&t<120)t+=0.5;
+      times.push(t);
+    }
+    times.sort((a,b)=>a-b);
+    const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
+    const med=qf(0.5),p90=qf(0.9),p10=qf(0.1);
+    $("t80Stats").innerHTML="Median <b>m"+med.toFixed(1)+"</b> · 90th percentile <b>m"+p90.toFixed(1)+"</b> · 10th <b>m"+p10.toFixed(1)+"</b>";
+    const bins=[];for(let b=63;b<90;b+=1){let c=0;for(const t of times)if(t>=b&&t<b+1)c++;bins.push([b,100*c/N]);}
+    const mx=Math.max(...bins.map(x=>x[1]),1);
+    $("t80Hist").innerHTML=bins.map(bp=>'<div title="m'+bp[0]+': '+bp[1].toFixed(1)+'%" style="height:'+(bp[1]/mx*100).toFixed(1)+'%"></div>').join("");
+    $("t80Status").textContent="10k paths";$("t80Run").disabled=false;
+  },30);
+}
+$("t80Run").onclick=runT80Sim;
+
+// ================= PRESET COMPARISON (#6) =================
+const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bull / DD cure",critique:"Critique (~⅔)",bind:"Binding interim",nonbind:"Non-binding",cw:"Optimistic cure (~85%)",noeffect:"No effect",fail:"What failure needs",delay:"Vaccine delay 4m",backload:"Backloaded enroll",cw42:"Default (~42%)",cw35:"Moderate cure (35%)",cw50:"High cure (50%)",cwbind:"Binding interim (inv)"};
+function runPresetCmp(){
+  $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
+  setTimeout(()=>{
+    const rows=[];
+    for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
+      const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
+      rows.push({name,mode:"forward",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,2000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+    for(const name in INV){const pr=paramsFromPreset(name,INV[name],"inverse");if(!pr)continue;
+      rows.push({name,mode:"inverse",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,2000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+    $("presetCmpBody").innerHTML=rows.map(r=>{
+      const win=r.hr<THRESH?"win":"lose";
+      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
+    }).join("");
+    $("presetCmpStatus").textContent=rows.length+" presets";$("presetCmpRun").disabled=false;
+  },30);
+}
+$("presetCmpRun").onclick=runPresetCmp;
+
+// ================= MILESTONE BACKTEST (#7) =================
+const MILESTONES=[
+  {label:"Interim",month:46,events:60,src:"Jan 2025 PR"},
+  {label:"72-event update",month:58,events:72,src:"Dec 2025 PR"},
+  {label:"78-event update",month:63,events:78,src:"May 2026 PR"}
+];
+function renderBacktest(){
+  const p=readParams(),binding=$("mcFloor").checked;
+  $("backtestCards").innerHTML=MILESTONES.map(m=>{
+    const hr=hazardRatio(m.month,p),pw=fastPwin(p,binding,m.month+6,2000);
+    return '<div class="mcard"><div class="mt">'+m.label+' — '+m.events+' @ m'+m.month+'</div><div class="mv">'+(isNaN(hr)?"—":hr.toFixed(2))+' HR</div><div style="font-size:13px">P(win|then) ≈ <b>'+(isNaN(pw)?"—":(100*pw).toFixed(0)+"%")+'</b></div><div style="font-size:10px;color:var(--muted);margin-top:4px">'+m.src+' · current model applied retrospectively</div></div>';
+  }).join("");
+}
+
+// ================= PRINT SUMMARY (#9) =================
+function updatePrintSummary(){
+  const p=readParams(),hr=hazardRatio(T2,p);
+  $("printSummary").innerHTML="<b>Scenario summary (printed "+new Date().toLocaleDateString()+")</b><br>"+
+    "Preset: "+(regalMode==="inverse"?PRESET_NAMES[activeInvPreset]:PRESET_NAMES[activeRegalPreset])+" · Mode: "+regalMode+"<br>"+
+    "BAT mOS "+($("oBatMed").textContent||"—")+" · GPS mOS "+($("oGpsMed").textContent||"—")+" · HR "+(isNaN(hr)?"—":hr.toFixed(2))+"<br>"+
+    "Events: "+eventsAt(T1,p).toFixed(0)+"/"+E1+" @ m46 · "+eventsAt(T2,p).toFixed(0)+"/"+E2+" @ m58 · "+eventsAt(T3,p).toFixed(0)+"/"+E3+" @ m63";
+}
+
+// ================= MOBILE COLLAPSE (#9) =================
+function initMobileCollapse(){
+  if(window.innerWidth>768)return;
+  ["howworks","panelTornado","panelBayes","panelIRM","panelT80","panelPresetCmp","panelBacktest","panelCW"].forEach(id=>{
+    const el=$(id);if(el&&el.tagName==="DETAILS")el.open=false;
+  });
+}
+window.addEventListener("resize",initMobileCollapse);
+
+// patch update to refresh new panels + URL
+const _updateOrig=update;
+update=function(){
+  _updateOrig();
+  if(!restoringState){renderIRM();renderBacktest();updateBayes();updatePrintSummary();updateHashQuiet();}
+};
+
+buildBands();restoreFromHash()||null;refreshRegalPresetHighlight();update();initMobileCollapse();renderBacktest();updateBayes();
 
 // ================= TABS & METHODOLOGY =================
 function toggleMethod(id){const e=$(id);e.hidden=!e.hidden;}
-document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));b.classList.add("active");
-  const t=b.dataset.tab;["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
+function switchTab(t){
+  activeTab=t;
+  document.querySelectorAll(".tabbtn").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
+  ["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
   if(t==="sls009")renderSLS(); if(t==="value")renderVal(); if(t==="explain")showLevel(curLvl);
-  window.scrollTo(0,0);
-});
+  if(!restoringState)updateHashQuiet();
+}
+document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{switchTab(b.dataset.tab);if(!restoringState)window.scrollTo(0,0);});
 function drawExp(id,arms,tmax){
   const cv=$(id),dpr=window.devicePixelRatio||1,W=920,H=360;cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
   const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
@@ -1372,11 +1779,18 @@ function drawHist(hostId,vals,lo,hi,bin,thr,greenBelow){
   const n=vals.length;if(!n){$(hostId).innerHTML="";return;}
   const bins=[];for(let b=lo;b<hi-1e-9;b+=bin){let c=0;for(const v of vals)if(v>=b&&v<b+bin)c++;bins.push([b,100*c/n]);}
   const mx=Math.max.apply(null,bins.map(x=>x[1]).concat([1]));
-  let h='<div style="display:flex;align-items:flex-end;gap:1px;height:120px;border-bottom:1px solid var(--line)">';
+  const s=vals.slice().sort((a,b)=>a-b);
+  const qf=q=>s[Math.min(s.length-1,Math.floor(q*s.length))];
+  const p5=qf(0.05),p50=qf(0.5),p95=qf(0.95);
+  let h='<div style="display:flex;align-items:flex-end;gap:1px;height:120px;border-bottom:1px solid var(--line);position:relative">';
   bins.forEach(bp=>{const b=bp[0],pc=bp[1];let col="var(--accent)";if(thr!=null)col=(((b+bin/2)<thr)===greenBelow)?"var(--good)":"var(--bad)";h+='<div title="'+b.toFixed(bin<1?2:0)+'–'+(b+bin).toFixed(bin<1?2:0)+': '+pc.toFixed(1)+'%" style="flex:1;height:'+(pc/mx*100).toFixed(1)+'%;background:'+col+';border-radius:2px 2px 0 0;min-height:'+(pc>0?2:0)+'px"></div>';});
-  h+='</div><div style="display:flex;gap:1px;font-size:9px;color:var(--muted);margin-top:2px">';
+  h+='</div>';
+  if(n>10){const span=hi-lo;const mk=v=>Math.min(99,Math.max(0,(v-lo)/span*100));
+    h+='<div style="position:relative;height:0;margin-top:-120px;pointer-events:none"><div style="position:absolute;left:'+mk(p5)+'%;top:0;width:1px;height:120px;background:#111;opacity:.35"></div><div style="position:absolute;left:'+mk(p50)+'%;top:0;width:2px;height:120px;background:#111;opacity:.6"></div><div style="position:absolute;left:'+mk(p95)+'%;top:0;width:1px;height:120px;background:#111;opacity:.35"></div></div>';}
+  h+='<div style="display:flex;gap:1px;font-size:9px;color:var(--muted);margin-top:2px">';
   const step=Math.max(1,Math.ceil(bins.length/8));bins.forEach((bp,i)=>{h+='<div style="flex:1;text-align:center">'+((i%step===0)?bp[0].toFixed(bin<1?2:0):"")+'</div>';});
-  h+='</div>';$(hostId).innerHTML=h;
+  h+='</div><div style="font-size:10px;color:var(--muted);margin-top:2px">5th '+p5.toFixed(bin<1?2:1)+' · median '+p50.toFixed(bin<1?2:1)+' · 95th '+p95.toFixed(bin<1?2:1)+'</div>';
+  $(hostId).innerHTML=h;
 }
 function sd2(id){const c=CFG2.find(x=>x.id===id);return (c.sig.b1[1]-c.sig.b1[0])/2;}
 function samp2(id){const c=CFG2.find(x=>x.id===id);return Math.max(c.min,Math.min(c.max,(+$(id).value)+sd2(id)*rn()));}

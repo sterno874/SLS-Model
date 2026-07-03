@@ -33,6 +33,15 @@ Community due-diligence framing (the lead-time/IRM argument, fitted-scenario tab
 ## Run locally
 Just open `index.html` in any modern browser. No build step, no dependencies, no storage. (Vercel Web Analytics runs only on the deployed site, not locally.)
 
+## Shareable scenario links
+Every slider, tab, preset, and mode can be encoded in the URL hash — **fully client-side, zero server storage**:
+
+```
+https://sls-model.vercel.app/#s=eyJ2IjoxLCJ0YWIiOiJncHMiLCJyZWdhbE1vZGUiOiJmb3J3YXJkIi...
+```
+
+Click **Copy share link** in the header to copy the current scenario. On load, if `#s=...` is present, the app decodes base64url JSON and restores state before the first render. No backend, database, or localStorage required.
+
 ## Deploy (Vercel)
 This is a zero-config static site. Import the GitHub repo at [vercel.com/new](https://vercel.com/new); Vercel serves `index.html` automatically. Assign the domain `sls-model.vercel.app` in the project's Domains settings. Enable **Web Analytics** in the Vercel project settings → **Analytics** tab (required for visitor counts to flow).
 
