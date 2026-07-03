@@ -184,6 +184,8 @@
     <h4>4 · Anchor-constrained inversion (inverse mixture-cure fit)</h4>
     <b>Direct parameterization</b> sets arm survival parameters and asks whether they reproduce the blinded event counts. <b>Anchor-constrained inversion</b> flips this: anchor the announced pooled events (60 @ m46, 72 @ m58, 78 @ m63, still &lt;80) and treat the <b>GPS cure fraction</b> as the primary structural assumption (long-tail survivors assigned to GPS). With BAT constrained by biology (3-yr OS cap ~15–18%, Kurosawa CR2 ~14% [<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3011608/" target="_blank" rel="noopener">Haematologica 2010</a>]), a least-squares solver <em>derives</em> implied BAT median/tail and GPS uncured median — mOS and HR fall out. Same mixture-cure machinery; direction of fit is reversed. Still non-identifiable along the GPS-cure ↔ BAT-heterogeneity ridge — honest about that. Practitioner framing: <a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">u/Confident-Web-7118 Part 1</a> · IRM tables: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">randomization window post</a>; critique: <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">u/uhdisj41</a>.
     <div style="color:var(--muted);margin-top:8px">Poke holes: the arm split is unidentifiable (blinded); priors do heavy lifting; the log-rank z is an expectation, not a patient-level resimulation; stratification/futility/test-weighting are undisclosed (adjustable). Full citations in References below.</div>
+    <h4 style="margin-top:12px">Math verification (Jul 2026)</h4>
+    <div style="font-size:12.5px;line-height:1.55">Audited inline functions against the formulas above: mixture-cure / Weibull survival (<code>S<sub>BAT</sub>=c+(1−c)·exp(−(t/λ)<sup>k</sup>)</code>, median scale <code>λ=bat/ln2<sup>1/k</sup></code>); ITT transplant mix; enrollment-weighted expected deaths; Pike HR <code>(O/E)<sub>GPS</sub>/(O/E)<sub>BAT</sub></code> at m58; stratified log-rank Z + OBF conditional power (<code>ρ=√(60/D)</code>); Poisson increment likelihood; inverse least-squares fit; SLS-009 fold/HR-equiv <code>bench/arm</code> under exponential assumption; valuation <code>peak=starts×pen×years×price</code>, EV=peak×multiple+platform. Spot checks: “No effect” preset HR≈1.000; CW cure preset HR≈0.19; inverse solver hits 72 events @ m58. Regression harness: <code>node verify_math.js</code>.</div>
   </div>
 
 <div class="wrap">
@@ -865,10 +867,10 @@ function medianOf(fn,p){let prev=1;for(let t=0.1;t<=240;t+=0.1){const s=fn(t,p);
 
 // ---------- consistency ----------
 function consistent(p){
-  const e2=eventsAt(T2,p,110);if(Math.abs(e2-E2)>3)return false;
-  const e1=eventsAt(T1,p,110);if(Math.abs(e1-E1)>8)return false;
-  const e3=eventsAt(T3,p,110);if(Math.abs(e3-E3)>7)return false;
-  const e4=eventsAt(T4,p,110);if(e4>=80.5)return false;
+  const e2=eventsAt(T2,p,110);if(!Number.isFinite(e2)||Math.abs(e2-E2)>3)return false;
+  const e1=eventsAt(T1,p,110);if(!Number.isFinite(e1)||Math.abs(e1-E1)>8)return false;
+  const e3=eventsAt(T3,p,110);if(!Number.isFinite(e3)||Math.abs(e3-E3)>7)return false;
+  const e4=eventsAt(T4,p,110);if(!Number.isFinite(e4)||e4>=80.5)return false;
   return true;
 }
 
