@@ -1008,6 +1008,32 @@ function deferWithLoading(fn,msg){
     },0);
   });
 }
+// ---------- perf: debounce, lazy tabs, deferred panels ----------
+function debounce(fn,ms){
+  let t;return function(){clearTimeout(t);const a=arguments,s=this;t=setTimeout(()=>fn.apply(s,a),ms);};
+}
+let updateTimer=null,updateSpinnerTimer=null,pendingDrawRaf=null,pendingDrawP=null,lastBandsKey="";
+const tabsRendered={gps:false,sls009:false,value:false,explain:false};
+const tabsDirty={sls009:true,value:true,explain:true};
+function panelOpen(id){const el=$(id);return!!(el&&el.open);}
+function scheduleDraw(p){
+  pendingDrawP=p;
+  if(pendingDrawRaf)return;
+  pendingDrawRaf=requestAnimationFrame(()=>{pendingDrawRaf=null;draw(pendingDrawP);});
+}
+function scheduleUpdate(){
+  if(restoringState){updateNow();return;}
+  clearTimeout(updateTimer);
+  updateTimer=setTimeout(()=>{
+    updateTimer=null;clearTimeout(updateSpinnerTimer);updateSpinnerTimer=null;hideLoading();updateNow();
+  },75);
+  if(!updateSpinnerTimer)updateSpinnerTimer=setTimeout(()=>{if(updateTimer)showLoading("Updating…");},200);
+}
+function refreshOpenPanels(){
+  if(panelOpen("panelIRM"))renderIRM();
+  if(panelOpen("panelBayes"))updateBayes();
+  if(panelOpen("panelBacktest"))renderBacktest();
+}
 const LN2 = Math.log(2);
 const N_ARM = 63, LMAX = 38;
 const T1=46,T2=58,T3=63,T4=65, E1=60,E2=72,E3=78, THRESH=0.636;
@@ -1286,7 +1312,9 @@ function update(){
   $("vXtx").textContent=(p.xtx*100).toFixed(0)+"%";$("vCens").textContent=(p.cens*100).toFixed(0)+"%";
   $("vBatk").textContent=p.batk.toFixed(2);$("vStratF").textContent=p.stratF.toFixed(2);$("vZfut").textContent=p.zfut.toFixed(2);
 
-  draw(p); renderBands(p);
+  scheduleDraw(p);
+  const bk=JSON.stringify(p)+regalMode;
+  if(bk!==lastBandsKey){lastBandsKey=bk;renderBands(p);}
 
   if(noSol){
     $("oHRnum").textContent="no solution";$("hrMark").style.left="-99px";
@@ -1465,7 +1493,7 @@ function applyInversePreset(name,q){
 document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyRegalPreset(b.dataset.preset));
 document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInversePreset(b.dataset.inv));
 
-["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",update)});
+["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",scheduleUpdate)});
 $("mcRun").addEventListener("click",function(){
   $("mcRun").disabled=true;$("mcStatus").textContent="running…";
   deferWithLoading(function(){try{runMC();}finally{$("mcRun").disabled=false;}},"Running Monte Carlo…");
@@ -1494,8 +1522,10 @@ function applyState(s){
   activeSlsPreset=s.activeSlsPreset||activeSlsPreset;activeValPreset=s.activeValPreset||activeValPreset;
   if(s.regalMode)setRegalMode(s.regalMode);
   refreshRegalPresetHighlight();highlightPresets("button[data-sls]","sls",activeSlsPreset);highlightPresets("button[data-val]","val",activeValPreset);
-  update();renderSLS();renderVal();renderIRM();updateBayes();
-  if(s.tab)switchTab(s.tab);else if(s.ui&&s.ui.explainLvl)showLevel(s.ui.explainLvl);
+  tabsRendered.gps=true;
+  updateNow();
+  if(s.tab)switchTab(s.tab);
+  else if(s.ui&&s.ui.explainLvl){curLvl=s.ui.explainLvl;renderTab("explain",true);}
   restoringState=false;return true;
 }
 function restoreFromHash(){const h=location.hash;if(!h.startsWith("#s="))return false;try{return applyState(JSON.parse(b64urlDecode(h.slice(3))));}catch(e){console.warn("Could not restore state from URL",e);return false;}}
@@ -1503,7 +1533,7 @@ function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document
 function updateHashQuiet(){if(restoringState)return;const nh=encodeStateToHash();if(location.hash!==nh)history.replaceState(null,"",location.pathname+location.search+nh);}
 $("btnShare").onclick=()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();};
 $("btnPrint").onclick=()=>{updatePrintSummary();window.print();};
-$("showUncertainty").onchange=function(){showUncertainty=this.checked;deferWithLoading(update,"Computing uncertainty bands…");};
+$("showUncertainty").onchange=function(){showUncertainty=this.checked;deferWithLoading(updateNow,"Computing uncertainty bands…");};
 
 // ================= FAST P(WIN) APPROX =================
 function poisLogLThrough(p,throughMonth){
@@ -1624,7 +1654,7 @@ function renderIRM(){
   $("irmBody").innerHTML=rows.map(r=>{const d=r[3];const cls=d&&parseFloat(d)>0?"pos":(d&&parseFloat(d)<0?"neg":"");
     return "<tr><td>"+r[0]+"</td><td><b>"+r[1]+"</b></td><td>"+r[2]+"</td><td class='irm-delta "+cls+"'>"+(d||"—")+"</td></tr>";}).join("");
 }
-$("irm_lead").addEventListener("input",renderIRM);
+$("irm_lead").addEventListener("input",()=>{if(panelOpen("panelIRM"))renderIRM();});
 
 // ================= T80 SIMULATOR (#5) =================
 function runT80Sim(){
@@ -1700,25 +1730,25 @@ function initMobileCollapse(){
 }
 window.addEventListener("resize",initMobileCollapse);
 
-// patch update to refresh new panels + URL
+// patch update: debounced sliders call scheduleUpdate; presets/modes call updateNow directly
 const _updateOrig=update;
-update=function(){
+function updateNow(){
   _updateOrig();
-  if(!restoringState){renderIRM();renderBacktest();updateBayes();updatePrintSummary();updateHashQuiet();}
-};
+  if(!restoringState){refreshOpenPanels();updateHashQuiet();}
+}
+update=updateNow;
 
 function initApp(){
   buildBands();
   restoreFromHash()||null;
   refreshRegalPresetHighlight();
-  update();
+  if(!location.hash.startsWith("#s="))updateNow();
   initMobileCollapse();
-  renderBacktest();
-  updateBayes();
   buildBands2();
-  renderSLS();
-  renderVal();
+  tabsRendered.gps=true;
+  if(activeTab!=="gps")renderTab(activeTab,true);
 }
+["panelIRM","panelBayes","panelBacktest"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open)refreshOpenPanels();});});
 requestAnimationFrame(()=>{
   setTimeout(()=>{
     try{initApp();}finally{hideLoading();}
@@ -1727,11 +1757,16 @@ requestAnimationFrame(()=>{
 
 // ================= TABS & METHODOLOGY =================
 function toggleMethod(id){const e=$(id);e.hidden=!e.hidden;}
+function renderTab(t,force){
+  if(t==="sls009"&&(force||tabsDirty.sls009||!tabsRendered.sls009)){renderSLS();tabsRendered.sls009=true;tabsDirty.sls009=false;}
+  if(t==="value"&&(force||tabsDirty.value||!tabsRendered.value)){renderVal();tabsRendered.value=true;tabsDirty.value=false;}
+  if(t==="explain"&&(force||!tabsRendered.explain)){showLevel(curLvl);tabsRendered.explain=true;}
+}
 function switchTab(t){
   activeTab=t;
   document.querySelectorAll(".tabbtn").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
   ["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
-  if(t==="sls009")renderSLS(); if(t==="value")renderVal(); if(t==="explain")showLevel(curLvl);
+  renderTab(t);
   if(!restoringState)updateHashQuiet();
 }
 document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{switchTab(b.dataset.tab);if(!restoringState)window.scrollTo(0,0);});
@@ -1761,7 +1796,9 @@ function renderSLS(){
   drawExp("slsChart",[{med:os,c:getCSS('--gps'),lbl:"SLS-009 + AZA/VEN"},{med:bench,c:getCSS('--bat'),lbl:"historical benchmark"}],36);
   if(typeof renderBands2==="function")renderBands2();
 }
-["sls_os","sls_bench","sls_orr","fl_base","fl_sls","tp_base","tp_sls"].forEach(id=>$(id).addEventListener("input",renderSLS));
+const debouncedRenderSLS=debounce(renderSLS,75);
+function onSlsInput(){tabsDirty.sls009=true;if(activeTab==="sls009")debouncedRenderSLS();}
+["sls_os","sls_bench","sls_orr","fl_base","fl_sls","tp_base","tp_sls"].forEach(id=>$(id).addEventListener("input",onSlsInput));
 
 // ================= TAB 3 : VALUATION =================
 function fmtB(x){return x>=1000?'$'+(x/1000).toFixed(2)+'B':'$'+x.toFixed(0)+'M';}
@@ -1786,7 +1823,9 @@ function renderVal(){
   $("oValNote").innerHTML="Peak sales = new-starts × penetration × avg-years-on-therapy × price (<span class=\"tag m\">model output</span>). Longer survival ⇒ larger prevalent pool. EV = peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B platform. Multiple ~4–8× (<a href=\"https://www.sec.gov/Archives/edgar/data/882095/000110465920027988/a20-11253_1ex99d1.htm\" target=\"_blank\" rel=\"noopener\">Gilead–Forty Seven</a>). Every input is an <span class=\"tag a\">assumption</span>; not a DCF or investment advice.";
   if(typeof renderBands2==="function")renderBands2();
 }
-["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares"].forEach(id=>$(id).addEventListener("input",renderVal));
+const debouncedRenderVal=debounce(renderVal,75);
+function onValInput(){tabsDirty.value=true;if(activeTab==="value")debouncedRenderVal();}
+["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares"].forEach(id=>$(id).addEventListener("input",onValInput));
 // ---- generic prior/implausible/anchor bands for Tab 2 & 3 sliders ----
 const CFG2=[
  {id:"sls_os",min:4,max:16,sig:{b1:[7,11],b2:[5.5,13],b3:[4,15]},anchor:8.9,src:"SELLAS Dec-2024 PR / ASH 2025"},
@@ -1952,9 +1991,8 @@ const EXPL={
   "<p><b>Valuation — epistemic limits.</b> EV = Σ risk-adjusted(peak_j × multiple_j) + platform. Peak = (incidence × penetration × duration) × price — each input is a prior, not a forecast. Multiples 4–8× are market convention, not law. Comps: Venclexta ~$2.6B (realized); Gilead–Forty Seven ~$4.9B (<a href='https://www.sec.gov/Archives/edgar/data/882095/000110465920027988/a20-11253_1ex99d1.htm' target='_blank'>SEC</a>) for pre-approval magrolimab — asset subsequently failed Ph3 (ENHANCE futility, 2023) — reminder that buyout price ≠ clinical truth. Onureg/QUAZAR (mOS 24.7 vs 14.8, HR 0.69 [<a href='https://www.onuregpro.com/efficacy' target='_blank'>QUAZAR AML-001</a>]) with modest commercial uptake bounds maintenance-AML TAM optimism. TAM splits (CR2 ~3K/yr) are community DD, not epidemiologically rigorous.</p>"+
   "<p><b>Primary refs:</b> Cox 1972; Schoenfeld 1981/83; O'Brien &amp; Fleming 1979; Lan &amp; DeMets 1983; Fleming-Harrington 1991; Jennison-Turnbull 2000; Uno 2014 (RMST); Boag 1949 (cure); Suissa 2008 (lead-time); Kurosawa 2010; DiNardo 2020 (VIALE-A); Beaumont 2002 (ABC). Full citation lists in Tabs 1–3 References.</p>"
 };
-function showLevel(l){curLvl=l;document.querySelectorAll(".lvlb").forEach(b=>b.classList.toggle("active",b.dataset.lvl===l));$("explbody").innerHTML=EXPL[l]||"";}
+function showLevel(l){curLvl=l;tabsRendered.explain=true;document.querySelectorAll(".lvlb").forEach(b=>b.classList.toggle("active",b.dataset.lvl===l));$("explbody").innerHTML=EXPL[l]||"";}
 document.querySelectorAll(".lvlb").forEach(b=>b.onclick=()=>showLevel(b.dataset.lvl));
-showLevel("eli5");
 </script>
 <script>
   (function(){
