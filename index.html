@@ -189,13 +189,28 @@
   .t80-hist div{flex:1;background:var(--accent);opacity:.7;border-radius:2px 2px 0 0;min-height:2px}
   /* sticky header mobile */
   @media(max-width:768px){
-    header{position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,27,38,.08);padding-bottom:8px}
+    html,body{overflow-x:hidden;max-width:100%}
+    header{position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,27,38,.08);padding:14px 14px 8px}
+    .wrap{padding:10px 12px 8px}
+    .howworks,.methodpanel,.feat-panel,.cw-panel,.regal-analysis{margin-left:12px;margin-right:12px}
+    .facts{padding:12px 12px 40px}
     .howworks,.feat-panel,.cw-panel{/* collapsed by default via JS */ }
     .howworks:not(.mob-collapsed),.feat-panel:not(.mob-collapsed),.cw-panel:not(.mob-collapsed){}
     .howworks.mob-collapsed,.feat-panel.mob-collapsed,.cw-panel.mob-collapsed{/* closed */ }
-    .tabnav{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
-    .tabbtn{flex-shrink:0;font-size:12.5px;padding:8px 12px}
-    .hdr-tools{width:100%}
+    .tabnav{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -12px;padding:0 12px 2px}
+    .tabnav::-webkit-scrollbar{display:none}
+    .tabbtn{flex-shrink:0;font-size:12.5px;padding:10px 12px;min-height:44px;scroll-snap-align:start}
+    .hdr-tools{width:100%;gap:10px}
+    .hdr-tools button{flex:1;min-height:44px;padding:10px 14px}
+    .modenav{grid-template-columns:1fr}
+    .presets{grid-template-columns:1fr}
+    input[type=range]{min-height:44px;padding:14px 0;touch-action:pan-y}
+    .vrow input[type=range]{max-width:none}
+    .vrow{flex-wrap:wrap}
+    .vrow .vv{width:100%;text-align:left;margin-top:2px}
+    .methodbtn,.modebtn{min-height:44px}
+    .howworks>summary,.feat-panel>summary,.cw-panel>summary{min-height:44px;padding:12px 14px}
+    footer{padding:16px 14px 48px}
   }
   @media print{
     header,.tabnav,.hdr-tools,.card input,.card input[type=range],.presets,.modenav,.mc-toolbar,.pgrp,.pgrp-hint,.bandkey,.chk,.ctrl-group,.tabbtn:not(.active),footer button,.methodbtn,details>summary,.feat-panel>summary,.cw-panel>summary{display:none!important}
