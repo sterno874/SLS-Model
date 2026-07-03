@@ -73,5 +73,15 @@ if (af.sol != null) {
     "e=" + M.eventsAt(T2, fitted).toFixed(1));
 }
 
+function poisLL(p) {
+  const e58v = M.eventsAt(58, p, 100), e46v = M.eventsAt(46, p, 100), e63v = M.eventsAt(63, p, 100);
+  const l2 = Math.max(0, e58v - e46v), l3 = Math.max(0, e63v - e58v);
+  return M.lpois(60, e46v) + M.lpois(12, l2) + M.lpois(6, l3);
+}
+const altHyp = mk({ bat: 10, batc: 0.14, gpsc: 0.22, gpsu: 32, delay: 1.5, xtx: 0.06, cens: 0.12 });
+const strawNull = mk({ bat: 8, batc: 0, gpsc: 0, gpsu: 8, delay: 0, xtx: 0, cens: 0 });
+check("Poisson LL: alt hypothesis beats strawman null on 60/72/78",
+  poisLL(altHyp) > poisLL(strawNull), "Δ=" + (poisLL(altHyp) - poisLL(strawNull)).toFixed(2));
+
 console.log("\n--- Summary: " + pass + " passed, " + fail + " failed ---");
 process.exit(fail > 0 ? 1 : 0);
