@@ -90,8 +90,8 @@
   .v-lose{background:#fdeaea;color:#8f2020;border:1px solid #f4c7c7}
   .v-none{background:#fff4e0;color:#8a5a00;border:1px solid #f2dca6}
   .note{font-size:12px;color:var(--muted);margin-top:14px;border-top:1px dashed var(--line);padding-top:10px}
-  details{margin-top:6px}
-  summary{cursor:pointer;font-size:12px;color:var(--muted)}
+  .ctrl-group details,.card details{margin-top:8px}
+  .ctrl-group details>summary,.card details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);padding:2px 0}
   .facts{padding:14px 18px 40px}
   .facts .card{max-width:100%}
   .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 26px;font-size:12.5px}
@@ -219,10 +219,48 @@
   .load-spinner{width:36px;height:36px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:loadSpin .75s linear infinite}
   .load-msg{font-size:13px;font-weight:600;color:var(--muted)}
   @keyframes loadSpin{to{transform:rotate(360deg)}}
+  /* chart containers */
+  .chart-wrap{position:relative;min-height:200px;margin:8px 0 4px}
+  .chart-wrap canvas{display:block;width:100%;height:auto}
+  /* monte carlo histogram — block flow, no negative-margin bleed */
+  .mc-section{padding:0}
+  .mc-panel{margin-bottom:0}
+  .mc-hist-host{clear:both;margin-bottom:4px;min-height:170px;position:relative;z-index:1}
+  .mc-hist-wrap{position:relative;margin:14px 0 0;min-height:130px}
+  .mc-hist-bars{display:flex;align-items:flex-end;gap:2px;height:130px;border-bottom:1px solid var(--line);position:relative;z-index:1}
+  .mc-hist-axis{display:flex;gap:2px;font-size:9px;color:var(--muted);margin-top:2px}
+  .mc-hist-axis>div{flex:1;text-align:center}
+  .mc-hist-caption{font-size:11px;color:var(--muted);margin:8px 0 16px;line-height:1.45}
+  .mc-hist-markers{position:absolute;inset:0 0 auto 0;height:130px;pointer-events:none;z-index:2}
+  .mc-hist-marker{position:absolute;top:0;width:2px;height:130px;background:#111}
+  .mc-hist-marker.med{opacity:.7}
+  .mc-hist-marker.lo,.mc-hist-marker.hi{opacity:.4}
+  /* regal analysis block — MC + collapsible panels */
+  .regal-analysis{margin:0 18px 20px;clear:both}
+  .regal-panels{display:flex;flex-direction:column;gap:12px;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+  .regal-panels .feat-panel,.regal-panels .cw-panel{margin:0}
+  /* table horizontal scroll on narrow screens */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:8px 0 12px;border-radius:8px}
+  .table-wrap .cw-table,.table-wrap .valtbl,.table-wrap .preset-cmp{min-width:520px;margin:0}
+  /* footer clearance */
+  footer{margin-top:28px;padding:16px 22px 48px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);clear:both;position:relative}
+  /* uniform collapsible panels */
+  .cw-panel>summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px}
+  .cw-panel>summary::-webkit-details-marker{display:none}
+  .cw-panel>summary::before{content:"▸";color:var(--accent);font-size:11px;transition:transform .15s;flex-shrink:0}
+  .cw-panel[open]>summary::before{transform:rotate(90deg)}
+  .feat-panel>div,.cw-panel>div{padding-top:2px}
+  .feat-panel .cw-note:first-child,.cw-panel .cw-note:first-child{margin-top:0}
+  /* header toolbar alignment */
+  .hdr-tools label{white-space:nowrap;flex-shrink:0}
+  /* preset grid uniform heights */
+  .presets{align-items:stretch}
+  button.p{display:flex;flex-direction:column;justify-content:center}
+  .grid2{align-items:stretch}
 </style>
 </head>
 <body>
-<div id="loadOverlay" class="load-overlay visible" aria-live="polite" aria-busy="true">
+<div id="loadOverlay" class="load-overlay" aria-live="polite" aria-busy="false">
   <div class="load-card">
     <div class="load-spinner" role="status" aria-label="Loading"></div>
     <div class="load-msg" id="loadMsg">Loading…</div>
@@ -465,7 +503,7 @@
   <div class="card">
     <h2>Survival curves (from randomization)</h2>
     <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: GPS (mixture-cure), BAT (Weibull + tail), pooled 50/50 average. Vertical dashed line = 36 months. Medians and HR below are derived from these curves — not unblinded trial data.</div>
-    <canvas id="chart" width="920" height="430"></canvas>
+    <div class="chart-wrap"><canvas id="chart" width="920" height="430"></canvas></div>
 
     <div class="grid2">
       <div class="stat bat"><div class="k">BAT arm median OS (incl. survivors)</div><div class="v" id="oBatMed">–</div></div>
@@ -504,8 +542,9 @@
 </div>
 
 <!-- MONTE CARLO -->
-<div style="padding:0 18px 6px">
-  <div class="card">
+<div class="regal-analysis">
+<div class="mc-section">
+  <div class="card mc-panel">
     <h2 id="mcPanelTitle">Monte Carlo — final-HR distribution</h2>
     <div id="mcPanelHint" style="font-size:12.5px;color:var(--muted);margin-bottom:10px">Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">+12</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">+6</a>, still &lt;80). Win = stratified log-rank significance; HR &lt; 0.636 threshold from <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>. <span class="tag m">Model output</span> — only as good as the priors.</div>
     <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:10px" class="mc-toolbar">
@@ -516,10 +555,8 @@
       <span id="mcStatus" style="font-size:12px;color:var(--muted)">not run yet — click to run</span>
     </div>
     <div id="mcStats" style="font-size:14px;font-weight:600;margin-bottom:8px"></div>
-    <div id="mcHist"></div>
-  </div>
-</div>
-
+    <div id="mcHist" class="mc-hist-host"></div>
+    <div class="regal-panels">
 <!-- SENSITIVITY TORNADO -->
 <details class="feat-panel" id="panelTornado">
   <summary>Sensitivity tornado — which inputs move P(win) most? <span class="tag m">model</span></summary>
@@ -558,10 +595,10 @@
   <div style="margin-top:10px">
     <p class="cw-note">Adjust the lead-time / randomization-window lift to convert between <b>IRM</b> (from randomization, what REGAL reports) and <b>TRUE CR2-onset</b> medians. Uses current model survival curves for implied HR and alive counts. CW reference values shown as anchors. Source: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM post</a> · <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank" rel="noopener">Suissa 2008</a></p>
     <div class="ctrl"><label>Avg lead time (CR2 → randomization) <span id="irmLead">3.0 m</span></label><input type="range" id="irm_lead" min="1" max="5" step="0.5" value="3"/></div>
-    <table class="cw-table" id="irmTable">
+    <div class="table-wrap"><table class="cw-table" id="irmTable">
       <thead><tr><th>Parameter</th><th>Model (current)</th><th>CW reference</th><th>Δ from CW</th></tr></thead>
       <tbody id="irmBody"></tbody>
-    </table>
+    </table></div>
   </div>
 </details>
 
@@ -584,7 +621,7 @@
     <p class="cw-note">All REGAL forward and inverse presets computed side-by-side — no clicking through one by one. P(win) uses the same fast approximate MC as the tornado panel (3k draws per preset). May take a few seconds.</p>
     <button class="p" id="presetCmpRun" style="font-weight:700;padding:6px 12px;margin-bottom:8px">▶ Compute all presets</button>
     <span id="presetCmpStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
-    <div style="overflow-x:auto;max-height:420px;overflow-y:auto">
+    <div class="table-wrap" style="max-height:420px;overflow-y:auto">
       <table class="preset-cmp" id="presetCmpTable">
         <thead><tr><th>Preset</th><th>Mode</th><th>HR</th><th>e46</th><th>e58</th><th>e63</th><th>P(win)</th><th>BAT 3yr</th><th>GPS cure</th></tr></thead>
         <tbody id="presetCmpBody"><tr><td colspan="9" style="text-align:center;color:var(--muted)">Click Compute all presets</td></tr></tbody>
@@ -606,7 +643,7 @@
 
 <!-- COMMUNITY DD — IRM / LEAD-TIME (u/Confident-Web-7118) -->
 <details class="cw-panel" id="panelCW">
-  <summary style="cursor:pointer;font-size:14px;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px"><span style="color:var(--accent);font-size:11px">▸</span> Community DD — u/Confident-Web-7118 IRM / lead-time analysis <span class="tag a">assumption</span></summary>
+  <summary>Community DD — u/Confident-Web-7118 IRM / lead-time analysis <span class="tag a">assumption</span></summary>
   <div style="margin-top:12px">
     <p class="cw-note"><span class="tag m">Replication note</span> Tables below quote <b>u/Confident-Web-7118</b>'s published modeling outputs (not our solver). This app's anchor-constrained inversion uses the same event anchors and mixture-cure framing but different parameterization — implied medians/HR may differ slightly; use the sliders/MC to compare. Primary sources: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM / randomization window ↗</a> · <a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">Part 1 DD ↗</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1r8rb45/sls_part_2_and_final_deepest_due_diligence_for/" target="_blank" rel="noopener">Part 2 DD ↗</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1toy09e/feeling_really_great_about_the_biology/" target="_blank" rel="noopener">Biology/stats update ↗</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">Critique (uhdisj41) ↗</a></p>
 
@@ -614,7 +651,7 @@
     <p><b>IRM (Implied Randomization Median)</b> = median OS measured from <em>randomization</em> — what REGAL will report at topline. Differs from <b>TRUE CR2-onset median</b> (literature clock starts at second remission). REGAL's ≤6-month CR2→randomization window excludes early deaths → positive selection lifts reported BAT mOS ~1.5–4 mo vs underlying biology; <b>HR is unchanged</b> (same lead-time on both arms). <span class="cite"><a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">[CW IRM post]</a></span> · <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank" rel="noopener">Suissa 2008</a></p>
 
     <h3>Topline BAT mOS → TRUE CR2-onset (CW conversion)</h3>
-    <table class="cw-table">
+    <div class="table-wrap"><table class="cw-table">
       <thead><tr><th>What REGAL reports (IRM)</th><th>≈ TRUE CR2-onset mOS</th></tr></thead>
       <tbody>
         <tr><td>BAT mOS = 13 mo</td><td>9–10 mo</td></tr>
@@ -622,33 +659,33 @@
         <tr><td>BAT mOS = 15 mo</td><td>11–12 mo</td></tr>
         <tr><td>BAT mOS = 16 mo</td><td>12–13 mo</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="cw-note">Example (CW): TRUE CR2-onset median 11 mo, Weibull k=0.85, avg lead time D=3 mo → <b>IRM ≈ 14.7 mo</b> (+3.7 mo inflation). <span class="cite"><a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">[source]</a></span></p>
 
     <h3>Scenario fits to 60 / 72 / 78 events (CW tolerance sweep)</h3>
-    <table class="cw-table">
+    <div class="table-wrap"><table class="cw-table">
       <thead><tr><th>Scenario</th><th>Event tolerance</th><th>IRM</th><th>HR @ 80th</th><th>BAT 3-yr OS S(36)</th><th>Pooled mOS</th></tr></thead>
       <tbody>
         <tr><td>Data-precise</td><td>±1 event</td><td>15.9</td><td>0.58</td><td>22%</td><td>19.2</td></tr>
         <tr class="hl"><td>Biology-consistent</td><td>±1.5 events</td><td>10.3</td><td>0.23</td><td>14%</td><td>18.7</td></tr>
         <tr><td>Compromise (weighted)</td><td>—</td><td>~13</td><td>~0.40</td><td>~18%</td><td>~19</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="cw-note">CW argues ±1 event is too strict (Poisson σ ≈ 7–9 per anchor); ±1.5 admits biologically plausible BAT 3-yr OS 5–15%. <span class="cite"><a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">[source]</a></span></p>
 
     <h3>Three constraint scenarios @ 80th event (CW preferred = Scenario C)</h3>
-    <table class="cw-table">
+    <div class="table-wrap"><table class="cw-table">
       <thead><tr><th>Constraint set</th><th>Best fit</th><th>IRM</th><th>HR @ 80th</th><th>BAT S(36)</th><th>HR @ IA</th><th>BAT alive</th><th>GPS alive</th></tr></thead>
       <tbody>
         <tr><td>Data only (±1)</td><td>M=13, k=0.85</td><td>16.04</td><td>0.59</td><td>25.7%</td><td>0.85</td><td>15.1</td><td>30.9</td></tr>
         <tr><td>Biology only (S(36)≤15%, ±1.5)</td><td>M=8, k=0.85</td><td>9.85</td><td>0.22</td><td>13.0%</td><td>0.32</td><td>7.2</td><td>38.8</td></tr>
         <tr class="hl"><td>OBF + S(36)≤20% (±1.07)</td><td>M=10, k=0.85, p<sub>bridge</sub>=5%</td><td>12.61</td><td>0.37</td><td>19.6%</td><td>0.59</td><td>11.3</td><td>34.7</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="cw-note">Scenario C is CW's coherent pick: OBF-compatible interim (HR<sub>IA</sub>≈0.59, no early stop), biologically defensible tail, ~35 GPS / ~11 BAT alive at 80th. Alive counts of 63/arm. <span class="cite"><a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">[source]</a></span></p>
 
     <h3>Best biology+data fits (±1.5 events, before randomization lift)</h3>
-    <table class="cw-table">
+    <div class="table-wrap"><table class="cw-table">
       <thead><tr><th>M</th><th>k</th><th>p<sub>bridge</sub></th><th>Residual</th><th>IRM</th><th>HR @ 80th</th><th>BAT S(36)</th><th>Pooled</th></tr></thead>
       <tbody>
         <tr class="hl"><td>9</td><td>0.95</td><td>5%</td><td>1.18</td><td>10.33</td><td>0.23</td><td>13.6%</td><td>18.66</td></tr>
@@ -657,10 +694,10 @@
         <tr><td>7</td><td>0.85</td><td>5%</td><td>1.37</td><td>9.14</td><td>0.21</td><td>13.5%</td><td>18.45</td></tr>
         <tr><td>10</td><td>0.95</td><td>5%</td><td>1.37</td><td>10.55</td><td>0.25</td><td>14.1%</td><td>18.85</td></tr>
       </tbody>
-    </table>
+    </table></div>
 
     <h3>CW Part 1 anchored cure model (reverse-engineered from 72 @ m58)</h3>
-    <table class="cw-table">
+    <div class="table-wrap"><table class="cw-table">
       <thead><tr><th>Parameter</th><th>CW published value</th><th>This app preset</th></tr></thead>
       <tbody>
         <tr><td>BAT median (from rand)</td><td>10 mo (historical anchor)</td><td>10 mo — <b>Optimistic cure (~85%)</b></td></tr>
@@ -670,7 +707,7 @@
         <tr><td>Model-internal HR (cure MC)</td><td>0.13–0.30 (NPH distortion)</td><td>Lower under mixture-cure — not headline HR</td></tr>
         <tr><td>P(success) posterior</td><td>99.9% (Part 2, all BAT uncertainty)</td><td>Run MC — differs by priors &amp; IA binding</td></tr>
       </tbody>
-    </table>
+    </table></div>
     <p class="cw-note">Part 1: 72 events @ m58 + deceleration ⇒ cure-fraction on GPS arm; unconstrained grid search pushed BAT to ~14.5 mo with ~64% cure (identifiability ridge). Part 2: Bayesian synthesis → <b>BAT mOS 11.4 mo</b> (99% within 10–13). Event deceleration: 12 deaths in 12 mo from 66 at risk. <span class="cite"><a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">[Part 1]</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1r8rb45/sls_part_2_and_final_deepest_due_diligence_for/" target="_blank" rel="noopener">[Part 2]</a></span></p>
 
     <h3>Bayes factor (~62×) — honest caveat</h3>
@@ -684,11 +721,15 @@
 
 <!-- COMMUNITY DD — validated synthesis (lazy-loaded) -->
 <details class="cw-panel" id="panelCommunity">
-  <summary style="cursor:pointer;font-size:14px;font-weight:700;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px"><span style="color:var(--accent);font-size:11px">▸</span> Community perspectives (validated) <span class="tag v">primary-checked</span></summary>
+  <summary>Community perspectives (validated) <span class="tag v">primary-checked</span></summary>
   <div id="communityDDHost" style="margin-top:12px">
     <p class="cw-note">Expand to load contributor synthesis (lazy). Tags: <span class="val-ok">✅ verified</span> · <span class="val-part">⚠️ partial</span> · <span class="val-no">❌ not as fact</span> · <span class="val-model">🔬 model/opinion</span></p>
   </div>
 </details>
+</div><!-- /regal-panels -->
+  </div><!-- /mc-panel -->
+</div><!-- /mc-section -->
+</div><!-- /regal-analysis -->
 
 <!-- FACTS -->
 <div class="facts">
@@ -817,7 +858,7 @@
     <div class="card">
       <h2>SLS-009 vs historical benchmark (r/r)</h2>
       <div class="chart-sub"><span class="tag m">Model</span> Exponential OS curves: treatment (reported mOS) vs historical benchmark. Fold-improvement and HR-equivalent assume constant hazard — a simplification for single-arm vs external control.</div>
-      <canvas id="slsChart" width="920" height="360"></canvas>
+      <div class="chart-wrap"><canvas id="slsChart" width="920" height="360"></canvas></div>
       <div class="grid2">
         <div class="stat"><div class="k">OS fold-improvement</div><div class="v" id="oFold">–</div></div>
         <div class="stat"><div class="k">HR-equivalent (exp.)</div><div class="v" id="oHReq">–</div></div>
@@ -1002,7 +1043,7 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<footer style="padding:16px 22px 40px;font-size:11.5px;color:var(--muted);border-top:1px solid var(--line);margin-top:20px">
+<footer>
   SELLAS ($SLS) Interactive Model · Copyright © 2026 sterno874 and contributors · Free software under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU AGPL-3.0-or-later</a>. This program comes with ABSOLUTELY NO WARRANTY. You may redistribute and modify it under the AGPL; if you run a modified version on a server you must offer users its source. Source: <a href="https://github.com/sterno874/SLS-Model" target="_blank">github.com/sterno874/SLS-Model</a>. &nbsp;Educational/analytical only — <b>not investment, legal, medical, or financial advice.</b> Community DD sources cited in References (e.g. u/Confident-Web-7118).
 </footer>
 
@@ -1011,7 +1052,7 @@
 const $ = id => document.getElementById(id);
 
 // ---------- loading overlay ----------
-let loadCount = 1;
+let loadCount = 0;
 function showLoading(msg){
   loadCount++;
   const ov=$("loadOverlay"),msgEl=$("loadMsg");
@@ -1024,6 +1065,12 @@ function hideLoading(){
     const ov=$("loadOverlay");
     if(ov){ov.classList.remove("visible");ov.setAttribute("aria-busy","false");}
   }
+}
+function forceHideLoading(){
+  loadCount=0;
+  clearTimeout(updateSpinnerTimer);updateSpinnerTimer=null;
+  const ov=$("loadOverlay");
+  if(ov){ov.classList.remove("visible");ov.setAttribute("aria-busy","false");}
 }
 function deferWithLoading(fn,msg){
   showLoading(msg||"Computing…");
@@ -1052,7 +1099,6 @@ function scheduleUpdate(){
   updateTimer=setTimeout(()=>{
     updateTimer=null;clearTimeout(updateSpinnerTimer);updateSpinnerTimer=null;hideLoading();updateNow();
   },75);
-  if(!updateSpinnerTimer)updateSpinnerTimer=setTimeout(()=>{if(updateTimer)showLoading("Updating…");},200);
 }
 function refreshOpenPanels(){
   if(panelOpen("panelIRM"))renderIRM();
@@ -1468,13 +1514,16 @@ function renderMC(acc,tried){
   $("mcStats").innerHTML="P(win — significant log-rank) = <span style='color:"+(win>0.5?"var(--good)":"var(--bad)")+"'>"+(100*win).toFixed(0)+"%</span> &nbsp;·&nbsp; median HR "+med.toFixed(2)+" &nbsp;·&nbsp; 90% CrI ["+lo.toFixed(2)+", "+hi.toFixed(2)+"] &nbsp;·&nbsp; P(HR&lt;0.35)="+(100*W35/W).toFixed(1)+"% &nbsp;<span style='color:var(--muted);font-weight:400'>(likelihood-weighted; NPH-aware significance)</span>";
   const bins=[];for(let b=0.30;b<1.05-1e-9;b+=0.05){let c=0;for(const x of acc)if(x.hr>=b&&x.hr<b+0.05)c+=x.w;bins.push([b,100*c/W]);}
   const maxp=Math.max.apply(null,bins.map(x=>x[1]).concat([1]));
-  let h='<div style="display:flex;align-items:flex-end;gap:2px;height:130px;border-bottom:1px solid var(--line)">';
+  let h='<div class="mc-hist-wrap"><div class="mc-hist-bars">';
   bins.forEach(function(bp){const b=bp[0],pc=bp[1],col=(b+0.025)<THRESH?"var(--good)":"var(--bad)";
     h+='<div title="HR '+b.toFixed(2)+'–'+(b+0.05).toFixed(2)+': '+pc.toFixed(1)+'%" style="flex:1;height:'+(pc/maxp*100).toFixed(1)+'%;background:'+col+';border-radius:2px 2px 0 0;min-height:'+(pc>0?2:0)+'px"></div>';});
-  h+='</div><div style="display:flex;gap:2px;font-size:9px;color:var(--muted);margin-top:2px">';
-  bins.forEach(function(bp){h+='<div style="flex:1;text-align:center">'+((Math.round(bp[0]*100))%10===0?bp[0].toFixed(1):"")+'</div>';});
-  h+='</div><div style="font-size:11px;color:var(--muted);margin-top:5px">Green = HR below the 0.636 win threshold · red = miss. X-axis = final HR at 80 deaths. Bar height = % of fitting draws. <b>Markers:</b> 5th '+lo.toFixed(2)+' · median '+med.toFixed(2)+' · 95th '+hi.toFixed(2)+'</div>';
-  h+='<div style="position:relative;height:0;margin-top:-132px;pointer-events:none"><div style="position:absolute;left:'+(lo-0.30)/0.75*100+'%;top:0;width:2px;height:130px;background:#111;opacity:.4" title="5th pct"></div><div style="position:absolute;left:'+(med-0.30)/0.75*100+'%;top:0;width:2px;height:130px;background:#111;opacity:.7" title="median"></div><div style="position:absolute;left:'+(hi-0.30)/0.75*100+'%;top:0;width:2px;height:130px;background:#111;opacity:.4" title="95th pct"></div></div>';
+  h+='</div><div class="mc-hist-markers">';
+  h+='<div class="mc-hist-marker lo" style="left:'+(lo-0.30)/0.75*100+'%" title="5th pct"></div>';
+  h+='<div class="mc-hist-marker med" style="left:'+(med-0.30)/0.75*100+'%" title="median"></div>';
+  h+='<div class="mc-hist-marker hi" style="left:'+(hi-0.30)/0.75*100+'%" title="95th pct"></div>';
+  h+='</div></div><div class="mc-hist-axis">';
+  bins.forEach(function(bp){h+='<div>'+((Math.round(bp[0]*100))%10===0?bp[0].toFixed(1):"")+'</div>';});
+  h+='</div><div class="mc-hist-caption">Green = HR below the 0.636 win threshold · red = miss. X-axis = final HR at 80 deaths. Bar height = % of fitting draws. <b>Markers:</b> 5th '+lo.toFixed(2)+' · median '+med.toFixed(2)+' · 95th '+hi.toFixed(2)+'</div>';
   $("mcHist").innerHTML=h;
 }
 
@@ -1861,7 +1910,7 @@ function initApp(){
 ["panelIRM","panelBayes","panelBacktest","panelCommunity"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open){if(id==="panelCommunity")loadCommunityDD();else refreshOpenPanels();}});});
 requestAnimationFrame(()=>{
   setTimeout(()=>{
-    try{initApp();}finally{hideLoading();}
+    try{initApp();}finally{forceHideLoading();}
   },0);
 });
 
@@ -1995,14 +2044,21 @@ function drawHist(hostId,vals,lo,hi,bin,thr,greenBelow){
   const s=vals.slice().sort((a,b)=>a-b);
   const qf=q=>s[Math.min(s.length-1,Math.floor(q*s.length))];
   const p5=qf(0.05),p50=qf(0.5),p95=qf(0.95);
-  let h='<div style="display:flex;align-items:flex-end;gap:1px;height:120px;border-bottom:1px solid var(--line);position:relative">';
+  const span=hi-lo,mk=v=>Math.min(99,Math.max(0,(v-lo)/span*100));
+  let h='<div class="mc-hist-wrap"><div class="mc-hist-bars" style="height:120px">';
   bins.forEach(bp=>{const b=bp[0],pc=bp[1];let col="var(--accent)";if(thr!=null)col=(((b+bin/2)<thr)===greenBelow)?"var(--good)":"var(--bad)";h+='<div title="'+b.toFixed(bin<1?2:0)+'–'+(b+bin).toFixed(bin<1?2:0)+': '+pc.toFixed(1)+'%" style="flex:1;height:'+(pc/mx*100).toFixed(1)+'%;background:'+col+';border-radius:2px 2px 0 0;min-height:'+(pc>0?2:0)+'px"></div>';});
   h+='</div>';
-  if(n>10){const span=hi-lo;const mk=v=>Math.min(99,Math.max(0,(v-lo)/span*100));
-    h+='<div style="position:relative;height:0;margin-top:-120px;pointer-events:none"><div style="position:absolute;left:'+mk(p5)+'%;top:0;width:1px;height:120px;background:#111;opacity:.35"></div><div style="position:absolute;left:'+mk(p50)+'%;top:0;width:2px;height:120px;background:#111;opacity:.6"></div><div style="position:absolute;left:'+mk(p95)+'%;top:0;width:1px;height:120px;background:#111;opacity:.35"></div></div>';}
-  h+='<div style="display:flex;gap:1px;font-size:9px;color:var(--muted);margin-top:2px">';
-  const step=Math.max(1,Math.ceil(bins.length/8));bins.forEach((bp,i)=>{h+='<div style="flex:1;text-align:center">'+((i%step===0)?bp[0].toFixed(bin<1?2:0):"")+'</div>';});
-  h+='</div><div style="font-size:10px;color:var(--muted);margin-top:2px">5th '+p5.toFixed(bin<1?2:1)+' · median '+p50.toFixed(bin<1?2:1)+' · 95th '+p95.toFixed(bin<1?2:1)+'</div>';
+  if(n>10){
+    h+='<div class="mc-hist-markers" style="height:120px">';
+    h+='<div class="mc-hist-marker lo" style="left:'+mk(p5)+'%;height:120px" title="5th pct"></div>';
+    h+='<div class="mc-hist-marker med" style="left:'+mk(p50)+'%;height:120px" title="median"></div>';
+    h+='<div class="mc-hist-marker hi" style="left:'+mk(p95)+'%;height:120px" title="95th pct"></div>';
+    h+='</div></div>';
+  }else h+='</div>';
+  const step=Math.max(1,Math.ceil(bins.length/8));
+  h+='<div class="mc-hist-axis">';
+  bins.forEach((bp,i)=>{h+='<div>'+((i%step===0)?bp[0].toFixed(bin<1?2:0):"")+'</div>';});
+  h+='</div><div class="mc-hist-caption">5th '+p5.toFixed(bin<1?2:1)+' · median '+p50.toFixed(bin<1?2:1)+' · 95th '+p95.toFixed(bin<1?2:1)+'</div>';
   $(hostId).innerHTML=h;
 }
 function sd2(id){const c=CFG2.find(x=>x.id===id);return (c.sig.b1[1]-c.sig.b1[0])/2;}
