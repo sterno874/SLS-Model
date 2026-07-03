@@ -79,6 +79,27 @@ test("inverse solver hits anchors with recalibrated 42% cure preset", () => {
   assert.ok(sBAT(36, ir.sol) * 100 <= 15);
 });
 
+test("CW inverse round-trip: delay=0 lands BAT near 10 mo (CW forward anchor)", () => {
+  const ir = inverseSolve(mk({ gpsc: 0.42, delay: 0, xtx: 0, cens: 0 }), 14);
+  assert.ok(ir.sol, ir.reason || "inverse should solve");
+  assert.ok(Math.abs(ir.sol.bat - 10) <= 1.5, `BAT ${ir.sol.bat} should be near CW forward preset (~10 mo)`);
+  assert.ok(hazardRatio(T2, ir.sol) < THRESH);
+});
+
+test("CW inverse with delay=3 differs from CW Scenario C — disclosed approximation", () => {
+  const ir = inverseSolve(mk({ gpsc: 0.42, delay: 3, xtx: 0, cens: 0 }), 14);
+  assert.ok(ir.sol && passesVerdict(ir.sol));
+  assert.ok(ir.sol.bat >= 11, "GPS onset delay pushes implied BAT above CW's M=10 Scenario C");
+});
+
+test("hrGaugeState readout HR differs from m58 when cutoff before 80th event", () => {
+  const best = mk({});
+  const gs58 = hrGaugeState(best, 58);
+  const gs72 = hrGaugeState(best, 72);
+  assert.ok(gs72.hrForFinal < THRESH);
+  if (gs72.t80 > 58) assert.ok(gs72.Tan !== T2 || gs72.hrReadout !== gs72.hrM58);
+});
+
 test("Pike HR ≈ analyzeLR", () => {
   const best = mk({});
   const lr = analyzeLR(T2, best);

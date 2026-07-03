@@ -60,16 +60,21 @@ import {
   batcFor3yrCap,
   inverseSolve
 } from './math/survival.js';
+import {
+  b64urlEncode,
+  b64urlDecode,
+  parseEmbedMode,
+  buildShareHash,
+  paramsFromPresetQ,
+  paramsFromPreset as paramsFromPresetPure,
+  isPlausible,
+  computeValuationMetrics as computeValuationMetricsPure
+} from './ui/state.js';
 
 const $ = id => document.getElementById(id);
 
 // ---------- plausibility gating (UI) ----------
-function isPlausible(p){return passesVerdict(p);}
 let lastConsistentP=null;
-function paramsFromPresetQ(q){
-  if(!q)return null;
-  return{bat:q.bat,batc:q.batc/100,batk:1,gpsc:q.gpsc/100,gpsu:q.gpsu,delay:q.delay,xtx:(q.xtx!=null?q.xtx:0)/100,cens:(q.cens!=null?q.cens:0)/100,osmode:"itt",mid:q.mid||25,k:q.k||0.15,fh:false,stratF:STRATF,zfut:ZFUT};
-}
 function presetFits(name,q){const pr=paramsFromPresetQ(q||P[name]);return pr?isPlausible(pr):false;}
 function auditPresetButtons(){
   // All visible presets are pre-calibrated to fit 60/72/78 event anchors.
@@ -187,7 +192,7 @@ function applyInverseResult(r){
   $("invPool").textContent=pm===null?">240 m":pm.toFixed(1)+" m";
   $("invHR").textContent=isNaN(hr)?"—":hr.toFixed(2);
   $("invErr").textContent=r.err<1?"exact":r.err.toFixed(1);
-  $("invStatus").textContent="Anchored to 60/72/78 + <80; GPS cure "+(s.gpsc*100).toFixed(0)+"% fixed; BAT 3-yr OS "+(sBAT(36,s)*100).toFixed(0)+"% (≤"+$("batcap").value+"% cap). Structural tail→GPS assignment — not arm-level proof.";
+  $("invStatus").textContent="Anchored to 60/72/78 + <80; GPS cure "+(s.gpsc*100).toFixed(0)+"% fixed; BAT 3-yr OS "+(sBAT(36,s)*100).toFixed(0)+"% (≤"+$("batcap").value+"% cap). Least-squares fit (exponential BAT k=1) — CW uses Weibull k≈0.85 grid search; implied BAT may differ from CW Scenario C (~10 mo). Structural tail→GPS assignment — not arm-level proof.";
   return true;
 }
 function setRegalMode(mode){
@@ -305,10 +310,7 @@ function initFactsAsOf(){
   });
 }
 function getEmbedMode(){
-  const q=new URLSearchParams(location.search);
-  if(q.get('embed')==='1')return true;
-  try{const h=location.hash;if(h.startsWith('#s=')){const s=JSON.parse(b64urlDecode(h.slice(3)));if(s&&s.embed)return true;}}catch(e){}
-  return false;
+  return parseEmbedMode(location.search,location.hash);
 }
 let embedMode=getEmbedMode();
 function applyEmbedMode(){
@@ -603,9 +605,9 @@ function update(){
   const hrIA=gs.hrInterim;
   $("oIAstatus").innerHTML=isNaN(hrIA)
     ?"—"
-    :("HR <b>"+hrIA.toFixed(2)+"</b> @ m46 — "+(gs.interimClearsFloor
-      ?'<span class="ia-pass">cleared early-stop floor (≈0.55)</span> · consistent with IDMC continue'
-      :'<span class="ia-warn">below early-stop floor (≈0.55)</span> · would have triggered efficacy stop'));
+    :("Model-implied HR <b>"+hrIA.toFixed(2)+"</b> @ m46 — "+(gs.interimClearsFloor
+      ?'<span class="ia-pass">above OBF efficacy floor (≈0.547)</span> · consistent with IDMC continue'
+      :'<span class="ia-warn">below OBF efficacy floor (≈0.547)</span> · yet IDMC continued Jan 2025 (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">PR</a>) — actual stratified interim differed; blinded arm split unknown')+' <span class="tag m">model</span>');
   $("hrInterim").style.left="0%";$("hrInterim").style.width=(IFLOOR/HRMAX*100)+"%";
   $("hrInterim").style.background="repeating-linear-gradient(45deg,rgba(214,69,69,.28),rgba(214,69,69,.28) 4px,rgba(214,69,69,.1) 4px,rgba(214,69,69,.1) 8px)";
   $("hrInterimMark").style.left=isNaN(hrIA)?"-99px":hrMarkLeft(hrIA);
@@ -629,7 +631,7 @@ function update(){
   const gn=$("hrGaugeNote");
   if(gn){
     gn.style.display="block";
-    gn.innerHTML="<b>Two different bars:</b> interim early-stop ≈0.55 (@ 60 events) vs final win 0.636 (@ 80 events). "
+    gn.innerHTML="<b>Two different bars:</b> interim OBF efficacy floor ≈0.547 (@ 60 events; <a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/\" target=\"_blank\" rel=\"noopener\">Jamy &amp; Cicic 2025</a>) vs final win 0.636 (@ 80 events). "
       +(binding
         ?"Monte Carlo below uses <b>binding</b> interim — weights scenarios by P(IDMC continues)."
         :"Monte Carlo below uses <b>non-binding</b> interim — IA is informational only.");
@@ -786,8 +788,6 @@ $("mcRun").addEventListener("click",function(){
 $("mcNeutral").addEventListener("click",function(){applyRegalPreset("best");$("mcStatus").textContent="Best Available Guess priors set — click Run";});
 
 // ================= SHAREABLE URL STATE (#1) =================
-function b64urlEncode(str){return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
-function b64urlDecode(str){str=str.replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";return decodeURIComponent(escape(atob(str)));}
 function captureState(){
   return{v:1,tab:activeTab,regalMode,activeRegalPreset,activeInvPreset,activeSlsPreset,activeValPreset,
     gps:{bat:+$("bat").value,batc:+$("batc").value,batk:+$("batk").value,gpsc:+$("gpsc").value,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value,cens:+$("cens").value,mid:+$("mid").value,k:+$("k").value,batcap:+$("batcap").value,autofit:$("autofit").checked,fhTest:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value,mcFloor:$("mcFloor").checked,cutoff:+$("cutoff").value},
@@ -795,7 +795,7 @@ function captureState(){
     val:{v_cr2:+$("v_cr2").value,v_cr1:+$("v_cr1").value,v_gpen:+$("v_gpen").value,v_gprice:+$("v_gprice").value,v_gyears:+$("v_gyears").value,v_flpool:+$("v_flpool").value,v_rrpool:+$("v_rrpool").value,v_spen:+$("v_spen").value,v_sprice:+$("v_sprice").value,v_syears:+$("v_syears").value,v_platform:+$("v_platform").value,v_mult:+$("v_mult").value,v_shares:+$("v_shares").value,v_riskadj:$("v_riskadj").checked,v_pgps:+$("v_pgps").value,v_psls:+$("v_psls").value},
     ui:{showUncertainty,irm_lead:+$("irm_lead").value,bf_e58:+$("bf_e58").value,bf_cure:+$("bf_cure").value,explainLvl:curLvl}};
 }
-function encodeStateToHash(){return "#s="+b64urlEncode(JSON.stringify(captureState()));}
+function encodeStateToHash(){return buildShareHash(captureState());}
 function applyState(s){
   if(!s||s.v!==1)return false;restoringState=true;
   if(s.gps){const g=s.gps;for(const k of ["bat","batc","batk","gpsc","gpsu","delay","xtx","cens","mid","k","batcap","stratF","zfut","cutoff"])if(g[k]!=null&&$(k))$(k).value=g[k];if(g.autofit!=null)$("autofit").checked=g.autofit;if(g.fhTest!=null)$("fhTest").checked=g.fhTest;if(g.mcFloor!=null)$("mcFloor").checked=g.mcFloor;}
@@ -843,10 +843,7 @@ function fastPwin(p,binding,cutoff,nDraws,dataThrough){
   return W>0?WP/W:NaN;
 }
 function paramsFromPreset(name,q,mode){
-  const base={osmode:"itt",batk:1,fh:false,stratF:STRATF,zfut:ZFUT};
-  q=q||(mode==="inverse"?INV[name]:P[name]);if(!q)return null;
-  if(mode==="inverse"){const ir=solveInverse(Object.assign({},base,{gpsc:q.gpsc/100,delay:q.delay||0,xtx:(q.xtx||0)/100,cens:(q.cens||0)/100,mid:q.mid||25,k:q.k||0.15,bat:8}),q.batcap||17);return ir.sol?Object.assign({},ir.sol,{batk:1,fh:false,stratF:STRATF,zfut:ZFUT}):null;}
-  return Object.assign({},base,{bat:q.bat,batc:q.batc/100,gpsc:q.gpsc/100,gpsu:q.gpsu,delay:q.delay,xtx:(q.xtx||0)/100,cens:(q.cens||0)/100,mid:q.mid||25,k:q.k||0.15});
+  return paramsFromPresetPure(name,q,mode,P,INV);
 }
 
 // ================= TORNADO (#2) =================
@@ -1282,18 +1279,12 @@ function drawExp(id,arms,tmax){
 
 // ================= TAB 2 : SLS-009 =================
 function computeValuationMetrics(){
-  const cr2=+$("v_cr2").value,cr1=+$("v_cr1").value,gpen=+$("v_gpen").value/100,gprice=+$("v_gprice").value,gyears=+$("v_gyears").value;
-  const flpool=+$("v_flpool").value,rrpool=+$("v_rrpool").value,spen=+$("v_spen").value/100,sprice=+$("v_sprice").value,syears=+$("v_syears").value;
-  const platform=+$("v_platform").value,mult=+$("v_mult").value,shares=+$("v_shares").value;
-  const ra=$("v_riskadj")&&$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
-  const gpool=(cr2+cr1)*gpen*gyears;
-  let gpsPeak=gpool*gprice/1000;
-  let slsPeak=(flpool+rrpool)*spen*syears*sprice/1000;
-  if(ra){gpsPeak*=pG;slsPeak*=pS;}
-  const totPeak=gpsPeak+slsPeak;
-  const EV=totPeak*mult+platform*1000;
-  const ps=EV/shares;
-  return{gpool,gpsPeak,slsPeak,totPeak,EV,ps,riskAdjusted:!!ra};
+  return computeValuationMetricsPure({
+    cr2:+$("v_cr2").value,cr1:+$("v_cr1").value,gpen:+$("v_gpen").value,gprice:+$("v_gprice").value,gyears:+$("v_gyears").value,
+    flpool:+$("v_flpool").value,rrpool:+$("v_rrpool").value,spen:+$("v_spen").value,sprice:+$("v_sprice").value,syears:+$("v_syears").value,
+    platform:+$("v_platform").value,mult:+$("v_mult").value,shares:+$("v_shares").value,
+    riskadj:$("v_riskadj")&&$("v_riskadj").checked,pgps:+$("v_pgps").value,psls:+$("v_psls").value
+  });
 }
 function updateBestEstStrip(){
   if(embedMode||!$("bestEstStrip"))return;

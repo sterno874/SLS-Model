@@ -1,36 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-
-/** Mirrors computeValuationMetrics() in js/main.js (DOM-free for tests). */
-function computeValuationMetrics(v) {
-  const cr2 = v.cr2;
-  const cr1 = v.cr1;
-  const gpen = v.gpen / 100;
-  const gprice = v.gprice;
-  const gyears = v.gyears;
-  const flpool = v.flpool;
-  const rrpool = v.rrpool;
-  const spen = v.spen / 100;
-  const sprice = v.sprice;
-  const syears = v.syears;
-  const platform = v.platform;
-  const mult = v.mult;
-  const shares = v.shares;
-  const ra = !!v.riskadj;
-  const pG = (v.pgps != null ? v.pgps : 65) / 100;
-  const pS = (v.psls != null ? v.psls : 55) / 100;
-  const gpool = (cr2 + cr1) * gpen * gyears;
-  let gpsPeak = (gpool * gprice) / 1000;
-  let slsPeak = ((flpool + rrpool) * spen * syears * sprice) / 1000;
-  if (ra) {
-    gpsPeak *= pG;
-    slsPeak *= pS;
-  }
-  const totPeak = gpsPeak + slsPeak;
-  const EV = totPeak * mult + platform * 1000;
-  const ps = EV / shares;
-  return { gpool, gpsPeak, slsPeak, totPeak, EV, ps, riskAdjusted: ra };
-}
+import { computeValuationMetrics } from "../js/ui/state.js";
 
 const DEFAULTS = {
   cr2: 2800,
