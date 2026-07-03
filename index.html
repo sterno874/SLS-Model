@@ -51,20 +51,14 @@
   <div class="hdr-top">
     <div class="hdr-title-block">
       <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
-      <div class="sub">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
+      <div class="sub hdr-disclaimer">Primary-sourced models; adjustable sliders = undisclosed assumptions. <a href="#explain" class="hdr-link" onclick="document.querySelector('.tabbtn[data-tab=explain]').click();return false;">Explain tab</a> for methodology &amp; full disclaimers. Not investment advice.</div>
     </div>
     <div class="readout-estimate no-embed" id="readoutEstimate" aria-live="polite" hidden>
       <div class="re-main">Est. 80th event: <b id="reDate">—</b> <span class="tag m">model est.</span></div>
       <div class="re-ci" id="reCI">90% CI: —</div>
       <div class="re-pace" id="rePace" hidden></div>
-      <div class="re-events"><span id="reEvents">78/80 events</span> · <span class="cite"><a id="reAnchorLink" href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 @ May 2026 PR</a></span></div>
-      <div class="re-footnote" id="reFootnote">Projected from 78 events @ May 2026; shifts with survival assumptions.</div>
+      <div class="re-meta"><span id="reEvents">78/80 events</span><span class="cite"><a id="reAnchorLink" href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 @ May 2026 PR</a></span></div>
     </div>
-  </div>
-  <div class="hdr-tools no-print">
-    <button type="button" class="primary" id="btnShare" title="Copy URL with all slider state encoded in the hash — zero server storage">🔗 Copy share link</button>
-    <button type="button" id="btnPrint" title="Print report with charts and scenario summary">🖨 Print report</button>
-    <label><input type="checkbox" id="showUncertainty"/> Show uncertainty bands</label>
   </div>
   <div class="tabnav">
     <button class="tabbtn active" data-tab="gps">1 · REGAL / GPS (Phase 3)</button>
@@ -72,12 +66,18 @@
     <button class="tabbtn" data-tab="value">3 · Valuation &amp; WT1 platform</button>
     <button class="tabbtn" data-tab="explain">4 · Explain (ELI5 → PhD)</button>
   </div>
+  <div class="hdr-tools no-print">
+    <button type="button" class="primary" id="btnShare" title="Copy URL with all slider state encoded in the hash — zero server storage">🔗 Copy share link</button>
+    <button type="button" id="btnPrint" title="Print report with charts and scenario summary">🖨 Print report</button>
+    <label><input type="checkbox" id="showUncertainty"/> Show uncertainty bands</label>
+  </div>
 </header>
 
 <div id="tab-gps" class="tabpage">
-  <details class="howworks">
-    <summary>How this works — KM curves, event matching, HR &amp; Monte Carlo</summary>
-    <div class="howworks-body">
+  <div class="tab-intro-bar">
+    <details class="howworks howworks-inline">
+      <summary>How this works</summary>
+      <div class="howworks-body">
       <p><span class="tag f">Fact</span> SELLAS reports <b>pooled</b> death counts (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60</a> → <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72</a> → <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78</a>, still &lt;80) from an ITT trial (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>) — not which arm each death belongs to. <span class="tag m">Model</span> We draw survival curves for BAT (Weibull + long-survivor tail) and GPS (mixture-cure plateau + uncured exponential, optional onset delay), add a shared post-enrollment transplant tail, and check whether expected deaths match those anchors.</p>
       <p><b>What the chart shows:</b> Kaplan–Meier–style overall-survival curves from randomization — not patient-level resimulation. Pooled = 50/50 average of both arms.</p>
       <p><b>Hazard ratio (HR):</b> Pike/O–E ratio of observed vs expected deaths in each arm up to month 58 — an approximate log-rank HR, not the final stratified Cox from the SAP. Win threshold HR &lt; 0.636 comes from the design paper (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>).</p>
@@ -92,10 +92,12 @@
           <div class="formula">Binding interim: weight × P(continue) · win = conditional power with ρ = √(60/80)</div>
         </div>
       </details>
-      <p style="margin:8px 0 0;font-size:12px;color:var(--muted)">Full derivation: click <b>Methodology</b> below. Tags: <span class="tag f">fact</span> primary source · <span class="tag m">model</span> simulation · <span class="tag a">assumption</span> undisclosed slider.</p>
+      <p style="margin:8px 0 0;font-size:12px;color:var(--muted)">Full derivation: click <b>Methodology</b>. Tags: <span class="tag f">fact</span> primary source · <span class="tag m">model</span> simulation · <span class="tag a">assumption</span> undisclosed slider.</p>
     </div>
-  </details>
-  <div class="tab-intro-bar"><button class="methodbtn" onclick="toggleMethod('m-gps')">📐 Methodology — REGAL / GPS math</button></div>
+    </details>
+    <span class="tab-intro-sep" aria-hidden="true">|</span>
+    <button type="button" class="methodlink" onclick="toggleMethod('m-gps')">Methodology</button>
+  </div>
   <div class="methodpanel" id="m-gps" hidden>
     <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.
     <h4>1 · Survival &amp; events</h4>
@@ -647,9 +649,10 @@
 
 <!-- ================= TAB 2 : SLS-009 ================= -->
 <div id="tab-sls009" class="tabpage" hidden>
-  <details class="howworks">
-    <summary>How this works — r/r fold-improvement &amp; Phase 3 power</summary>
-    <div class="howworks-body">
+  <div class="tab-intro-bar">
+    <details class="howworks howworks-inline">
+      <summary>How this works</summary>
+      <div class="howworks-body">
       <p><span class="tag f">Fact</span> SLS-009 Phase 2 is <b>open-label, single-arm</b> SLS-009 + AZA/VEN in post-venetoclax r/r AML-MR (<a href="https://clinicaltrials.gov/study/NCT05309745" target="_blank" rel="noopener">NCT05309745</a>). ASH 2025: ORR 46% (35 evaluable), mOS 8.9 mo (least pretreated) vs ~2.5–2.6 mo historical (<a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx" target="_blank" rel="noopener">ASH PR</a> · <a href="https://doi.org/10.1080/10428194.2022.2113530" target="_blank" rel="noopener">Zainaldin 2022</a>). <span class="tag m">Model</span> Exponential curves compare arm mOS to external benchmark — not a randomized HR.</p>
       <p><b>OS fold-improvement</b> = arm median ÷ benchmark median (e.g. 8.9 ÷ 2.8 ≈ 3.2×). Under constant hazard, <b>HR-equivalent</b> = benchmark ÷ arm (inverse of fold). This is a shorthand — not a randomized log-rank HR.</p>
       <p><b>Phase 3 power (Monte Carlo):</b> Hypothetical frontline trial SLS-009+Aza/Ven vs Aza/Ven alone. Sample projected medians, compute HR-equiv = control ÷ treatment, estimate P(significant) via Schoenfeld-style Z at assumed event count (default 250 deaths). <span class="tag a">Assumption</span> — event count and effect size are user-set priors.</p>
@@ -661,8 +664,10 @@
         </div>
       </details>
     </div>
-  </details>
-  <div class="tab-intro-bar"><button class="methodbtn" onclick="toggleMethod('m-sls')">📐 Methodology — SLS-009 math</button></div>
+    </details>
+    <span class="tab-intro-sep" aria-hidden="true">|</span>
+    <button type="button" class="methodlink" onclick="toggleMethod('m-sls')">Methodology</button>
+  </div>
   <div class="methodpanel" id="m-sls" hidden>
     <b>Different trial, different math.</b> SLS-009 (tambiciclib; a selective CDK9 inhibitor, licensed from GenFleet) is in a <b>single-arm Phase 2</b> with azacitidine + venetoclax — no randomized control, so efficacy is judged against a <b>historical benchmark</b>.
     <h4>Effect measures</h4>Both arms modeled as exponential OS. <b>Fold-improvement</b> = arm median ÷ benchmark median. Under exponential survival the <b>HR-equivalent</b> = benchmark median ÷ arm median (constant hazard ratio). Months gained = difference of medians.
@@ -839,9 +844,10 @@
 
 <!-- ================= TAB 3 : VALUATION ================= -->
 <div id="tab-value" class="tabpage" hidden>
-  <details class="howworks">
-    <summary>How this works — EV formula, risk adjustment &amp; comparables</summary>
-    <div class="howworks-body">
+  <div class="tab-intro-bar">
+    <details class="howworks howworks-inline">
+      <summary>How this works</summary>
+      <div class="howworks-body">
       <p><span class="tag a">Assumption-heavy</span> Back-of-envelope buyout math — not a DCF or price target.</p>
       <p><b>Peak sales:</b> At steady state, patients on therapy = annual new starts × penetration × average years on drug. Longer survival ⇒ larger prevalent pool. <code>Peak revenue = starts/yr × penetration × years × price</code>.</p>
       <p><b>Enterprise value:</b> <code>EV = total peak sales × multiple + risk-adjusted WT1 platform</code>. Multiple (~4–8×) reflects oncology M&amp;A convention (<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K" target="_blank" rel="noopener">Venclexta ~$2.6B</a>; <a href="https://www.sec.gov/Archives/edgar/data/882095/000110465920027988/a20-11253_1ex99d1.htm" target="_blank" rel="noopener">Gilead–Forty Seven ~$4.9B</a> pre-approval).</p>
@@ -856,8 +862,10 @@
         </div>
       </details>
     </div>
-  </details>
-  <div class="tab-intro-bar"><button class="methodbtn" onclick="toggleMethod('m-val')">📐 Methodology — valuation math</button></div>
+    </details>
+    <span class="tab-intro-sep" aria-hidden="true">|</span>
+    <button type="button" class="methodlink" onclick="toggleMethod('m-val')">Methodology</button>
+  </div>
   <div class="methodpanel" id="m-val" hidden>
     <b>Peak-sales × multiple, with a survival-driven prevalence pool.</b>
     <h4>The key dynamic (population grows if patients survive)</h4>At steady state, patients <em>on therapy</em> = annual new starts × penetration × <b>average years on therapy</b>. Longer survival ⇒ more years on drug ⇒ a larger prevalent pool. <code>Peak annual revenue = new-starts/yr × penetration × avg-years × annual price</code>.
@@ -1087,18 +1095,18 @@
 
 <!-- ================= TAB 4 : EXPLAIN ================= -->
 <div id="tab-explain" class="tabpage" hidden>
-  <div class="tab-intro-bar">
-    <div class="sub">The same three models — REGAL/GPS, SLS-009, and the valuation — explained at six depths. Pick your level. Sources are named/linked throughout.</div>
-    <div class="presets">
-      <button class="p lvlb active" data-lvl="eli5">ELI5</button>
-      <button class="p lvlb" data-lvl="ms">Middle school</button>
-      <button class="p lvlb" data-lvl="hs">High school</button>
-      <button class="p lvlb" data-lvl="col">College</button>
-      <button class="p lvlb" data-lvl="pro">Professional</button>
-      <button class="p lvlb" data-lvl="phd">PhD — no sugar</button>
+  <div class="tab-intro-bar expl-intro">
+    <p class="sub expl-lead">REGAL/GPS, SLS-009, and valuation — six depth levels. Sources linked throughout.</p>
+    <div class="expl-levels" role="group" aria-label="Explanation depth">
+      <button type="button" class="lvlb active" data-lvl="eli5">ELI5</button>
+      <button type="button" class="lvlb" data-lvl="ms">Middle school</button>
+      <button type="button" class="lvlb" data-lvl="hs">High school</button>
+      <button type="button" class="lvlb" data-lvl="col">College</button>
+      <button type="button" class="lvlb" data-lvl="pro">Professional</button>
+      <button type="button" class="lvlb" data-lvl="phd">PhD — no sugar</button>
     </div>
   </div>
-  <div class="facts"><div class="card"><div id="explbody"></div></div></div>
+  <div class="facts expl-content"><div class="card expl-card"><div id="explbody"></div></div></div>
 </div><!-- /tab-explain -->
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -1111,7 +1119,11 @@
 </nav>
 
 <footer class="embed-hide">
-  SELLAS ($SLS) Interactive Model · Copyright © 2026 sterno874 and contributors · Free software under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU AGPL-3.0-or-later</a>. This program comes with ABSOLUTELY NO WARRANTY. You may redistribute and modify it under the AGPL; if you run a modified version on a server you must offer users its source. Source: <a href="https://github.com/sterno874/SLS-Model" target="_blank">github.com/sterno874/SLS-Model</a>. &nbsp;Educational/analytical only — <b>not investment, legal, medical, or financial advice.</b> Community DD sources cited in References (e.g. u/Confident-Web-7118).
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 sterno874 and contributors · <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL-3.0</a></span>
+    <span class="footer-links"><a href="https://sls-model.vercel.app" target="_blank" rel="noopener">Live</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank" rel="noopener">Source</a></span>
+    <span class="footer-note">Educational/analytical only — not investment, legal, medical, or financial advice.</span>
+  </div>
 </footer>
 
 <script type="module" src="js/main.js"></script>

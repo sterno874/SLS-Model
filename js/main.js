@@ -1,14 +1,62 @@
 "use strict";
 
 import {
-  LN2, N_ARM, LMAX, T1, T2, T3, T4, E1, E2, E3, THRESH, IFLOOR,
-  CURRENT_EVENT_ANCHOR, PR_SOURCES, HRMAX, ZFINAL, rmst, ZEFF, ZFUT, STRATF,
-  Phi, phi, monthLabel, monthToDate, fmtCalMonth, fmtCalRange,
-  lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix,
-  sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored,
-  T80PrPace, T80, t80Analysis, mcPathToT80,
-  hazardRatio, analyzeLR, condPow, Tfor, medianOf, consistent, autofitCure,
-  eventErr, bisectField, batcFor3yrCap, inverseSolve
+  LN2,
+  N_ARM,
+  LMAX,
+  T1,
+  T2,
+  T3,
+  T4,
+  E1,
+  E2,
+  E3,
+  THRESH,
+  IFLOOR,
+  CURRENT_EVENT_ANCHOR,
+  PR_SOURCES,
+  HRMAX,
+  ZFINAL,
+  rmst,
+  ZEFF,
+  ZFUT,
+  STRATF,
+  Phi,
+  phi,
+  monthLabel,
+  monthToDate,
+  fmtCalMonth,
+  fmtCalRange,
+  lpois,
+  pois,
+  poisLE,
+  rawC,
+  enrollCDF,
+  Stx,
+  sBATbase,
+  sGPSbase,
+  txMix,
+  sBAT,
+  sGPS,
+  poolS,
+  armDeaths,
+  eventsAt,
+  eventsAtAnchored,
+  T80PrPace,
+  T80,
+  t80Analysis,
+  mcPathToT80,
+  hazardRatio,
+  analyzeLR,
+  condPow,
+  Tfor,
+  medianOf,
+  consistent,
+  autofitCure,
+  eventErr,
+  bisectField,
+  batcFor3yrCap,
+  inverseSolve
 } from './math/survival.js';
 
 const $ = id => document.getElementById(id);
@@ -40,10 +88,6 @@ function updatePlausibilityUI(p,plausible){
   if(wrap)wrap.classList.toggle("chart-stale",!plausible);
   if(msg)msg.hidden=!!plausible||!lastConsistentP;
   if(out)out.classList.toggle("output-stale",!plausible);
-}
-function solveInverse(base, capOverride){
-  const cap3=capOverride!=null?capOverride:+$("batcap").value;
-  return inverseSolve(base,cap3);
 }
 
 // ---------- loading overlay ----------
@@ -113,6 +157,7 @@ function refreshOpenPanels(){
   if(panelOpen("panelBayes"))updateBayes();
   if(panelOpen("panelBacktest"))renderBacktest();
 }
+
 // ---------- anchor-constrained inversion (mixture-cure inverse fit to event anchors) ----------
 // Community DD by u/Confident-Web-7118 popularized this framing — see References [14]
 let regalMode="forward";
@@ -123,6 +168,10 @@ function highlightPresets(sel,attr,id){document.querySelectorAll(sel).forEach(b=
 function refreshRegalPresetHighlight(){
   if(regalMode==="inverse"){highlightPresets("button[data-inv]","inv",activeInvPreset);document.querySelectorAll("button[data-preset]").forEach(b=>b.classList.remove("p-def"));}
   else{highlightPresets("button[data-preset]","preset",activeRegalPreset);document.querySelectorAll("button[data-inv]").forEach(b=>b.classList.remove("p-def"));}
+}
+function solveInverse(base, capOverride){
+  const cap3=capOverride!=null?capOverride:+$("batcap").value;
+  return inverseSolve(base,cap3);
 }
 function applyInverseResult(r){
   if(!r||!r.sol){$("invStatus").textContent=r&&r.reason?r.reason:"";return false;}
@@ -292,7 +341,7 @@ function updateReadoutTracker(){
   updateReadoutVisibility();
   const p=readParams(),t80=T80(p),tPace=T80PrPace(),moFromAnchor=t80-T3;
   if($("reDate"))$("reDate").textContent=fmtCalMonth(t80);
-  if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80 events · +'+moFromAnchor.toFixed(1)+' mo from anchor';
+  if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80';
   const times=[];for(let i=0;i<2000;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;times.push(mcPathToT80(q,110));}
   times.sort((a,b)=>a-b);
   const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
@@ -324,11 +373,11 @@ function paramsFromShareHash(hash){
 }
 function initScmpSelects(){
   const opts=[{v:'',l:'— pick preset —'}];
-  for(const n in P){if(presetFits(n,P[n]))opts.push({v:'f:'+n,l:PRESET_NAMES[n]||n});}
+  for(const n in P)opts.push({v:'f:'+n,l:PRESET_NAMES[n]||n});
   for(const n in INV)opts.push({v:'i:'+n,l:(PRESET_NAMES[n]||n)+' (inv)'});
   ['scmpA','scmpB'].forEach(id=>{const sel=$(id);if(!sel)return;
     sel.innerHTML=opts.map(o=>'<option value="'+o.v+'">'+o.l+'</option>').join('');
-    if(id==='scmpA')sel.value='f:best';if(id==='scmpB')sel.value=opts.some(o=>o.v==='f:bull')?'f:bull':(opts[1]&&opts[1].v||'');});
+    if(id==='scmpA')sel.value='f:best';if(id==='scmpB')sel.value='f:bull';});
 }
 function resolveScmpScenario(selId,hashId){
   const hash=$(hashId).value.trim();
@@ -591,7 +640,6 @@ const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
 function runMC(){
   if(regalMode==="inverse"){runMCInverse();return;}
   const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=220000,t0=performance.now();
-  const anchorNote=!isPlausible(ctr)?" · ⚠ current sliders do NOT fit 60/72/78 — MC still runs but posterior is not anchored to blinded counts":"";
   for(let i=0;i<MAX;i++){ if(performance.now()-t0>3600)break; tried++;
     const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
     for(const f of MCFIELDS) p[f]=clampf(f,ctr[f]+SD[f]*rn());
@@ -610,7 +658,7 @@ function runMC(){
     else { w=Lev*Phi(thIA-p.zfut); pw=Phi(th80-ZFINAL); }                        // non-binding: futility-pass weight; marginal significance
     acc.push({hr:aFin.hr, w:w, pw:pw, reached:t80<=cutoff});
   }
-  renderMC(acc,tried,anchorNote);
+  renderMC(acc,tried);
 }
 function runMCInverse(){
   const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=80000,t0=performance.now();
@@ -636,7 +684,7 @@ function runMCInverse(){
     $("mcStats").innerHTML+=' &nbsp;·&nbsp; implied GPS uncured mOS median '+qf(gpsu,0.5).toFixed(1)+'m ['+qf(gpsu,0.05).toFixed(1)+', '+qf(gpsu,0.95).toFixed(1)+']';
   }
 }
-function renderMC(acc,tried,anchorNote){
+function renderMC(acc,tried){
   acc.sort((a,b)=>a.hr-b.hr);const n=acc.length;
   if(n<80){$("mcStatus").textContent=n+" usable draws — widen priors or loosen the floor";$("mcStats").textContent="";$("mcHist").innerHTML="";return;}
   let W=0,W2=0,WP=0,W35=0,Wreach=0;
@@ -645,7 +693,7 @@ function renderMC(acc,tried,anchorNote){
   function wq(q){let c=0;const t=q*W;for(let i=0;i<n;i++){c+=acc[i].w;if(c>=t)return acc[i].hr;}return acc[n-1].hr;}
   const med=wq(0.5),lo=wq(0.05),hi=wq(0.95);
   lastMcPwin=win;
-  $("mcStatus").textContent=tried.toLocaleString()+" draws · effective N ≈ "+Math.round(ESS).toLocaleString()+" · "+(100*Wreach/W).toFixed(0)+"% reach 80th event by cutoff"+(anchorNote||"");
+  $("mcStatus").textContent=tried.toLocaleString()+" draws · effective N ≈ "+Math.round(ESS).toLocaleString()+" · "+(100*Wreach/W).toFixed(0)+"% reach 80th event by cutoff";
   $("mcStats").innerHTML="P(win — significant log-rank) = <span style='color:"+(win>0.5?"var(--good)":"var(--bad)")+"'>"+(100*win).toFixed(0)+"%</span> &nbsp;·&nbsp; median HR "+med.toFixed(2)+" &nbsp;·&nbsp; 90% CrI ["+lo.toFixed(2)+", "+hi.toFixed(2)+"] &nbsp;·&nbsp; P(HR&lt;0.35)="+(100*W35/W).toFixed(1)+"% &nbsp;<span style='color:var(--muted);font-weight:400'>(likelihood-weighted; NPH-aware significance)</span>";
   const bins=[];for(let b=0.30;b<1.05-1e-9;b+=0.05){let c=0;for(const x of acc)if(x.hr>=b&&x.hr<b+0.05)c+=x.w;bins.push([b,100*c/W]);}
   const maxp=Math.max.apply(null,bins.map(x=>x[1]).concat([1]));
@@ -669,7 +717,7 @@ const P={
  nonbind: {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:false},
  critique:{bat:10, batc:16,gpsc:18,gpsu:34,delay:2,  mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
  bull:    {bat:8,  batc:6, gpsc:40,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
- bear:    {bat:11, batc:20,gpsc:5, gpsu:36,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
+ bear:    {bat:11, batc:22,gpsc:5, gpsu:36,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
  cw:      {bat:10, batc:6, gpsc:42,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
  noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
  fail:    {bat:10,batc:28,gpsc:28,gpsu:18,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
@@ -689,15 +737,7 @@ function applyRegalPreset(name,q){
   $("xtx").value=(q.xtx!=null)?q.xtx:0;$("cens").value=(q.cens!=null)?q.cens:0;
   if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
   if(regalMode==="inverse")setRegalMode("forward");
-  else{
-    refreshRegalPresetHighlight();
-    update();
-    let p=readParams();
-    if(!isPlausible(p)&&$("autofit").checked){
-      const r=autofitCure(p);
-      if(r.sol!=null){$("gpsc").value=Math.round(r.sol*100);update();}
-    }
-  }
+  else{refreshRegalPresetHighlight();update();}
 }
 function applyInversePreset(name,q){
   q=q||INV[name];activeInvPreset=name;
@@ -898,28 +938,20 @@ const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bu
 function runPresetCmp(){
   $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
   deferWithLoading(function(){
-    const plausibleOnly=$("presetCmpPlausible")&&$("presetCmpPlausible").checked;
     const rows=[];
     for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
       const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
-      const fits=isPlausible(pr);
-      if(plausibleOnly&&!fits)continue;
-      rows.push({name,mode:"forward",fits,hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+      rows.push({name,mode:"forward",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
     for(const name in INV){const pr=paramsFromPreset(name,INV[name],"inverse");if(!pr)continue;
-      const fits=isPlausible(pr);
-      if(plausibleOnly&&!fits)continue;
-      rows.push({name,mode:"inverse",fits,hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
-    rows.sort((a,b)=>(b.fits-a.fits)||(a.hr-b.hr));
-    $("presetCmpBody").innerHTML=rows.length?rows.map(r=>{
+      rows.push({name,mode:"inverse",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+    $("presetCmpBody").innerHTML=rows.map(r=>{
       const win=r.hr<THRESH?"win":"lose";
-      const fitCls=r.fits?"b-good":"b-warn",fitTxt=r.fits?"FITS":"NO FIT";
-      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td><span class='badge "+fitCls+"'>"+fitTxt+"</span></td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
-    }).join(""):'<tr><td colspan="10" style="text-align:center;color:var(--muted)">No presets match the anchor filter</td></tr>';
-    $("presetCmpStatus").textContent=rows.length+" presets"+(plausibleOnly?" (anchor-fit only)":"");$("presetCmpRun").disabled=false;
+      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
+    }).join("");
+    $("presetCmpStatus").textContent=rows.length+" presets";$("presetCmpRun").disabled=false;
   },"Computing all presets…");
 }
 $("presetCmpRun").onclick=runPresetCmp;
-if($("presetCmpPlausible"))$("presetCmpPlausible").onchange=runPresetCmp;
 
 // ================= MILESTONE BACKTEST (#7) =================
 const MILESTONES=[
@@ -1235,11 +1267,6 @@ function computeValuationMetrics(){
 }
 function updateBestEstStrip(){
   if(embedMode||!$("bestEstStrip"))return;
-  const presetLbl=$("bePresetLabel");
-  if(presetLbl){
-    const nm=regalMode==="inverse"?PRESET_NAMES[activeInvPreset]:PRESET_NAMES[activeRegalPreset];
-    presetLbl.textContent=(nm||"Custom")+(activeRegalPreset==="best"&&regalMode==="forward"?" ★":"");
-  }
   const p=readParams();
   const hr=hazardRatio(T2,p);
   const gpsEl=$("beGpsHr");
