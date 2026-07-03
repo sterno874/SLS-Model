@@ -9,7 +9,7 @@ A single-file, primary-sourced, open-source interactive model of SELLAS's pipeli
 
 ## Tabs
 
-1. **REGAL / GPS (Phase 3)** — a survival & hazard-ratio explorer for the pivotal AML CR2 trial, checked against every announced blinded event count (60/72/78 deaths, still <80). Includes prior-plausibility bands, biological-implausibility zones, timeline-fit bands, the O'Brien-Fleming interim boundary, and a **Bayesian Monte-Carlo posterior** over the final HR using a proper stratified log-rank significance test (NPH-aware), soft interim conditioning (power-neutral), and Poisson likelihood-weighting on the event increments.
+1. **REGAL / GPS (Phase 3)** — survival & HR explorer with sensitivity tornado, Bayes-factor panel, interactive IRM table, time-to-80th-event simulator, preset comparison dashboard, milestone backtest, uncertainty bands on KM curves, and shareable scenario URLs. Checked against every announced blinded event count (60/72/78, still <80).
 2. **SLS-009 (Phase 2)** — single-arm-vs-historical model for the CDK9 inhibitor (r/r + frontline AML), with a Monte-Carlo of the r/r effect and a hypothetical frontline Phase-3 power calc.
 3. **Valuation & WT1 platform** — a transparent peak-sales × multiple model with a **survival-driven prevalence pool** (longer survival ⇒ more years on therapy ⇒ bigger pool), risk-adjusted by probability of approval, plus a Monte-Carlo over the enterprise value.
 4. **Explain (ELI5 → PhD)** — the same three models explained at six depths, sources named/linked.
@@ -31,7 +31,9 @@ Clinical: REGAL design paper (Jamy & Cicic, *Future Oncol* 2025, PMC11760237); C
 Community due-diligence framing (the lead-time/IRM argument, fitted-scenario tables, binding-vs-weighted-test discussion) is attributed to **"Confident Web" (u/Confident-Web-7118)** and incorporated as *adjustable scenarios, not established fact*.
 
 ## Run locally
-Just open `index.html` in any modern browser. No build step, no dependencies, no storage. (Vercel Web Analytics runs only on the deployed site, not locally.)
+Just open `index.html` in any modern browser. No build step, no dependencies, no server-side storage. (Vercel Web Analytics runs only on the deployed site, not locally.)
+
+Math regression: `node verify_math.js` (also runs in GitHub Actions on push/PR to `main` — see `.github/workflows/verify-math.yml`).
 
 ## Shareable scenario links
 Every slider, tab, preset, and mode can be encoded in the URL hash — **fully client-side, zero server storage**:
