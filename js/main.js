@@ -43,10 +43,8 @@ function updatePlausibilityUI(p,plausible){
 }
 function solveInverse(base, capOverride){
   const cap3=capOverride!=null?capOverride:+$("batcap").value;
-  return solveInverse(base,cap3);
+  return inverseSolve(base,cap3);
 }
-
-const $ = id => document.getElementById(id);
 
 // ---------- loading overlay ----------
 let loadCount = 0;
@@ -119,6 +117,8 @@ function refreshOpenPanels(){
 // Community DD by u/Confident-Web-7118 popularized this framing — see References [14]
 let regalMode="forward";
 let activeRegalPreset="best",activeInvPreset="cw42",activeSlsPreset="best",activeValPreset="best";
+let activeTab="gps",restoringState=false;
+let readoutTimer=null;
 function highlightPresets(sel,attr,id){document.querySelectorAll(sel).forEach(b=>b.classList.toggle("p-def",b.dataset[attr]===id));}
 function refreshRegalPresetHighlight(){
   if(regalMode==="inverse"){highlightPresets("button[data-inv]","inv",activeInvPreset);document.querySelectorAll("button[data-preset]").forEach(b=>b.classList.remove("p-def"));}
@@ -283,7 +283,6 @@ function usePwinInValuation(){
   showToast('P(GPS) set to '+pct+'% — '+src);
   if(activeTab==='value')renderVal();
 }
-let readoutTimer=null;
 function scheduleReadoutUpdate(){clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
 function updateReadoutVisibility(){
   const el=$("readoutEstimate");
@@ -719,7 +718,6 @@ $("mcRun").addEventListener("click",function(){
 $("mcNeutral").addEventListener("click",function(){applyRegalPreset("best");$("mcStatus").textContent="Best Available Guess priors set — click Run";});
 
 // ================= SHAREABLE URL STATE (#1) =================
-let activeTab="gps",restoringState=false;
 function b64urlEncode(str){return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
 function b64urlDecode(str){str=str.replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";return decodeURIComponent(escape(atob(str)));}
 function captureState(){
@@ -1194,6 +1192,7 @@ requestAnimationFrame(()=>{
 
 // ================= TABS & METHODOLOGY =================
 function toggleMethod(id){const e=$(id);e.hidden=!e.hidden;}
+window.toggleMethod=toggleMethod;
 function renderTab(t,force){
   if(t==="sls009"&&(force||tabsDirty.sls009||!tabsRendered.sls009)){renderSLS();tabsRendered.sls009=true;tabsDirty.sls009=false;}
   if(t==="value"&&(force||tabsDirty.value||!tabsRendered.value)){renderVal();tabsRendered.value=true;tabsDirty.value=false;}
