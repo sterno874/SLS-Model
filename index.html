@@ -1804,10 +1804,27 @@ function renderBacktest(){
 // ================= PRINT SUMMARY (#9) =================
 function updatePrintSummary(){
   const p=readParams(),hr=hazardRatio(T2,p);
-  $("printSummary").innerHTML="<b>Scenario summary (printed "+new Date().toLocaleDateString()+")</b><br>"+
-    "Preset: "+(regalMode==="inverse"?PRESET_NAMES[activeInvPreset]:PRESET_NAMES[activeRegalPreset])+" · Mode: "+regalMode+"<br>"+
-    "BAT mOS "+($("oBatMed").textContent||"—")+" · GPS mOS "+($("oGpsMed").textContent||"—")+" · HR "+(isNaN(hr)?"—":hr.toFixed(2))+"<br>"+
-    "Events: "+eventsAt(T1,p).toFixed(0)+"/"+E1+" @ m46 · "+eventsAt(T2,p).toFixed(0)+"/"+E2+" @ m58 · "+eventsAt(T3,p).toFixed(0)+"/"+E3+" @ m63";
+  const ps=$("printSummary");
+  ps.replaceChildren();
+
+  const heading=document.createElement("b");
+  heading.textContent="Scenario summary (printed "+new Date().toLocaleDateString()+")";
+  ps.appendChild(heading);
+  ps.appendChild(document.createElement("br"));
+
+  ps.appendChild(document.createTextNode(
+    "Preset: "+(regalMode==="inverse"?PRESET_NAMES[activeInvPreset]:PRESET_NAMES[activeRegalPreset])+" · Mode: "+regalMode
+  ));
+  ps.appendChild(document.createElement("br"));
+
+  ps.appendChild(document.createTextNode(
+    "BAT mOS "+($("oBatMed").textContent||"—")+" · GPS mOS "+($("oGpsMed").textContent||"—")+" · HR "+(isNaN(hr)?"—":hr.toFixed(2))
+  ));
+  ps.appendChild(document.createElement("br"));
+
+  ps.appendChild(document.createTextNode(
+    "Events: "+eventsAt(T1,p).toFixed(0)+"/"+E1+" @ m46 · "+eventsAt(T2,p).toFixed(0)+"/"+E2+" @ m58 · "+eventsAt(T3,p).toFixed(0)+"/"+E3+" @ m63"
+  ));
 }
 
 // ================= COMMUNITY DD (lazy) =================
