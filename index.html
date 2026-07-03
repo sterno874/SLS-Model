@@ -99,7 +99,19 @@
   button.p{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer;text-align:left;line-height:1.35;min-height:44px}
   button.p:hover{border-color:var(--accent);color:var(--accent);box-shadow:var(--shadow)}
   button.p.p-def{border-color:var(--accent);background:#eef3fe;font-weight:700;box-shadow:inset 0 0 0 1px rgba(47,111,237,.15)}
+  button.p.p-best{border-color:var(--accent);background:linear-gradient(180deg,#eef3fe 0%,#e4ecfd 100%);font-weight:700;box-shadow:0 2px 8px rgba(47,111,237,.18),inset 0 0 0 1px rgba(47,111,237,.2)}
+  button.p.p-invalid{opacity:.55;border-style:dashed}
+  button.p:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
   button.p .p-sub{display:block;font-size:10px;font-weight:400;color:var(--muted);margin-top:2px}
+  .preset-start{margin-bottom:12px;padding:10px;background:#f5f8fe;border:1px solid #c9daf8;border-radius:10px}
+  .preset-start .pgrp{margin:0 0 6px}
+  .preset-start .presets{margin-bottom:0}
+  .plausibility-warn{margin:0 0 10px;padding:10px 12px;border-radius:10px;border:1px solid #f0d090;background:#fff4e0;color:#6b4e00;font-size:12.5px;font-weight:600;line-height:1.45}
+  .plausibility-warn[hidden]{display:none!important}
+  .chart-wrap.chart-stale canvas{opacity:.35;filter:grayscale(.25)}
+  .chart-stale-msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;text-align:center;font-size:13px;font-weight:600;color:var(--ink);background:rgba(238,241,245,.55);border-radius:8px;pointer-events:none;line-height:1.45}
+  .chart-stale-msg[hidden]{display:none!important}
+  .output-stale .stat,.output-stale .gauge .track,.output-stale .consist{opacity:.55}
   .chk{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;margin:8px 0 12px;padding:8px;background:#eef3fe;border-radius:8px}
   canvas{width:100%;height:auto;display:block}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
@@ -357,7 +369,11 @@
   </div>
 </div>
 <header>
-  <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Best estimate summary">
+  <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Best Available Guess summary">
+    <div class="best-est-item" style="flex:1 1 100%;margin-bottom:2px" title="Header strip reflects the active scenario — defaults to Best Available Guess on load">
+      <span class="best-est-label">Active scenario</span>
+      <span class="best-est-val" id="bePresetLabel" style="font-size:13px">Best Available Guess ★</span>
+    </div>
     <div class="best-est-item" title="GPS hazard ratio from current REGAL survival parameters (Pike estimate @ m58)">
       <span class="best-est-label">GPS HR <span class="tag m">model</span></span>
       <span class="best-est-val" id="beGpsHr">—</span>
@@ -441,6 +457,13 @@
   <div class="card">
     <h2>Scenario controls</h2>
 
+    <div class="preset-start" id="presetStart" data-regal-mode="forward">
+      <div class="pgrp">Start here</div>
+      <div class="presets presets-best">
+        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess ★<span class="p-sub">Default · neutral priors · fits 60/72/78</span></button>
+      </div>
+    </div>
+
     <div class="modenav">
       <button type="button" class="modebtn active" id="modeForward" data-mode="forward">Direct parameterization<span class="m-sub">Set survival params → check events</span></button>
       <button type="button" class="modebtn" id="modeInverse" data-mode="inverse">Anchor-constrained inversion<span class="m-sub">Fix event anchors + cure → derive mOS</span></button>
@@ -466,7 +489,7 @@
     <div class="pgrp" id="presetLabel" data-regal-mode="forward">Core cases</div>
     <div class="pgrp-hint" data-regal-mode="forward">Start with <b>Best Available Guess</b> — neutral priors + public data, not marketing optimism.</div>
     <div class="presets" data-regal-mode="forward">
-      <button class="p p-def" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess<span class="p-sub">Neutral · binding IA · ~50% P(win)</span></button>
+      <button class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Neutral priors: Kurosawa CR2 tail (~14%), Ph2 GPS CR2 (no plateau), 60/72/78 events, ~6% transplant ITT, ~12% censoring. Binding interim (registrational default). MC ~50% P(win).">Best Available Guess ★<span class="p-sub">Neutral · binding IA · ~50% P(win)</span></button>
       <button class="p" data-preset="bear" data-regal-mode="forward" title="Near-threshold miss: inflated BAT tail, minimal GPS cure — HR ~0.55–0.65 zone.">Bear (near-miss)<span class="p-sub">Conservative efficacy read</span></button>
       <button class="p" data-preset="bull" data-regal-mode="forward" title="Bullish cure case: high GPS plateau, low BAT tail, no delay — optimistic but fits events.">Bull / DD cure<span class="p-sub">Optimistic efficacy</span></button>
       <button class="p" data-preset="critique" data-regal-mode="forward" title="Independent critique view: modest GPS benefit + biological BAT-tail ceiling — ~⅔ P(win).">Critique (~⅔)<span class="p-sub">Modest GPS · BAT-tail ceiling</span></button>
@@ -488,8 +511,8 @@
     <div class="pgrp" id="presetEdgeLabel" data-regal-mode="forward">Special / edge cases</div>
     <div class="pgrp-hint" data-regal-mode="forward">Direct-parameterization demos — identifiability ridge, failure modes, sensitivity.</div>
     <div class="presets" id="presetEdge" data-regal-mode="forward">
-      <button class="p" data-preset="noeffect" data-regal-mode="forward" title="Null effect with shared ~25–30% long-survivor tail — still fits 60/72/78 (identifiability ridge).">No effect (fits too!)<span class="p-sub">HR≈1 · shared tail</span></button>
-      <button class="p" data-preset="fail" data-regal-mode="forward" title="What a losing readout needs: high BAT tail + weak GPS separation.">What failure needs<span class="p-sub">HR &gt; 0.636</span></button>
+      <button class="p" data-preset="noeffect" data-regal-mode="forward" title="Null effect with shared ~25–30% long-survivor tail — still fits 60/72/78 (identifiability ridge).">No effect (fits too!)<span class="p-sub">ridge demo — fits anchors · HR≈1</span></button>
+      <button class="p" data-preset="fail" data-regal-mode="forward" title="What a losing readout needs: high BAT tail + weak GPS separation.">What failure needs<span class="p-sub">fits anchors · HR &gt; 0.636</span></button>
       <button class="p" data-preset="delay" data-regal-mode="forward" title="4-month GPS onset delay — late separation penalized under standard log-rank.">Vaccine delay 4m<span class="p-sub">Late GPS effect</span></button>
       <button class="p" data-preset="backload" data-regal-mode="forward" title="Back-loaded enrollment shifts event timing — sensitivity check.">Backloaded enroll<span class="p-sub">Enrollment shape</span></button>
     </div>
@@ -617,10 +640,11 @@
   </div>
 
   <!-- OUTPUT -->
-  <div class="card">
+  <div class="card" id="outputCard">
     <h2>Survival curves (from randomization)</h2>
     <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: GPS (mixture-cure), BAT (Weibull + tail), pooled 50/50 average. Vertical dashed line = 36 months. Medians and HR below are derived from these curves — not unblinded trial data. <b>Hover/tap curve for survival values.</b></div>
-    <div class="chart-wrap" id="chartWrap"><canvas id="chart" width="920" height="430"></canvas><div class="chart-tooltip" id="chartTip"></div></div>
+    <div id="plausibilityWarn" class="plausibility-warn" role="alert" hidden>Current parameters do not fit blinded event counts (e60/e58/e63). Adjust sliders or enable auto-fit.</div>
+    <div class="chart-wrap" id="chartWrap"><canvas id="chart" width="920" height="430"></canvas><div class="chart-stale-msg" id="chartStaleMsg" hidden>Chart frozen at last scenario that fit 60/72/78 — adjust sliders or enable auto-fit.</div><div class="chart-tooltip" id="chartTip"></div></div>
     <div class="chart-pin-panel" id="chartPinPanel"></div>
 
     <div class="grid2">
@@ -776,8 +800,9 @@
     <span id="presetCmpStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     <div class="table-wrap" style="max-height:420px;overflow-y:auto">
       <table class="preset-cmp" id="presetCmpTable">
-        <thead><tr><th>Preset</th><th>Mode</th><th>HR</th><th>e46 (mod)</th><th>e58 (mod)</th><th>e63 (mod)</th><th>P(win)</th><th>BAT 3yr</th><th>GPS cure</th></tr></thead>
-        <tbody id="presetCmpBody"><tr><td colspan="9" style="text-align:center;color:var(--muted)">Click Compute all presets</td></tr></tbody>
+        <label class="chk" style="margin:0 0 10px"><input type="checkbox" id="presetCmpPlausible" checked/> Show only presets that fit 60/72/78 anchors</label>
+        <thead><tr><th>Preset</th><th>Mode</th><th>Fit</th><th>HR</th><th>e46 (mod)</th><th>e58 (mod)</th><th>e63 (mod)</th><th>P(win)</th><th>BAT 3yr</th><th>GPS cure</th></tr></thead>
+        <tbody id="presetCmpBody"><tr><td colspan="10" style="text-align:center;color:var(--muted)">Click Compute all presets</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -1472,9 +1497,22 @@ const tabsRendered={gps:false,sls009:false,value:false,explain:false};
 const tabsDirty={sls009:true,value:true,explain:true};
 function panelOpen(id){const el=$(id);return!!(el&&el.open);}
 function scheduleDraw(p){
-  pendingDrawP=p;
+  const plausible=isPlausible(p);
+  if(plausible)lastConsistentP=Object.assign({},p);
+  const drawP=plausible?p:(lastConsistentP||null);
+  pendingDrawP=drawP;
+  updatePlausibilityUI(p,plausible);
   if(pendingDrawRaf)return;
-  pendingDrawRaf=requestAnimationFrame(()=>{pendingDrawRaf=null;draw(pendingDrawP);});
+  pendingDrawRaf=requestAnimationFrame(()=>{pendingDrawRaf=null;if(pendingDrawP)draw(pendingDrawP);else drawEmptyChart();});
+}
+function drawEmptyChart(){
+  const cv=$("chart");if(!cv)return;
+  const dpr=window.devicePixelRatio||1,W=920,H=430;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
+  const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  ctx.fillStyle="#9aa1ac";ctx.font="13px sans-serif";ctx.textAlign="center";
+  ctx.fillText("No consistent scenario yet — apply Best Available Guess or enable auto-fit",W/2,H/2);
+  chartParams=null;
 }
 function scheduleUpdate(){
   if(restoringState){updateNow();return;}
@@ -1561,6 +1599,30 @@ function consistent(p){
   const e3=eventsAt(T3,p,110);if(!Number.isFinite(e3)||Math.abs(e3-E3)>7)return false;
   const e4=eventsAt(T4,p,110);if(!Number.isFinite(e4)||e4>=80.5)return false;
   return true;
+}
+function isPlausible(p){return consistent(p);}
+let lastConsistentP=null;
+function paramsFromPresetQ(q){
+  if(!q)return null;
+  return{bat:q.bat,batc:q.batc/100,batk:1,gpsc:q.gpsc/100,gpsu:q.gpsu,delay:q.delay,xtx:(q.xtx!=null?q.xtx:0)/100,cens:(q.cens!=null?q.cens:0)/100,osmode:"itt",mid:q.mid||25,k:q.k||0.15,fh:false,stratF:STRATF,zfut:ZFUT};
+}
+function presetFits(name,q){const pr=paramsFromPresetQ(q||P[name]);return pr?isPlausible(pr):false;}
+function auditPresetButtons(){
+  document.querySelectorAll("button[data-preset]").forEach(btn=>{
+    const name=btn.dataset.preset,q=P[name];
+    const fit=presetFits(name,q);
+    btn.classList.toggle("p-invalid",!fit);
+    btn.disabled=!fit;
+    if(!fit){btn.title=(btn.title||"")+" [Does not fit 60/72/78 event anchors — disabled]";}
+  });
+}
+function updatePlausibilityUI(p,plausible){
+  const w=$("plausibilityWarn");
+  if(w){w.hidden=!!plausible;if(!plausible)w.textContent="Current parameters do not fit blinded event counts (e60/e58/e63). Adjust sliders or enable auto-fit.";}
+  const wrap=$("chartWrap"),msg=$("chartStaleMsg"),out=$("outputCard");
+  if(wrap)wrap.classList.toggle("chart-stale",!plausible);
+  if(msg)msg.hidden=!!plausible||!lastConsistentP;
+  if(out)out.classList.toggle("output-stale",!plausible);
 }
 
 // ---------- auto-fit ----------
@@ -1814,11 +1876,11 @@ function paramsFromShareHash(hash){
 }
 function initScmpSelects(){
   const opts=[{v:'',l:'— pick preset —'}];
-  for(const n in P)opts.push({v:'f:'+n,l:PRESET_NAMES[n]||n});
+  for(const n in P){if(presetFits(n,P[n]))opts.push({v:'f:'+n,l:PRESET_NAMES[n]||n});}
   for(const n in INV)opts.push({v:'i:'+n,l:(PRESET_NAMES[n]||n)+' (inv)'});
   ['scmpA','scmpB'].forEach(id=>{const sel=$(id);if(!sel)return;
     sel.innerHTML=opts.map(o=>'<option value="'+o.v+'">'+o.l+'</option>').join('');
-    if(id==='scmpA')sel.value='f:best';if(id==='scmpB')sel.value='f:bull';});
+    if(id==='scmpA')sel.value='f:best';if(id==='scmpB')sel.value=opts.some(o=>o.v==='f:bull')?'f:bull':(opts[1]&&opts[1].v||'');});
 }
 function resolveScmpScenario(selId,hashId){
   const hash=$(hashId).value.trim();
@@ -2081,6 +2143,7 @@ const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
 function runMC(){
   if(regalMode==="inverse"){runMCInverse();return;}
   const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=220000,t0=performance.now();
+  const anchorNote=!isPlausible(ctr)?" · ⚠ current sliders do NOT fit 60/72/78 — MC still runs but posterior is not anchored to blinded counts":"";
   for(let i=0;i<MAX;i++){ if(performance.now()-t0>3600)break; tried++;
     const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
     for(const f of MCFIELDS) p[f]=clampf(f,ctr[f]+SD[f]*rn());
@@ -2099,7 +2162,7 @@ function runMC(){
     else { w=Lev*Phi(thIA-p.zfut); pw=Phi(th80-ZFINAL); }                        // non-binding: futility-pass weight; marginal significance
     acc.push({hr:aFin.hr, w:w, pw:pw, reached:t80<=cutoff});
   }
-  renderMC(acc,tried);
+  renderMC(acc,tried,anchorNote);
 }
 function runMCInverse(){
   const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=80000,t0=performance.now();
@@ -2125,7 +2188,7 @@ function runMCInverse(){
     $("mcStats").innerHTML+=' &nbsp;·&nbsp; implied GPS uncured mOS median '+qf(gpsu,0.5).toFixed(1)+'m ['+qf(gpsu,0.05).toFixed(1)+', '+qf(gpsu,0.95).toFixed(1)+']';
   }
 }
-function renderMC(acc,tried){
+function renderMC(acc,tried,anchorNote){
   acc.sort((a,b)=>a.hr-b.hr);const n=acc.length;
   if(n<80){$("mcStatus").textContent=n+" usable draws — widen priors or loosen the floor";$("mcStats").textContent="";$("mcHist").innerHTML="";return;}
   let W=0,W2=0,WP=0,W35=0,Wreach=0;
@@ -2134,7 +2197,7 @@ function renderMC(acc,tried){
   function wq(q){let c=0;const t=q*W;for(let i=0;i<n;i++){c+=acc[i].w;if(c>=t)return acc[i].hr;}return acc[n-1].hr;}
   const med=wq(0.5),lo=wq(0.05),hi=wq(0.95);
   lastMcPwin=win;
-  $("mcStatus").textContent=tried.toLocaleString()+" draws · effective N ≈ "+Math.round(ESS).toLocaleString()+" · "+(100*Wreach/W).toFixed(0)+"% reach 80th event by cutoff";
+  $("mcStatus").textContent=tried.toLocaleString()+" draws · effective N ≈ "+Math.round(ESS).toLocaleString()+" · "+(100*Wreach/W).toFixed(0)+"% reach 80th event by cutoff"+(anchorNote||"");
   $("mcStats").innerHTML="P(win — significant log-rank) = <span style='color:"+(win>0.5?"var(--good)":"var(--bad)")+"'>"+(100*win).toFixed(0)+"%</span> &nbsp;·&nbsp; median HR "+med.toFixed(2)+" &nbsp;·&nbsp; 90% CrI ["+lo.toFixed(2)+", "+hi.toFixed(2)+"] &nbsp;·&nbsp; P(HR&lt;0.35)="+(100*W35/W).toFixed(1)+"% &nbsp;<span style='color:var(--muted);font-weight:400'>(likelihood-weighted; NPH-aware significance)</span>";
   const bins=[];for(let b=0.30;b<1.05-1e-9;b+=0.05){let c=0;for(const x of acc)if(x.hr>=b&&x.hr<b+0.05)c+=x.w;bins.push([b,100*c/W]);}
   const maxp=Math.max.apply(null,bins.map(x=>x[1]).concat([1]));
@@ -2158,7 +2221,7 @@ const P={
  nonbind: {bat:10, batc:14,gpsc:22,gpsu:32,delay:1.5,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:false},
  critique:{bat:10, batc:16,gpsc:18,gpsu:34,delay:2,  mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
  bull:    {bat:8,  batc:6, gpsc:40,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
- bear:    {bat:11, batc:22,gpsc:5, gpsu:36,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
+ bear:    {bat:11, batc:20,gpsc:5, gpsu:36,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
  cw:      {bat:10, batc:6, gpsc:42,gpsu:36,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
  noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
  fail:    {bat:10,batc:28,gpsc:28,gpsu:18,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
@@ -2178,7 +2241,15 @@ function applyRegalPreset(name,q){
   $("xtx").value=(q.xtx!=null)?q.xtx:0;$("cens").value=(q.cens!=null)?q.cens:0;
   if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
   if(regalMode==="inverse")setRegalMode("forward");
-  else{refreshRegalPresetHighlight();update();}
+  else{
+    refreshRegalPresetHighlight();
+    update();
+    let p=readParams();
+    if(!isPlausible(p)&&$("autofit").checked){
+      const r=autofitCure(p);
+      if(r.sol!=null){$("gpsc").value=Math.round(r.sol*100);update();}
+    }
+  }
 }
 function applyInversePreset(name,q){
   q=q||INV[name];activeInvPreset=name;
@@ -2380,20 +2451,28 @@ const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bu
 function runPresetCmp(){
   $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
   deferWithLoading(function(){
+    const plausibleOnly=$("presetCmpPlausible")&&$("presetCmpPlausible").checked;
     const rows=[];
     for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
       const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
-      rows.push({name,mode:"forward",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+      const fits=isPlausible(pr);
+      if(plausibleOnly&&!fits)continue;
+      rows.push({name,mode:"forward",fits,hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
     for(const name in INV){const pr=paramsFromPreset(name,INV[name],"inverse");if(!pr)continue;
-      rows.push({name,mode:"inverse",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
-    $("presetCmpBody").innerHTML=rows.map(r=>{
+      const fits=isPlausible(pr);
+      if(plausibleOnly&&!fits)continue;
+      rows.push({name,mode:"inverse",fits,hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+    rows.sort((a,b)=>(b.fits-a.fits)||(a.hr-b.hr));
+    $("presetCmpBody").innerHTML=rows.length?rows.map(r=>{
       const win=r.hr<THRESH?"win":"lose";
-      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
-    }).join("");
-    $("presetCmpStatus").textContent=rows.length+" presets";$("presetCmpRun").disabled=false;
+      const fitCls=r.fits?"b-good":"b-warn",fitTxt=r.fits?"FITS":"NO FIT";
+      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td><span class='badge "+fitCls+"'>"+fitTxt+"</span></td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
+    }).join(""):'<tr><td colspan="10" style="text-align:center;color:var(--muted)">No presets match the anchor filter</td></tr>';
+    $("presetCmpStatus").textContent=rows.length+" presets"+(plausibleOnly?" (anchor-fit only)":"");$("presetCmpRun").disabled=false;
   },"Computing all presets…");
 }
 $("presetCmpRun").onclick=runPresetCmp;
+if($("presetCmpPlausible"))$("presetCmpPlausible").onchange=runPresetCmp;
 
 // ================= MILESTONE BACKTEST (#7) =================
 const MILESTONES=[
@@ -2638,9 +2717,15 @@ function initApp(){
   initFactsAsOf();
   initScmpSelects();
   initChartInteraction();
-  restoreFromHash()||null;
-  refreshRegalPresetHighlight();
-  if(!location.hash.startsWith("#s="))updateNow();
+  auditPresetButtons();
+  if(!location.hash.startsWith("#s=")){
+    setRegalMode("forward");
+    applyRegalPreset("best");
+  }else{
+    restoreFromHash()||null;
+    refreshRegalPresetHighlight();
+    updateNow();
+  }
   updateReadoutTracker();
   initMobileCollapse();
   buildBands2();
@@ -2702,6 +2787,11 @@ function computeValuationMetrics(){
 }
 function updateBestEstStrip(){
   if(embedMode||!$("bestEstStrip"))return;
+  const presetLbl=$("bePresetLabel");
+  if(presetLbl){
+    const nm=regalMode==="inverse"?PRESET_NAMES[activeInvPreset]:PRESET_NAMES[activeRegalPreset];
+    presetLbl.textContent=(nm||"Custom")+(activeRegalPreset==="best"&&regalMode==="forward"?" ★":"");
+  }
   const p=readParams();
   const hr=hazardRatio(T2,p);
   const gpsEl=$("beGpsHr");

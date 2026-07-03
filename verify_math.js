@@ -145,10 +145,24 @@ const IFLOOR = 0.547;
 check("Best preset HR clears 0.636 but sits below interim floor (red hatch)",
   M.hazardRatio(T2, best) < 0.636 && M.hazardRatio(T2, best) < IFLOOR,
   M.hazardRatio(T2, best).toFixed(3));
-const bearPreset = mk({ bat: 10, batc: 0.22, gpsc: 0.12, gpsu: 28, delay: 0, xtx: 0.06, cens: 0.12 });
+const bearPreset = mk({ bat: 11, batc: 0.20, gpsc: 0.05, gpsu: 36, delay: 2, xtx: 0.08, cens: 0.10 });
+check("Bear preset fits event anchors", M.consistent(bearPreset));
 check("Bear preset HR clears 0.636 and stays above interim floor (no red hatch)",
   M.hazardRatio(T2, bearPreset) < 0.636 && M.hazardRatio(T2, bearPreset) > IFLOOR,
   M.hazardRatio(T2, bearPreset).toFixed(3));
+
+const forwardPresets = {
+  best: { bat: 10, batc: 0.14, gpsc: 0.22, gpsu: 32, delay: 1.5, xtx: 0.06, cens: 0.12 },
+  bear: { bat: 11, batc: 0.20, gpsc: 0.05, gpsu: 36, delay: 2, xtx: 0.08, cens: 0.10 },
+  bull: { bat: 8, batc: 0.06, gpsc: 0.40, gpsu: 36, delay: 0, xtx: 0, cens: 0 },
+  cw: { bat: 10, batc: 0.06, gpsc: 0.42, gpsu: 36, delay: 0, xtx: 0, cens: 0 },
+  noeffect: { bat: 14, batc: 0.28, gpsc: 0.28, gpsu: 14, delay: 0, xtx: 0, cens: 0 },
+  fail: { bat: 10, batc: 0.28, gpsc: 0.28, gpsu: 18, delay: 0, xtx: 0, cens: 0 }
+};
+for (const [name, q] of Object.entries(forwardPresets)) {
+  check("Forward preset fits anchors: " + name, M.consistent(mk(q)));
+}
+check("isPlausible matches consistent for best", M.isPlausible(best) === M.consistent(best));
 
 check("Header best-est defaults: GPS HR ~0.43 @ m58",
   Math.abs(M.hazardRatio(T2, best) - 0.433) < 0.01, M.hazardRatio(T2, best).toFixed(3));
