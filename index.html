@@ -29,6 +29,16 @@
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:var(--bg);color:var(--ink);line-height:1.45}
   header{padding:20px 22px 6px;background:linear-gradient(180deg,#fff 0%,var(--bg) 100%)}
+  .best-est-strip{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 18px;padding:9px 14px;margin-bottom:10px;background:#fbfcfe;border:1px solid var(--line);border-radius:10px;font-size:12.5px;line-height:1.4}
+  .best-est-item{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+  .best-est-label{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+  .best-est-val{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+  .best-est-sep{color:#c5cad2;font-weight:300;user-select:none}
+  @media(max-width:640px){
+    .best-est-strip{justify-content:flex-start;gap:10px 12px;padding:8px 12px}
+    .best-est-sep{display:none}
+    .best-est-item{flex:1 1 calc(50% - 8px);min-width:138px}
+  }
   .hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px 24px;flex-wrap:wrap}
   .hdr-title-block{flex:1;min-width:min(100%,280px)}
   h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
@@ -326,7 +336,7 @@
   /* embed mode */
   body.embed-mode{background:#fff}
   body.embed-mode header{padding:8px 12px 4px;background:#fff;box-shadow:none;position:static}
-  body.embed-mode header h1,.embed-hide,.embed-mode .howworks,.embed-mode footer,.embed-mode .hdr-tools,.embed-mode .tabnav,.embed-mode #bottomNav,.embed-mode .methodbtn,.embed-mode .readout-estimate,.embed-mode .link-val-btn,.embed-mode .no-embed{display:none!important}
+  body.embed-mode header h1,.embed-hide,.embed-mode .howworks,.embed-mode footer,.embed-mode .hdr-tools,.embed-mode .tabnav,.embed-mode #bottomNav,.embed-mode .methodbtn,.embed-mode .readout-estimate,.embed-mode .best-est-strip,.embed-mode .link-val-btn,.embed-mode .no-embed{display:none!important}
   body.embed-mode .wrap,.embed-mode .facts,.embed-mode .regal-analysis,.embed-mode .feat-panel,.embed-mode .cw-panel{padding-left:8px;padding-right:8px;margin-left:0;margin-right:0}
   body.embed-mode .tabbtn.active{display:inline-block!important}
   @media(max-width:768px){
@@ -347,6 +357,22 @@
   </div>
 </div>
 <header>
+  <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Best estimate summary">
+    <div class="best-est-item" title="GPS hazard ratio from current REGAL survival parameters (Pike estimate @ m58)">
+      <span class="best-est-label">GPS HR <span class="tag m">model</span></span>
+      <span class="best-est-val" id="beGpsHr">—</span>
+    </div>
+    <span class="best-est-sep" aria-hidden="true">·</span>
+    <div class="best-est-item" title="SLS-009 HR-equivalent under exponential assumption (benchmark mOS ÷ SLS-009 mOS)">
+      <span class="best-est-label">SLS HR (equiv) <span class="tag m">model</span></span>
+      <span class="best-est-val" id="beSlsHr">—</span>
+    </div>
+    <span class="best-est-sep" aria-hidden="true">·</span>
+    <div class="best-est-item" title="Risk-adjusted enterprise value per share from current Valuation tab inputs">
+      <span class="best-est-label">Target $/sh <span class="tag m">model</span></span>
+      <span class="best-est-val" id="beBuyout">—</span>
+    </div>
+  </div>
   <div class="hdr-top">
     <div class="hdr-title-block">
       <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
@@ -2601,6 +2627,7 @@ window.addEventListener("resize",initMobileCollapse);
 const _updateOrig=update;
 function updateNow(){
   _updateOrig();
+  updateBestEstStrip();
   if(!restoringState){refreshOpenPanels();updateHashQuiet();}
 }
 update=updateNow;
@@ -2661,6 +2688,31 @@ function drawExp(id,arms,tmax){
 }
 
 // ================= TAB 2 : SLS-009 =================
+function computeValuationMetrics(){
+  const cr2=+$("v_cr2").value,cr1=+$("v_cr1").value,gpen=+$("v_gpen").value/100,gprice=+$("v_gprice").value,gyears=+$("v_gyears").value;
+  const flpool=+$("v_flpool").value,rrpool=+$("v_rrpool").value,spen=+$("v_spen").value/100,sprice=+$("v_sprice").value,syears=+$("v_syears").value;
+  const platform=+$("v_platform").value,mult=+$("v_mult").value,shares=+$("v_shares").value;
+  const gpool=(cr2+cr1)*gpen*gyears;
+  const gpsPeak=gpool*gprice/1000;
+  const slsPeak=(flpool+rrpool)*spen*syears*sprice/1000;
+  const totPeak=gpsPeak+slsPeak;
+  const EV=totPeak*mult+platform*1000;
+  const ps=EV/shares;
+  return{gpool,gpsPeak,slsPeak,totPeak,EV,ps};
+}
+function updateBestEstStrip(){
+  if(embedMode||!$("bestEstStrip"))return;
+  const p=readParams();
+  const hr=hazardRatio(T2,p);
+  const gpsEl=$("beGpsHr");
+  if(gpsEl)gpsEl.textContent=isNaN(hr)?"—":hr.toFixed(2);
+  const os=+$("sls_os").value,bench=+$("sls_bench").value;
+  const slsEl=$("beSlsHr");
+  if(slsEl)slsEl.textContent=(bench>0&&os>0)?(bench/os).toFixed(2):"—";
+  const{EV,ps}=computeValuationMetrics();
+  const buyEl=$("beBuyout");
+  if(buyEl)buyEl.textContent=(EV>=1000?"EV $"+(EV/1000).toFixed(1)+"B · ":"")+"$"+ps.toFixed(0)+"/sh";
+}
 function renderSLS(){
   const os=+$("sls_os").value,bench=+$("sls_bench").value,orr=+$("sls_orr").value;
   const flb=+$("fl_base").value,fls=+$("fl_sls").value,tpb=+$("tp_base").value,tps=+$("tp_sls").value;
@@ -2674,9 +2726,11 @@ function renderSLS(){
   $("oFront").innerHTML="<b>Frontline (bigger market):</b> +SLS-009 lifts Aza/Ven mOS by <b>"+(fls-flb).toFixed(1)+" mo</b> ("+flb.toFixed(1)+"→"+fls.toFixed(1)+", control per <a href=\"https://www.nejm.org/doi/full/10.1056/NEJMoa2012971\" target=\"_blank\" rel=\"noopener\">VIALE-A</a>); in TP53-mut by <b>"+(tps-tpb).toFixed(1)+" mo</b> ("+tpb.toFixed(1)+"→"+tps.toFixed(1)+"). <span class=\"tag a\">Projections</span> — a randomized Phase 3 would test them.";
   drawExp("slsChart",[{med:os,c:getCSS('--gps'),lbl:"SLS-009 + AZA/VEN"},{med:bench,c:getCSS('--bat'),lbl:"historical benchmark"}],36);
   if(typeof renderBands2==="function")renderBands2();
+  updateBestEstStrip();
 }
 const debouncedRenderSLS=debounce(renderSLS,75);
-function onSlsInput(){tabsDirty.sls009=true;if(activeTab==="sls009")debouncedRenderSLS();}
+const debouncedBestEst=debounce(updateBestEstStrip,75);
+function onSlsInput(){tabsDirty.sls009=true;debouncedBestEst();if(activeTab==="sls009")debouncedRenderSLS();}
 ["sls_os","sls_bench","sls_orr","fl_base","fl_sls","tp_base","tp_sls"].forEach(id=>$(id).addEventListener("input",onSlsInput));
 
 // ================= TAB 3 : VALUATION =================
@@ -2688,12 +2742,7 @@ function renderVal(){
   $("vv_cr2").textContent=cr2.toLocaleString();$("vv_cr1").textContent=cr1.toLocaleString();$("vv_gpen").textContent=(gpen*100).toFixed(0)+" %";$("vv_gprice").textContent="$"+gprice+" K";$("vv_gyears").textContent=gyears.toFixed(1)+" yr";
   $("vv_flpool").textContent=flpool.toLocaleString();$("vv_rrpool").textContent=rrpool.toLocaleString();$("vv_spen").textContent=(spen*100).toFixed(0)+" %";$("vv_sprice").textContent="$"+sprice+" K";$("vv_syears").textContent=syears.toFixed(1)+" yr";
   $("vv_platform").textContent="$"+platform.toFixed(1)+" B";$("vv_mult").textContent=mult.toFixed(1)+"×";$("vv_shares").textContent=shares+" M";
-  const gpool=(cr2+cr1)*gpen*gyears;               // prevalent on GPS therapy
-  const gpsPeak=gpool*gprice/1000;                 // $M (price in $K)
-  const slsPeak=(flpool+rrpool)*spen*syears*sprice/1000;
-  const totPeak=gpsPeak+slsPeak;
-  const EV=totPeak*mult + platform*1000;           // $M
-  const ps=EV/shares;
+  const{gpool,gpsPeak,slsPeak,totPeak,EV,ps}=computeValuationMetrics();
   $("oGpsPeak").innerHTML=fmtB(gpsPeak);$("oSlsPeak").innerHTML=fmtB(slsPeak);$("oTotPeak").innerHTML=fmtB(totPeak);
   $("oPool").innerHTML=Math.round(gpool).toLocaleString();
   $("oEV").textContent=fmtB(EV);$("oPS").textContent="$"+ps.toFixed(2);
@@ -2701,9 +2750,10 @@ function renderVal(){
   $("oBuy").textContent="$"+buyLo.toFixed(0)+"–$"+buyHi.toFixed(0)+"/sh";
   $("oValNote").innerHTML="Peak sales = new-starts × penetration × avg-years-on-therapy × price (<span class=\"tag m\">model output</span>). Longer survival ⇒ larger prevalent pool (see <b>TAM math</b> panel). EV = peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B WT1 platform. Multiple ~4–8× (<a href=\"https://www.sec.gov/Archives/edgar/data/882095/000110465920027988/a20-11253_1ex99d1.htm\" target=\"_blank\" rel=\"noopener\">Gilead–Forty Seven</a>; <a href=\"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K\" target=\"_blank\" rel=\"noopener\">Venclexta ~$2.6B</a>). Onureg caution (<a href=\"https://www.nejm.org/doi/full/10.1056/NEJMoa2001094\" target=\"_blank\" rel=\"noopener\">QUAZAR</a>). Every input is an <span class=\"tag a\">assumption</span>; not a DCF or investment advice.";
   if(typeof renderBands2==="function")renderBands2();
+  updateBestEstStrip();
 }
 const debouncedRenderVal=debounce(renderVal,75);
-function onValInput(){tabsDirty.value=true;if(activeTab==="value")debouncedRenderVal();}
+function onValInput(){tabsDirty.value=true;debouncedBestEst();if(activeTab==="value")debouncedRenderVal();}
 ["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares"].forEach(id=>$(id).addEventListener("input",onValInput));
 // ---- generic prior/implausible/anchor bands for Tab 2 & 3 sliders ----
 const CFG2=[

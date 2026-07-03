@@ -150,5 +150,12 @@ check("Bear preset HR clears 0.636 and stays above interim floor (no red hatch)"
   M.hazardRatio(T2, bearPreset) < 0.636 && M.hazardRatio(T2, bearPreset) > IFLOOR,
   M.hazardRatio(T2, bearPreset).toFixed(3));
 
+check("Header best-est defaults: GPS HR ~0.43 @ m58",
+  Math.abs(M.hazardRatio(T2, best) - 0.433) < 0.01, M.hazardRatio(T2, best).toFixed(3));
+check("Header best-est defaults: SLS HR-equiv ~0.31",
+  Math.abs(2.8 / 8.9 - 0.315) < 0.01, (2.8 / 8.9).toFixed(3));
+check("Header best-est defaults: buyout ~$67/sh",
+  Math.abs(EV / 222 - 67.1) < 1, "$" + (EV / 222).toFixed(2));
+
 console.log("\n--- Summary: " + pass + " passed, " + fail + " failed ---");
 process.exit(fail > 0 ? 1 : 0);
