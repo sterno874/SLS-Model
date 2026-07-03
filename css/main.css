@@ -191,6 +191,14 @@
   .tabbtn:hover{color:var(--ink)}
   .tabpage[hidden]{display:none}
   .tabpage>.howworks{margin-left:var(--page-pad);margin-right:var(--page-pad)}
+  /* constrain every direct tabpage child to the centered content column.
+     layout blocks that already manage their own width/padding are excluded so the
+     REGAL two-column grid and pattern-1 wrappers keep aligning. new tabs/sections
+     (e.g. a future Biology tab) are covered automatically. */
+  .tabpage>*:not(.wrap):not(.facts):not(.regal-analysis):not(.tab-lead):not(.tab-inset):not(.tab-intro-bar):not(.methodpanel):not(.howworks),
+  .tabpage .full-bleed-fix{
+    max-width:calc(var(--content-max) - var(--page-pad) * 2);
+    margin-inline:auto}
   .methodbtn{border:1px solid var(--accent);background:#eef3fe;color:var(--accent);border-radius:8px;padding:var(--space-sm) var(--space-md);font-size:12.5px;font-weight:700;cursor:pointer;min-height:44px}
   .methodpanel{margin:var(--space-md) auto 0;padding:var(--space-md) var(--space-lg);max-width:calc(var(--content-max) - var(--page-pad) * 2);border:1px solid var(--line);border-radius:var(--radius);background:#fbfcfd;font-size:12.5px;line-height:1.6}
   .methodpanel[hidden]{display:none}
