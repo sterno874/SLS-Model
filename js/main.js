@@ -141,13 +141,17 @@ function drawEmptyChart(){
   ctx.fillText("No consistent scenario yet — apply Best Available Guess or enable auto-fit",W/2,H/2);
   chartParams=null;
 }
+let updateRaf=null;
 function scheduleUpdate(){
   lastMcPwin=null; // params changed → any prior MC P(win) is stale until MC is re-run
   if(restoringState){updateNow();return;}
-  clearTimeout(updateTimer);
-  updateTimer=setTimeout(()=>{
-    updateTimer=null;clearTimeout(updateSpinnerTimer);updateSpinnerTimer=null;hideLoading();updateNow();
-  },75);
+  // Throttle the light gauge/event/verdict update to one run per animation frame so the
+  // readouts track the slider live; heavy work (band windows, readout MC, open panels)
+  // is deferred internally to drag-end.
+  if(updateRaf)return;
+  updateRaf=requestAnimationFrame(()=>{
+    updateRaf=null;clearTimeout(updateSpinnerTimer);updateSpinnerTimer=null;hideLoading();updateNow();
+  });
 }
 function refreshOpenPanels(){
   if(panelOpen("panelIRM"))renderIRM();
@@ -249,7 +253,15 @@ function buildBands(){
   });
 }
 // update dynamic data-consistent strips + markers
-function renderBands(p){
+// Cheap: only reposition each slider's marker (safe to run live on every input).
+function renderBandMarkers(){
+  CFG.forEach(c=>{
+    const mk=$("mark-"+c.id);if(!mk)return;
+    const cur=+$(c.id).value;mk.style.left="calc("+pct(cur,c.min,c.max)+"% - 1px)";
+  });
+}
+// Heavy: recompute each slider's green consistency window (deferred to drag-end).
+function renderBandSegments(p){
   CFG.forEach(c=>{
     const strip=$("data-"+c.id);if(!strip)return;strip.innerHTML="";
     const M=44;let runs=[],inRun=false,start=0;
@@ -263,8 +275,21 @@ function renderBands(p){
     runs.forEach(r=>{const s=document.createElement("div");s.className="seg";
       s.style.left=pct(r[0],c.min,c.max)+"%";s.style.width=Math.max(0.8,pct(r[1],c.min,c.max)-pct(r[0],c.min,c.max))+"%";
       s.style.background="var(--data)";s.style.opacity="0.75";strip.appendChild(s);});
-    const cur=+$(c.id).value;$("mark-"+c.id).style.left="calc("+pct(cur,c.min,c.max)+"% - 1px)";
   });
+}
+function renderBands(p){renderBandSegments(p);renderBandMarkers();}
+let bandsSegTimer=null;
+// Recompute the (expensive) green windows only after the slider settles; the memo key
+// then skips genuinely-redundant recomputes (e.g. re-applying the same preset).
+function scheduleBandSegments(p){
+  const bk=JSON.stringify(p)+regalMode;
+  if(restoringState){if(bk!==lastBandsKey){lastBandsKey=bk;renderBandSegments(p);}return;}
+  clearTimeout(bandsSegTimer);
+  bandsSegTimer=setTimeout(()=>{
+    bandsSegTimer=null;
+    if(bk===lastBandsKey)return;
+    lastBandsKey=bk;renderBandSegments(p);
+  },160);
 }
 
 // ---------- chart ----------
@@ -334,6 +359,7 @@ function updateReadoutVisibility(){
 }
 function updateReadoutTracker(){
   updateReadoutVisibility();
+  if(activeTab!=='gps'||embedMode)return; // skip the expensive path MC when the readout panel is hidden
   const p=readParams(),t80=T80(p),tPace=T80PrPace(),moFromAnchor=t80-T3;
   if($("reDate"))$("reDate").textContent=fmtCalMonth(t80);
   if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80';
@@ -554,8 +580,8 @@ function update(){
   $("vBatk").textContent=p.batk.toFixed(2);$("vStratF").textContent=p.stratF.toFixed(2);$("vZfut").textContent=p.zfut.toFixed(2);
 
   scheduleDraw(p);
-  const bk=JSON.stringify(p)+regalMode;
-  if(bk!==lastBandsKey){lastBandsKey=bk;renderBands(p);}
+  renderBandMarkers();
+  scheduleBandSegments(p);
 
   if(noSol){
     $("oHRnum").textContent="—";$("oIAstatus").textContent="—";
@@ -962,20 +988,26 @@ const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bu
 function runPresetCmp(){
   $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
   deferWithLoading(function(){
+    const cutoff=+$("cutoff").value;
     const rows=[];
     for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
       const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
-      rows.push({name,mode:"forward",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+      const gs=hrGaugeState(pr,cutoff);
+      rows.push({name,mode:"forward",fit:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
     for(const name in INV){const pr=paramsFromPreset(name,INV[name],"inverse");if(!pr)continue;
-      rows.push({name,mode:"inverse",hr:hazardRatio(T2,pr),e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,72,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
-    $("presetCmpBody").innerHTML=rows.map(r=>{
-      const win=r.hr<THRESH?"win":"lose";
-      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
-    }).join("");
-    $("presetCmpStatus").textContent=rows.length+" presets";$("presetCmpRun").disabled=false;
+      const gs=hrGaugeState(pr,cutoff);
+      rows.push({name,mode:"inverse",fit:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+    const onlyFit=$("presetCmpPlausible")&&$("presetCmpPlausible").checked;
+    const shown=onlyFit?rows.filter(r=>r.fit):rows;
+    $("presetCmpBody").innerHTML=shown.map(r=>{
+      const win=r.clears?"win":"lose";
+      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td>"+(r.fit?"✓":"✗")+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
+    }).join("")||"<tr><td colspan='10' style='text-align:center;color:var(--muted)'>No presets fit the 60/72/78 anchors</td></tr>";
+    $("presetCmpStatus").textContent=shown.length+(onlyFit?" of "+rows.length:"")+" presets";$("presetCmpRun").disabled=false;
   },"Computing all presets…");
 }
 onClick("presetCmpRun",runPresetCmp);
+onChange("presetCmpPlausible",runPresetCmp);
 
 // ================= MILESTONE BACKTEST (#7) =================
 const MILESTONES=[
@@ -1207,10 +1239,17 @@ window.addEventListener("resize",initMobileCollapse);
 
 // patch update: debounced sliders call scheduleUpdate; presets/modes call updateNow directly
 const _updateOrig=update;
+let settleTimer=null;
+// Heavy tail (re-render any expanded IRM/Bayes/backtest panels + rewrite the URL hash)
+// runs only after the sliders settle, not on every dragged frame.
+function scheduleSettle(){
+  clearTimeout(settleTimer);
+  settleTimer=setTimeout(()=>{settleTimer=null;refreshOpenPanels();updateHashQuiet();},160);
+}
 function updateNow(){
   _updateOrig();
   updateBestEstStrip();
-  if(!restoringState){refreshOpenPanels();updateHashQuiet();}
+  if(!restoringState){scheduleSettle();}
 }
 update=updateNow;
 

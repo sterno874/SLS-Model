@@ -483,9 +483,9 @@
     <p class="cw-note">All REGAL forward and inverse presets computed side-by-side — no clicking through one by one. P(win) uses the same fast approximate MC as the tornado panel (3k draws per preset). May take a few seconds.</p>
     <button class="p p-run" id="presetCmpRun">▶ Compute all presets</button>
     <span id="presetCmpStatus" class="run-status"></span>
+    <label class="chk presetCmp-filter"><input type="checkbox" id="presetCmpPlausible" checked/> Show only presets that fit 60/72/78 anchors</label>
     <div class="table-wrap" style="max-height:420px;overflow-y:auto">
       <table class="preset-cmp" id="presetCmpTable">
-        <label class="chk"><input type="checkbox" id="presetCmpPlausible" checked/> Show only presets that fit 60/72/78 anchors</label>
         <thead><tr><th>Preset</th><th>Mode</th><th>Fit</th><th>HR</th><th>e46 (mod)</th><th>e58 (mod)</th><th>e63 (mod)</th><th>P(win)</th><th>BAT 3yr</th><th>GPS cure</th></tr></thead>
         <tbody id="presetCmpBody"><tr><td colspan="10" style="text-align:center;color:var(--muted)">Click Compute all presets</td></tr></tbody>
       </table>
