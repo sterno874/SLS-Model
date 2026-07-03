@@ -13,6 +13,7 @@ import {
   b64urlEncode,
   b64urlDecode,
   buildShareHash,
+  decodeShareHash,
   parseEmbedMode,
   isValidTab,
   tabVisibility,
@@ -127,7 +128,7 @@ for (const name of INVERSE_PRESET_NAMES) {
   });
 }
 
-test("share state round-trip via buildShareHash", () => {
+test("share state round-trip via buildShareHash (v1 delta format)", () => {
   const sample = {
     v: 1,
     tab: "gps",
@@ -136,9 +137,12 @@ test("share state round-trip via buildShareHash", () => {
     ui: { explainLvl: "phd" }
   };
   const hash = buildShareHash(sample);
-  assert.match(hash, /^#s=/);
-  const decoded = JSON.parse(b64urlDecode(hash.slice(3)));
-  assert.deepEqual(decoded, sample);
+  assert.match(hash, /^#s1=/);
+  const decoded = decodeShareHash(hash);
+  assert.equal(decoded.regalMode, "inverse");
+  assert.equal(decoded.gps.bat, 10);
+  assert.equal(decoded.gps.gpsc, 42);
+  assert.equal(decoded.ui.explainLvl, "phd");
 });
 
 test("b64url encode avoids padding and url-unsafe chars", () => {
