@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { T1, T2, hazardRatio, consistent, passesVerdict, eventsAt, T3, E3, inverseSolve } from "../js/math/survival.js";
+import { T1, T2, hazardRatio, consistent, passesVerdict, isBiologicallyPlausible, medianOf, sBAT, eventsAt, T3, E3, inverseSolve } from "../js/math/survival.js";
 import { paramsFromPresetQ, mk } from "./helpers.js";
 import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES, RIDGE_PRESET_NAMES } from "./fixtures/presets.js";
 
@@ -14,19 +14,30 @@ for (const name of PLAUSIBLE_PRESET_NAMES) {
     );
   });
 
-  test(`forward preset "${name}" passes passesVerdict()`, () => {
+  test(`forward preset "${name}" passes passesVerdict() and isBiologicallyPlausible()`, () => {
     const p = paramsFromPresetQ(P[name]);
     assert.ok(passesVerdict(p), `preset ${name} should pass full trajectory verdict`);
+    assert.ok(isBiologicallyPlausible(p), `preset ${name} should pass biological BAT caps`);
   });
 }
 
 for (const name of RIDGE_PRESET_NAMES) {
-  test(`ridge preset "${name}" fits anchors with HR ≈ 1 by design`, () => {
+  test(`ridge preset "${name}" fits anchors with HR ≈ 1 but fails biological BAT cap`, () => {
     const p = paramsFromPresetQ(P[name]);
     assert.ok(passesVerdict(p), `ridge preset ${name} should still pass event trajectory`);
     assert.ok(Math.abs(hazardRatio(T2, p) - 1) < 0.02);
+    assert.ok(!isBiologicallyPlausible(p), `ridge preset ${name} should fail BAT mOS cap`);
+    const batMed = medianOf(sBAT, p);
+    assert.ok(batMed !== null && batMed > 15, `ridge BAT mOS ${batMed} should exceed 15m cap`);
+    assert.ok(batMed > 23 && batMed < 25, `ridge BAT mOS ~24m, got ${batMed?.toFixed(1)}`);
   });
 }
+
+test("capbreach preset fits anchors but fails biological BAT cap", () => {
+  const p = paramsFromPresetQ(P.capbreach);
+  assert.ok(passesVerdict(p));
+  assert.ok(!isBiologicallyPlausible(p));
+});
 
 test("bear preset HR near win threshold", () => {
   const p = paramsFromPresetQ(P.bear);

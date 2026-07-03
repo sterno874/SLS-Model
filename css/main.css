@@ -175,6 +175,7 @@
   .v-win{background:#e8f6ee;color:#12692f;border:1px solid #bfe6cd}
   .v-lose{background:#fdeaea;color:#8f2020;border:1px solid #f4c7c7}
   .v-none{background:#fff4e0;color:#8a5a00;border:1px solid #f2dca6}
+  .v-ridge{background:#fdeaea;color:#7a1a1a;border:1px solid #e8a0a0}
   .note{font-size:12px;color:var(--muted);margin-top:var(--section-gap);border-top:1px dashed var(--line);padding-top:var(--space-md);line-height:1.55}
   .ctrl-group details,.card details{margin-top:var(--space-sm)}
   .ctrl-group details>summary,.card details>summary{cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);padding:var(--space-xs) 0}

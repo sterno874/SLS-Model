@@ -7,7 +7,8 @@ import {
   hazardRatio,
   hrGaugeState,
   inverseSolve,
-  passesVerdict
+  passesVerdict,
+  isBiologicallyPlausible
 } from "../js/math/survival.js";
 import {
   b64urlEncode,
@@ -187,12 +188,20 @@ test("tabVisibility throws on invalid tab id", () => {
 });
 
 for (const name of PLAUSIBLE_PRESET_NAMES) {
-  test(`isPlausible agrees with passesVerdict for "${name}"`, () => {
+  test(`isPlausible true for biology-first preset "${name}"`, () => {
     const p = paramsFromPreset(name, null, "forward", P, INV);
-    assert.equal(isPlausible(p), passesVerdict(p));
     assert.ok(isPlausible(p));
+    assert.ok(passesVerdict(p));
+    assert.ok(isBiologicallyPlausible(p));
   });
 }
+
+test("isPlausible false for ridge noeffect preset (events fit, biology fails)", () => {
+  const p = paramsFromPreset("noeffect", null, "forward", P, INV);
+  assert.ok(passesVerdict(p));
+  assert.ok(!isBiologicallyPlausible(p));
+  assert.ok(!isPlausible(p));
+});
 
 test("hrGaugeState: best preset interim in early-stop zone, final clears threshold", () => {
   const best = mk({});

@@ -1,4 +1,4 @@
-import { STRATF, ZFUT, inverseSolve, passesVerdict, hrGaugeState } from "../math/survival.js";
+import { STRATF, ZFUT, inverseSolve, passesVerdict, isBiologicallyPlausible, hrGaugeState } from "../math/survival.js";
 
 export const VALID_TABS = ["gps", "sls009", "value", "explain", "biology"];
 export const EXPLAIN_LEVELS = ["eli5", "ms", "hs", "col", "pro", "phd"];
@@ -316,7 +316,7 @@ export function paramsFromPreset(name, q, mode, P, INV) {
 }
 
 export function isPlausible(p) {
-  return passesVerdict(p);
+  return passesVerdict(p) && isBiologicallyPlausible(p);
 }
 
 /** DOM-free valuation metrics (values object mirrors slider fields). */

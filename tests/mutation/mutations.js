@@ -174,6 +174,12 @@ export const MUTATION_TARGETS = [
     apply: (s) => s.replace("return pm===null||pm>13.5;", "return pm===null||pm<13.5;")
   },
   {
+    id: "surv-isBiologicallyPlausible-cap",
+    file: "js/math/survival.js",
+    description: "isBiologicallyPlausible BAT cap 15 → 25 (always passes ridge)",
+    apply: (s) => s.replace("if(bm!==null&&bm>BAT_MED_CAP)return false;", "if(bm!==null&&bm>25)return false;")
+  },
+  {
     id: "surv-enrollCDF",
     file: "js/math/survival.js",
     description: "enrollCDF LMAX 38 → 39",

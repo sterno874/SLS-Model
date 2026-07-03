@@ -80,6 +80,13 @@ function passesVerdict(p,bins){
   const pm=medianOf(poolS,p);
   return pm===null||pm>13.5;
 }
+// BAT mOS ceiling from QUAZAR CR1 placebo (14.8m) + Kurosawa CR2 caps — matches red-hatch slider bands
+const BAT_MED_CAP=15;
+function isBiologicallyPlausible(p){
+  const bm=medianOf(sBAT,p);
+  if(bm!==null&&bm>BAT_MED_CAP)return false;
+  return true;
+}
 // ---------- auto-fit ----------
 function autofitCure(p){const test=c=>eventsAt(T2,Object.assign({},p,{gpsc:c}));const lo=test(0),hi=test(0.9);if(lo<E2)return{sol:null,reason:"even 0% GPS cure gives only "+lo.toFixed(0)+" events by m58 — BAT too strong for the data"};if(hi>E2)return{sol:null,reason:"even 90% GPS cure still gives "+hi.toFixed(0)+" events by m58 — BAT too weak / uncured mOS too low"};let a=0,b=0.9;for(let i=0;i<40;i++){const m=(a+b)/2;if(test(m)>E2)a=m;else b=m;}return{sol:(a+b)/2};}
 
@@ -128,6 +135,6 @@ export {
   lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix,
   sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored,
   T80PrPace, T80, t80Analysis, mcPathToT80,
-  hazardRatio, analyzeLR, hrGaugeState, condPow, Tfor, medianOf, consistent, passesVerdict, autofitCure,
+  hazardRatio, analyzeLR, hrGaugeState, condPow, Tfor, medianOf, consistent, passesVerdict, BAT_MED_CAP, isBiologicallyPlausible, autofitCure,
   eventErr, bisectField, batcFor3yrCap, inverseSolve
 };

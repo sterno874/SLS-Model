@@ -23,7 +23,9 @@ export const INV = {
 
 export const FORWARD_PRESET_NAMES = Object.keys(P);
 
-/** Every visible forward preset must pass passesVerdict(). */
-export const PLAUSIBLE_PRESET_NAMES = FORWARD_PRESET_NAMES;
+/** Forward presets expected to pass event trajectory + biological BAT caps. */
+export const PLAUSIBLE_PRESET_NAMES = FORWARD_PRESET_NAMES.filter(
+  (n) => !RIDGE_PRESET_NAMES.includes(n) && n !== "capbreach"
+);
 
 export const INVERSE_PRESET_NAMES = Object.keys(INV);

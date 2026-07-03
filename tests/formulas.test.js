@@ -37,6 +37,7 @@ import {
   medianOf,
   consistent,
   passesVerdict,
+  isBiologicallyPlausible,
   enrollCDF,
   rawC,
   rmst,
@@ -248,6 +249,14 @@ test("passesVerdict rejects low median even if events fit", () => {
     const pm = medianOf(poolS, fast);
     if (pm !== null && pm <= 13.5) assert.ok(!passesVerdict(fast));
   }
+});
+
+test("isBiologicallyPlausible rejects noeffect ridge BAT mOS ~24m", () => {
+  const ridge = mk({ bat: 14, batc: 0.28, gpsc: 0.28, gpsu: 14, delay: 0 });
+  const bm = medianOf(sBAT, ridge);
+  assert.ok(bm !== null && bm > 23 && bm < 25);
+  assert.ok(passesVerdict(ridge));
+  assert.ok(!isBiologicallyPlausible(ridge));
 });
 
 // ---------- enrollment / Poisson / normal CDF ----------

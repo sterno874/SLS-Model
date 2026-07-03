@@ -46,6 +46,8 @@ import {
   medianOf,
   consistent,
   passesVerdict,
+  isBiologicallyPlausible,
+  BAT_MED_CAP,
   autofitCure,
   batcFor3yrCap,
   inverseSolve
@@ -67,23 +69,28 @@ function onChange(id, fn){const el=$(id);if(el)el.onchange=fn;}
 
 // ---------- plausibility gating (UI) ----------
 let lastConsistentP=null;
-function updatePlausibilityUI(p,plausible,approxFit){
+function updatePlausibilityUI(p,plausible,approxFit,bioReject){
   const w=$("plausibilityWarn");
   if(w){
     if(plausible)w.hidden=true;
-    else if(approxFit){
+    else if(bioReject){
+      w.hidden=false;
+      const bm=medianOf(sBAT,p);
+      w.innerHTML="<b>Event anchors fit (60/72/78)</b> — mandatory constraint satisfied — but BAT mOS "+(bm===null?">240":bm.toFixed(1))+" m exceeds biological priors (&gt;"+BAT_MED_CAP+" m; above QUAZAR CR1 placebo). HR≈1 null-effect worlds are <b>structurally possible on pooled counts, biologically rejected</b> — not a live clinical scenario.";
+    }else if(approxFit){
       w.hidden=false;
       const pmv=medianOf(poolS,p);
       w.textContent="Fits the 60/72/78 event anchors, but pooled median OS "+(pmv===null?">240":pmv.toFixed(1))+" m is at/below the announced floor (must be >13.5 m per the Jan 2025 interim). Chart requires the full verdict; adjust sliders or enable auto-fit.";
     }else{
       w.hidden=false;
-      w.textContent="Current parameters do not fit blinded event counts (e60/e58/e63). Adjust sliders or enable auto-fit.";
+      w.textContent="Current parameters do not fit blinded event counts (e60/e58/e63) — event anchors are the mandatory constraint. Adjust sliders, enable auto-fit, or switch to anchor-constrained inversion and sweep GPS cure fraction.";
     }
   }
   const wrap=$("chartWrap"),msg=$("chartStaleMsg"),out=$("outputCard");
-  if(wrap)wrap.classList.toggle("chart-stale",!plausible);
-  if(msg)msg.hidden=!!plausible||!lastConsistentP;
-  if(out)out.classList.toggle("output-stale",!plausible);
+  const showStale=!plausible&&!bioReject;
+  if(wrap)wrap.classList.toggle("chart-stale",showStale);
+  if(msg)msg.hidden=!!plausible||!!bioReject||!lastConsistentP;
+  if(out)out.classList.toggle("output-stale",showStale);
 }
 
 // ---------- loading overlay ----------
@@ -125,11 +132,13 @@ const tabsDirty={sls009:true,value:true,explain:true};
 function panelOpen(id){const el=$(id);return!!(el&&el.open);}
 function scheduleDraw(p){
   const plausible=isPlausible(p);
-  const approxFit=!plausible&&consistent(p);
-  if(plausible||approxFit)lastConsistentP=Object.assign({},p);
-  const drawP=plausible?p:(lastConsistentP||null);
+  const eventFit=passesVerdict(p);
+  const bioReject=eventFit&&!plausible;
+  const approxFit=!plausible&&!bioReject&&consistent(p);
+  if(plausible||approxFit||bioReject)lastConsistentP=Object.assign({},p);
+  const drawP=plausible||bioReject?p:(approxFit?lastConsistentP:null);
   pendingDrawP=drawP;
-  updatePlausibilityUI(p,plausible,approxFit);
+  updatePlausibilityUI(p,plausible,approxFit,bioReject);
   if(pendingDrawRaf)return;
   pendingDrawRaf=requestAnimationFrame(()=>{pendingDrawRaf=null;if(pendingDrawP)draw(pendingDrawP);else drawEmptyChart();});
 }
@@ -185,7 +194,7 @@ function applyInverseResult(r){
   $("invPool").textContent=pm===null?">240 m":pm.toFixed(1)+" m";
   $("invHR").textContent=isNaN(hr)?"—":hr.toFixed(2);
   $("invErr").textContent=r.err<1?"exact":r.err.toFixed(1);
-  $("invStatus").textContent="Anchored to 60/72/78 + <80; GPS cure "+(s.gpsc*100).toFixed(0)+"% fixed; BAT 3-yr OS "+(sBAT(36,s)*100).toFixed(0)+"% (≤"+$("batcap").value+"% cap). Least-squares fit (exponential BAT k=1) — CW uses Weibull k≈0.85 grid search; implied BAT may differ from CW Scenario C (~10 mo). Structural tail→GPS assignment — not arm-level proof.";
+  $("invStatus").textContent="Mandatory constraint: reproduce 60/72/78 + <80. GPS cure "+(s.gpsc*100).toFixed(0)+"% is the swept structural assumption (see cw35/cw42/cw50 presets and inversion MC); BAT 3-yr OS "+(sBAT(36,s)*100).toFixed(0)+"% (≤"+$("batcap").value+"% cap). Least-squares fit (exponential BAT k=1) — CW uses Weibull k≈0.85 grid search. Structural tail→GPS assignment — not arm-level proof.";
   return true;
 }
 function setRegalMode(mode){
@@ -202,8 +211,8 @@ function setRegalMode(mode){
   ["batDerivedTag","batcDerivedTag","gpsuDerivedTag"].forEach(id=>{const e=$(id);if(e)e.hidden=mode!=="inverse";});
   $("mcPanelTitle").textContent=mode==="inverse"?"Monte Carlo — implied HR distribution (anchor-constrained inversion)":"Monte Carlo — final-HR distribution";
   $("mcPanelHint").innerHTML=mode==="inverse"
-    ?'Varies <b>GPS cure fraction</b> (±1σ around slider) and BAT 3-yr cap, re-runs the inverse solver each draw, and histograms the <b>implied HR</b> that falls out. Shows how sensitive derived efficacy is to the cure-fraction assumption — not a direct-parameterization posterior. Non-binding interim unless preset says otherwise. <span class="cite">CW framing: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM post</a></span>'
-    :'Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">+12</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">+6</a>, still &lt;80), so every scenario is anchored <em>in proportion to how well it explains the exact numbers, with counting noise modeled</em> — not accepted/rejected by an arbitrary window. "Win" is a <b>stratified log-rank significance test</b> (NPH-aware). Win threshold HR &lt; 0.636 from the <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>. Binding interim: soft-weight P(continue) via OBF Z=2.34 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">source</a>). <span class="tag m">Model output</span> — only as good as the priors.';
+    ?'<b>Primary constraint:</b> blinded event anchors (60/72/78) — every draw re-solves to fit them. <b>Uncertainty axis:</b> sweeps <b>GPS cure fraction</b> (±1σ around slider) and BAT 3-yr cap, then histograms the <b>implied HR</b> — cure fraction is not a free pick; compare cw35/cw42/cw50 presets. Not a direct-parameterization posterior. Non-binding interim unless preset says otherwise. <span class="cite">CW framing: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM post</a></span>'
+    :'Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">+12</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">+6</a>, still &lt;80) — <b>event fit is mandatory</b>; draws that miss anchors are discarded. "Win" is a <b>stratified log-rank significance test</b> (NPH-aware). Win threshold HR &lt; 0.636 from the <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>. Binding interim: soft-weight P(continue) via OBF Z=2.34 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">source</a>). <span class="tag m">Model output</span> — only as good as the priors.';
   refreshRegalPresetHighlight();
   update();
 }
@@ -695,19 +704,21 @@ function update(){
   const pmOK=pmv===null||pmv>13.5;$("pm").innerHTML=fmtM(pmv);badge($("bpm"),pmOK,false);
   $("fu36").textContent=(enrollCDF(T3-36,p.mid,p.k)*100).toFixed(0)+"%";
 
-  const cons=ok1&&ok2&&ok3&&ok4&&pmOK; // verdict now requires ALL badges green (no loose loophole)
+  const cons=ok1&&ok2&&ok3&&ok4&&pmOK;
+  const bioOk=isBiologicallyPlausible(p);
   const v=$("verdict");
   // Verdict uses the SAME readout HR (gs.hrForFinal) as the final gauge above, so "clears/misses" never contradicts the gauge.
   const vHr=hrFin,vClears=gs.finalClears;
-  if(!cons){v.className="verdict v-none";v.textContent=regalMode==="inverse"?"Implied scenario does NOT match the full announced trajectory — adjust cure fraction or BAT cap.":"Does NOT match the full announced trajectory (60/72/78 events + still <80 today). Not a live possibility — check which badge is off. Common misses: over-flatlining under-shoots 78@m63; arms-too-close pushes past 80 before today.";}
-  else if(vClears){v.className="verdict v-win";v.textContent=regalMode==="inverse"?"Anchor-constrained inversion: projected readout HR "+vHr.toFixed(2)+" < 0.636 → derived mOS/tails consistent with a win, given your cure-fraction assumption. (Other cure fractions also fit — see inversion MC.)":"Consistent with all announced numbers AND projected readout HR "+vHr.toFixed(2)+" < 0.636 → this world clears the threshold. (Other green worlds below also fit — that's the identification problem.)";}
-  else{v.className="verdict v-lose";v.textContent=regalMode==="inverse"?"Anchor-constrained inversion: fits the event anchors but projected readout HR "+vHr.toFixed(2)+" > 0.636 → derived parameters predict a miss. Try lower cure fraction or check BAT cap.":"Consistent with the announced numbers but projected readout HR "+vHr.toFixed(2)+" > 0.636 → this world MISSES. Note what it took: check the BAT median / long-survivor sliders — failure needs near-unprecedented BAT.";}
+  if(!cons){v.className="verdict v-none";v.textContent=regalMode==="inverse"?"Implied scenario does NOT match the mandatory event anchors (60/72/78 + still <80) — adjust GPS cure sweep point or BAT cap. Event fit is required before any HR/mOS readout.":"Does NOT match the mandatory event trajectory (60/72/78 events + still <80 today). Not a live possibility — check which badge is off. Event anchors are the only certain inputs; common misses: over-flatlining under-shoots 78@m63; arms-too-close pushes past 80 before today.";}
+  else if(!bioOk){v.className="verdict v-ridge";v.textContent="Fits the mandatory 60/72/78 event anchors, but BAT mOS "+(bm===null?">240":bm.toFixed(1))+" m exceeds biological priors (>"+BAT_MED_CAP+" m — above QUAZAR CR1 placebo). HR "+vHr.toFixed(2)+" on this ridge is structurally possible on pooled counts but biologically rejected — not a credible null-effect clinical scenario (see Ridge preset: ~24 m BAT mOS with shared ~28% tail).";}
+  else if(vClears){v.className="verdict v-win";v.textContent=regalMode==="inverse"?"Anchor-constrained inversion: fits mandatory event anchors; projected readout HR "+vHr.toFixed(2)+" < 0.636 → derived mOS/tails consistent with a win at this GPS cure point on the sweep. (Other cure fractions also fit — see inversion MC.)":"Consistent with all announced event anchors AND projected readout HR "+vHr.toFixed(2)+" < 0.636 → this world clears the threshold. (Other green worlds below also fit — that's the identification problem.)";}
+  else{v.className="verdict v-lose";v.textContent=regalMode==="inverse"?"Anchor-constrained inversion: fits the mandatory event anchors but projected readout HR "+vHr.toFixed(2)+" > 0.636 → derived parameters predict a miss at this cure-fraction point. Sweep cw35/cw42/cw50 or check BAT cap.":"Consistent with the announced event anchors but projected readout HR "+vHr.toFixed(2)+" > 0.636 → this world MISSES. Note what it took: check the BAT median / long-survivor sliders — failure needs near-unprecedented BAT.";}
   $("note").innerHTML=noteText();
 }
 
 function noteText(){
-  return "Reading the strips: the <b>green lower strip</b> is the answer to ‘where does the timeline limit this input?’ — it's the set of values for this slider that still fit 60/72/78 events (<a href=\"https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html\" target=\"_blank\" rel=\"noopener\">60</a>, <a href=\"https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html\" target=\"_blank\" rel=\"noopener\">72</a>, <a href=\"https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html\" target=\"_blank\" rel=\"noopener\">78</a>), holding your other sliders fixed. Move one slider and watch the others' green windows shift: that coupling <em>is</em> the identification problem. The <b>blue upper strip</b> is the prior (1σ/2σ/3σ) from published data. "+
-  "What the trajectory pins down: to yield only ~72–78 deaths of 126 by now, pooled survival runs well above historical CR2 (~8–11m, <a href=\"https://pubmed.ncbi.nlm.nih.gov/33661271/\" target=\"_blank\" rel=\"noopener\">Stahl 2021</a>). What it does NOT pin down: a no-effect world STILL fits if BOTH arms share a ~25–30% long-survivor tail (true median ~23m, 3-yr OS ~40%) — try the ‘Ridge: null effect fits anchors’ preset, HR=1.00 and green. That tail is high vs historical (~5–15% 3-yr OS, <a href=\"https://haematologica.org/article/view/5781\" target=\"_blank\" rel=\"noopener\">Kurosawa 2010</a>) but not impossible for a fit trial population, so efficacy is *more likely than not* — not established. The data span runs from HR 1.0 (no effect) to 0.15 (big effect); the arm split is unidentifiable (drag BAT with auto-fit on, watch HR swing). "+
+  return "Reading the strips: the <b>green lower strip</b> is the answer to ‘where does the timeline limit this input?’ — it's the set of values for this slider that still fit 60/72/78 events (<a href=\"https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html\" target=\"_blank\" rel=\"noopener\">60</a>, <a href=\"https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html\" target=\"_blank\" rel=\"noopener\">72</a>, <a href=\"https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html\" target=\"_blank\" rel=\"noopener\">78</a>), holding your other sliders fixed — <b>event fit is mandatory</b>; GPS cure fraction is swept (inverse MC, cw35/cw42/cw50), not a free pick. Move one slider and watch the others' green windows shift: that coupling <em>is</em> the identification problem. The <b>blue upper strip</b> is the prior (1σ/2σ/3σ) from published data. "+
+  "What the trajectory pins down: to yield only ~72–78 deaths of 126 by now, pooled survival runs well above historical CR2 (~8–11m, <a href=\"https://pubmed.ncbi.nlm.nih.gov/33661271/\" target=\"_blank\" rel=\"noopener\">Stahl 2021</a>). What it does NOT pin down: a no-effect world can still fit if BOTH arms share a ~28% long-survivor tail — try the ‘Ridge: null effect’ preset (HR≈1.00): it fits the anchors but requires BAT mOS ~24 m, above biological priors (&gt;15 m). That is <b>structurally possible on pooled counts, biologically rejected</b> — not equally plausible with biology-first worlds. The data span runs from HR 1.0 (non-credible null on the ridge) to ~0.15 (big effect); the arm split is unidentifiable (drag BAT with auto-fit on, watch HR swing). "+
   "Transplant &amp; censoring: eligibility is judged only at entry (<a href=\"https://clinicaltrials.gov/study/NCT04229979\" target=\"_blank\" rel=\"noopener\">NCT04229979</a>), so patients can be transplanted afterward. ‘Transplant after enrollment’ (ITT mode) adds a ~45%-cure tail to BOTH arms (<a href=\"https://pubmed.ncbi.nlm.nih.gov/?term=Forman+Rowe+myth+second+remission+acute+leukemia+adult\" target=\"_blank\" rel=\"noopener\">Forman &amp; Rowe 2013</a>) — it lifts BAT's 3-yr OS and pulls the HR toward 1.0. ‘Censoring/dropout’ lowers observed events, so true survival is worse than the raw counts imply (~15% in Ph2 GPS, <a href=\"https://www.onclive.com/view/maintenance-galinpepimut-s-appears-effective-and-safe-in-aml-in-second-cr\" target=\"_blank\" rel=\"noopener\">Brayer/OncLive</a>). "+
   "Red hatched zones = biologically IMPLAUSIBLE BAT profiles: median &gt;15m (above QUAZAR's CR1 placebo of 14.8m, <a href=\"https://www.nejm.org/doi/full/10.1056/NEJMoa2001094\" target=\"_blank\" rel=\"noopener\">QUAZAR NEJM</a>) or chemo-only tail &gt;18% (vs ~5–15% historical, <a href=\"https://haematologica.org/article/view/5781\" target=\"_blank\" rel=\"noopener\">Kurosawa</a>). Implausible, not impossible — transplant crossover can legitimately create a BAT tail. "+
   "Caveats: HR is an approximate log-rank/Pike estimate, not the stratified Cox; 3-yr OS is <span class=\"tag m\">model output</span> but only ~40% of patients have 36-mo follow-up; transplant-censoring's HR effect and differential dropout are not fully modeled.";
@@ -1036,7 +1047,7 @@ function runT80Sim(){
 onClick("t80Run",runT80Sim);
 
 // ================= PRESET COMPARISON (#6) =================
-const PRESET_NAMES={best:"Best Available Guess",bind:"Binding IA (~50%)",nonbind:"Non-binding IA (~78%)",bear:"BAT tail holds survivors",bull:"Bull: strong GPS cure",critique:"Critique: ~⅔ coin flip",cw:"CW published point (~85%)",capbreach:"Implausible BAT cap (stress)",noeffect:"Ridge: null effect fits anchors",cw42:"GPS 42% cure (CW inverse)",cw35:"GPS 35% cure (conservative)",cw50:"GPS 50% cure (high sweep)",cwbind:"42% cure + binding IA"};
+const PRESET_NAMES={best:"Best Available Guess",bind:"Binding IA (~50%)",nonbind:"Non-binding IA (~78%)",bear:"BAT tail holds survivors",bull:"Bull: strong GPS cure",critique:"Critique: ~⅔ coin flip",cw:"CW published point (~85%)",capbreach:"Implausible BAT cap (stress)",noeffect:"Ridge: null effect (biology rejected)",cw42:"GPS 42% cure (CW inverse)",cw35:"GPS 35% cure (conservative)",cw50:"GPS 50% cure (high sweep)",cwbind:"42% cure + binding IA"};
 function runPresetCmp(){
   $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
   deferWithLoading(function(){
@@ -1045,10 +1056,10 @@ function runPresetCmp(){
     for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
       const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
       const gs=hrGaugeState(pr,cutoff);
-      rows.push({name,mode:"forward",fit:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+      rows.push({name,mode:"forward",fit:isPlausible(pr),fitEvents:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
     for(const name in INV){const pr=paramsFromPreset(name,INV[name],"inverse");if(!pr)continue;
       const gs=hrGaugeState(pr,cutoff);
-      rows.push({name,mode:"inverse",fit:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
+      rows.push({name,mode:"inverse",fit:isPlausible(pr),fitEvents:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
     const onlyFit=$("presetCmpPlausible")&&$("presetCmpPlausible").checked;
     const shown=onlyFit?rows.filter(r=>r.fit):rows;
     $("presetCmpBody").innerHTML=shown.map(r=>{
