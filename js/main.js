@@ -72,6 +72,9 @@ import {
 } from './ui/state.js';
 
 const $ = id => document.getElementById(id);
+function onClick(id, fn){const el=$(id);if(el)el.onclick=fn;}
+function on(id, ev, fn){const el=$(id);if(el)el.addEventListener(ev,fn);}
+function onChange(id, fn){const el=$(id);if(el)el.onchange=fn;}
 
 // ---------- plausibility gating (UI) ----------
 let lastConsistentP=null;
@@ -213,8 +216,8 @@ function setRegalMode(mode){
   refreshRegalPresetHighlight();
   update();
 }
-$("modeForward").onclick=()=>setRegalMode("forward");
-$("modeInverse").onclick=()=>setRegalMode("inverse");
+onClick("modeForward",()=>setRegalMode("forward"));
+onClick("modeInverse",()=>setRegalMode("inverse"));
 
 // ---------- slider config ----------
 const DATA_WHY="GREEN = values that still reproduce the announced pooled events — 60 @ m46, 72 @ m58, 78 @ m63, still <80 @ m65 — holding your OTHER sliders fixed. Move another slider and this window shifts: that coupling is the identification problem. Sources: SELLAS PRs [3][4][5].";
@@ -781,11 +784,11 @@ document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyR
 document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInversePreset(b.dataset.inv));
 
 ["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",scheduleUpdate)});
-$("mcRun").addEventListener("click",function(){
+on("mcRun","click",function(){
   $("mcRun").disabled=true;$("mcStatus").textContent="running…";
   deferWithLoading(function(){try{runMC();}finally{$("mcRun").disabled=false;}},"Running Monte Carlo…");
 });
-$("mcNeutral").addEventListener("click",function(){applyRegalPreset("best");$("mcStatus").textContent="Best Available Guess priors set — click Run";});
+on("mcNeutral","click",function(){applyRegalPreset("best");$("mcStatus").textContent="Best Available Guess priors set — click Run";});
 
 // ================= SHAREABLE URL STATE (#1) =================
 function captureState(){
@@ -815,9 +818,9 @@ function applyState(s){
 function restoreFromHash(){const h=location.hash;if(!h.startsWith("#s="))return false;try{return applyState(JSON.parse(b64urlDecode(h.slice(3))));}catch(e){console.warn("Could not restore state from URL",e);showToast("Share link hash invalid — using defaults");history.replaceState(null,"",location.pathname+location.search);return false;}}
 function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document.createElement("div");t.className="toast";document.body.appendChild(t);}t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200);}
 function updateHashQuiet(){if(restoringState)return;const nh=encodeStateToHash();if(location.hash!==nh)history.replaceState(null,"",location.pathname+location.search+nh);}
-$("btnShare").onclick=()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();};
-$("btnPrint").onclick=()=>{updatePrintSummary();window.print();};
-$("showUncertainty").onchange=function(){showUncertainty=this.checked;deferWithLoading(updateNow,"Computing uncertainty bands…");};
+onClick("btnShare",()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();});
+onClick("btnPrint",()=>{updatePrintSummary();window.print();});
+onChange("showUncertainty",function(){showUncertainty=this.checked;deferWithLoading(updateNow,"Computing uncertainty bands…");});
 
 // ================= FAST P(WIN) APPROX =================
 function poisLogLThrough(p,throughMonth){
@@ -888,7 +891,7 @@ function runTornado(){
     $("tornadoChart").innerHTML=h;$("tornadoStatus").textContent="done";$("tornadoRun").disabled=false;
   },"Computing tornado…");
 }
-$("tornadoRun").onclick=runTornado;
+onClick("tornadoRun",runTornado);
 
 // ================= BAYES FACTOR (#3) =================
 function nullStrawman(){return{bat:8,batc:0,batk:1,gpsc:0,gpsu:8,delay:0,xtx:0,cens:0,osmode:"itt",mid:25,k:0.15,fh:false,stratF:STRATF,zfut:ZFUT};}
@@ -912,7 +915,7 @@ function updateBayes(){
     "Marginal BF (alt vs both nulls): <b>"+bfMarg.toFixed(2)+"×</b><br>"+
     '<span style="font-weight:400;font-size:12px;color:var(--muted)">Approximate Poisson likelihood ratio on pooled event increments — not a full Bayesian model. Sources: <a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank">CW Part 1</a> · <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank">uhdisj41 critique</a></span>';
 }
-["bf_e58","bf_cure"].forEach(id=>$(id).addEventListener("input",updateBayes));
+["bf_e58","bf_cure"].forEach(id=>on(id,"input",updateBayes));
 
 // ================= INTERACTIVE IRM (#4) =================
 const CW_REF={irm:12.61,hr:0.37,bat3:19.6,batAlive:11.3,gpsAlive:34.7,pool:18.7};
@@ -935,7 +938,7 @@ function renderIRM(){
   $("irmBody").innerHTML=rows.map(r=>{const d=r[3];const cls=d&&parseFloat(d)>0?"pos":(d&&parseFloat(d)<0?"neg":"");
     return "<tr><td>"+r[0]+"</td><td><b>"+r[1]+"</b></td><td>"+r[2]+"</td><td class='irm-delta "+cls+"'>"+(d||"—")+"</td></tr>";}).join("");
 }
-$("irm_lead").addEventListener("input",()=>{if(panelOpen("panelIRM"))renderIRM();});
+on("irm_lead","input",()=>{if(panelOpen("panelIRM"))renderIRM();});
 
 // ================= T80 SIMULATOR (#5) =================
 function runT80Sim(){
@@ -956,7 +959,7 @@ function runT80Sim(){
     $("t80Status").textContent="10k paths";$("t80Run").disabled=false;
   },"Simulating paths…");
 }
-$("t80Run").onclick=runT80Sim;
+onClick("t80Run",runT80Sim);
 
 // ================= PRESET COMPARISON (#6) =================
 const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bull / DD cure",critique:"Critique (~⅔)",bind:"Binding interim",nonbind:"Non-binding",cw:"Optimistic cure (~85%)",noeffect:"No effect (ridge)",cw42:"Default (~42%)",cw35:"Moderate cure (35%)",cw50:"High cure (50%)",cwbind:"Binding interim (inv)"};
@@ -976,7 +979,7 @@ function runPresetCmp(){
     $("presetCmpStatus").textContent=rows.length+" presets";$("presetCmpRun").disabled=false;
   },"Computing all presets…");
 }
-$("presetCmpRun").onclick=runPresetCmp;
+onClick("presetCmpRun",runPresetCmp);
 
 // ================= MILESTONE BACKTEST (#7) =================
 const MILESTONES=[
@@ -1235,8 +1238,8 @@ function initApp(){
   buildBands2();
   tabsRendered.gps=true;
   if(activeTab!=="gps")renderTab(activeTab,true);
-  if($("btnUsePwin"))$("btnUsePwin").onclick=usePwinInValuation;
-  if($("scmpRun"))$("scmpRun").onclick=runScenarioDiff;
+  onClick("btnUsePwin",usePwinInValuation);
+  onClick("scmpRun",runScenarioDiff);
   ["ev79","ev80"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",updateEventSensitivity);});
   ["panelScmp","panelEvtSens"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open&&id==="panelEvtSens")updateEventSensitivity();});});
 }
@@ -1341,7 +1344,7 @@ function renderVal(){
 const debouncedRenderVal=debounce(renderVal,75);
 function onValInput(){tabsDirty.value=true;debouncedBestEst();if(activeTab==="value")debouncedRenderVal();}
 ["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares"].forEach(id=>$(id).addEventListener("input",onValInput));
-if($("v_riskadj"))$("v_riskadj").addEventListener("change",onValInput);
+on("v_riskadj","change",onValInput);
 // ---- generic prior/implausible/anchor bands for Tab 2 & 3 sliders ----
 const CFG2=[
  {id:"sls_os",min:4,max:16,sig:{b1:[7,11],b2:[5.5,13],b3:[4,15]},anchor:8.9,src:"SELLAS Dec-2024 PR / ASH 2025"},
@@ -1436,11 +1439,11 @@ function mcSLS(){
   $("mcSlsStats").innerHTML="r/r: median OS fold <b>"+qtl(folds,.5).toFixed(1)+"×</b> (90% CrI "+qtl(folds,.05).toFixed(1)+"–"+qtl(folds,.95).toFixed(1)+"×), P(≥2× vs benchmark) <b>"+(100*big/N).toFixed(0)+"%</b> &nbsp;·&nbsp; frontline: median OS ratio <b>"+qtl(flhrs,.5).toFixed(2)+"</b>, <b style='color:"+(pFL>50?'var(--good)':'var(--bad)')+"'>P(Phase-3 significant) "+pFL.toFixed(0)+"%</b> <span style='color:var(--muted);font-size:11px'>(proxy from median ratio, not SAP log-rank)</span>";
   drawHist("mcSlsHist",flhrs,0.4,1.0,0.05,0.75,true);
 }
-$("mcSlsRun").addEventListener("click",function(){
+on("mcSlsRun","click",function(){
   $("mcSlsStatus").textContent="running…";
   deferWithLoading(mcSLS,"Running Monte Carlo…");
 });
-$("sls_flev").addEventListener("input",function(){$("v_slsflev").textContent=$("sls_flev").value;});
+on("sls_flev","input",function(){$("v_slsflev").textContent=$("sls_flev").value;});
 
 function mcVal(){
   const N=20000,ra=$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
@@ -1459,7 +1462,7 @@ function mcVal(){
   const hi=Math.max(10,Math.min(70,Math.ceil(qtl(evs,.97)/5)*5));
   drawHist("mcValHist",evs,0,hi,hi/24,null,true);
 }
-$("mcValRun").addEventListener("click",function(){
+on("mcValRun","click",function(){
   $("mcValStatus").textContent="running…";
   deferWithLoading(mcVal,"Running Monte Carlo…");
 });
@@ -1514,5 +1517,5 @@ const EXPL={
   "<p><b>Valuation — epistemic limits.</b> EV = Σ risk-adjusted(peak_j × multiple_j) + WT1 platform lump. Peak = (incidence × penetration × duration) × price — each input is a prior. WT1 platform slider captures GPS follow-on optionality (ovarian Ph2 completed, mesothelioma, GPS-Plus, China license per <a href='https://s203.q4cdn.com/139585304/files/doc_presentations/2026/Feb/03/Sellas-Corporate-Overview-February-2026.pdf' target='_blank'>corp deck</a>) beyond modeled AML peaks; SLS-009 is CDK9, not WT1. Multiples 4–8× are convention. Comps: Venclexta ~$2.6B (realized); Gilead–Forty Seven ~$4.9B pre-approval magrolimab — failed Ph3 (ENHANCE 2023); Onureg/QUAZAR (HR 0.69, mOS 24.7 vs 14.8) with undisclosed peak sales bounds maintenance TAM optimism. MC P(approval) defaults (65%/55%) import REGAL posterior + Ph2 stage — not NPV-discounted DCF. TAM (CR2 ~3K/yr) is community DD. Cash $107.1M Mar 2026; fully diluted ~222M modeled; ATM $150M unused. CIC severance amendments ≠ disclosed M&amp;A.</p>"+
   "<p><b>Primary refs:</b> Cox 1972; Schoenfeld 1981/83; O'Brien &amp; Fleming 1979; Lan &amp; DeMets 1983; Fleming-Harrington 1991; Jennison-Turnbull 2000; Uno 2014 (RMST); Boag 1949 (cure); Suissa 2008 (lead-time); Kurosawa 2010; DiNardo 2020 (VIALE-A); Beaumont 2002 (ABC). Full citation lists in Tabs 1–3 References.</p>"
 };
-function showLevel(l){curLvl=l;tabsRendered.explain=true;document.querySelectorAll(".lvlb").forEach(b=>b.classList.toggle("active",b.dataset.lvl===l));$("explbody").innerHTML=EXPL[l]||"";}
+function showLevel(l){curLvl=l;tabsRendered.explain=true;document.querySelectorAll(".lvlb").forEach(b=>b.classList.toggle("active",b.dataset.lvl===l));const body=$("explbody");if(body)body.innerHTML=EXPL[l]||"";if(!restoringState)updateHashQuiet();}
 document.querySelectorAll(".lvlb").forEach(b=>b.onclick=()=>showLevel(b.dataset.lvl));
