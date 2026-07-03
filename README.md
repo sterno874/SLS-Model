@@ -48,6 +48,15 @@ https://sls-model.vercel.app/#s=eyJ2IjoxLCJ0YWIiOiJncHMiLCJyZWdhbE1vZGUiOiJmb3J3
 
 Click **Copy share link** in the header to copy the current scenario. On load, if `#s=...` is present, the app decodes base64url JSON and restores state before the first render. No backend, database, or localStorage required.
 
+## Embed mode
+Strip chrome for iframe embeds — active tab content, sliders, charts, and core functionality only:
+
+```
+https://sls-model.vercel.app/?embed=1#s=eyJ2IjoxLCJ0YWIiOiJncHMi...
+```
+
+Hides header branding excess, footer, bottom nav, share/print toolbar, methodology/how-it-works panels, and readout tracker. White background, minimal padding. Mobile bottom nav is also hidden in embed mode.
+
 ## Deploy (Vercel)
 This is a zero-config static site. Import the GitHub repo at [vercel.com/new](https://vercel.com/new); Vercel serves `index.html` automatically. Assign the domain `sls-model.vercel.app` in the project's Domains settings. Enable **Web Analytics** in the Vercel project settings → **Analytics** tab (required for visitor counts to flow).
 

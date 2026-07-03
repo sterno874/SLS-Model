@@ -110,5 +110,11 @@ check("Milestone LL: truncated @ m46 excludes later increments",
 const cwPreset = mk({ bat: 10, batc: 0.06, gpsc: 0.42, gpsu: 36, delay: 0, xtx: 0, cens: 0 });
 check("CW forward preset HR < 0.636", M.hazardRatio(T2, cwPreset) < 0.636, M.hazardRatio(T2, cwPreset).toFixed(3));
 
+check("CURRENT_EVENT_ANCHOR count is 78",
+  html.includes("CURRENT_EVENT_ANCHOR={count:78") && html.includes("date:'2026-05-11'"));
+
+check("T80 exceeds anchor month for best preset",
+  M.T80(best) > 63, "T80=" + M.T80(best).toFixed(1));
+
 console.log("\n--- Summary: " + pass + " passed, " + fail + " failed ---");
 process.exit(fail > 0 ? 1 : 0);

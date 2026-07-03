@@ -3,7 +3,20 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>REGAL Survival &amp; HR Explorer</title>
+<title>REGAL Survival &amp; HR Explorer · SLS Model</title>
+<meta name="description" content="Interactive DD tool for SELLAS GPS/REGAL Phase 3 survival, SLS-009, and valuation — primary-sourced scenario explorer with Monte Carlo P(win)."/>
+<link rel="canonical" href="https://sls-model.vercel.app/"/>
+<meta property="og:title" content="REGAL Survival &amp; HR Explorer · SLS Model"/>
+<meta property="og:description" content="Concise DD tool for GPS/REGAL, SLS-009, and valuation — interactive survival, HR, and Monte Carlo explorer."/>
+<meta property="og:url" content="https://sls-model.vercel.app/"/>
+<meta property="og:type" content="website"/>
+<meta property="og:image" content="https://sls-model.vercel.app/og-image.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="REGAL Survival &amp; HR Explorer · SLS Model"/>
+<meta name="twitter:description" content="Concise DD tool for GPS/REGAL, SLS-009, and valuation — interactive survival, HR, and Monte Carlo explorer."/>
+<meta name="twitter:image" content="https://sls-model.vercel.app/og-image.png"/>
 <style>
   :root{
     --bg:#eef1f5; --card:#ffffff; --ink:#141b26; --muted:#5b6472;
@@ -272,6 +285,50 @@
   .presets{align-items:stretch}
   button.p{display:flex;flex-direction:column;justify-content:center}
   .grid2{align-items:stretch}
+  /* fact as-of dates & stale */
+  .as-of{font-size:10px;color:var(--muted);font-weight:500;margin-left:4px}
+  .stale-badge{font-size:10px;padding:1px 6px;border-radius:10px;background:#fff4e0;color:#8a5a00;margin-left:4px;font-weight:600;white-space:nowrap}
+  .stale-badge a{color:#8a5a00;text-decoration:underline}
+  /* bottom nav mobile */
+  .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:1px solid var(--line);box-shadow:0 -2px 12px rgba(20,27,38,.08);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0));grid-template-columns:repeat(4,1fr);gap:4px}
+  .bottom-nav button{border:none;background:transparent;border-radius:10px;padding:8px 4px;min-height:44px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1.2}
+  .bottom-nav button .bn-ico{font-size:18px;line-height:1}
+  .bottom-nav button.active{color:var(--accent);background:#eef3fe}
+  /* readout tracker */
+  .readout-tracker{margin:0 18px 14px;padding:14px 18px;border:2px solid var(--accent);border-radius:12px;background:linear-gradient(135deg,#eef3fe 0%,#fbfcfe 100%);font-size:13px;line-height:1.55}
+  .readout-tracker h3{margin:0 0 8px;font-size:14px;color:var(--ink)}
+  .readout-tracker .rt-big{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent)}
+  .readout-tracker .rt-row{display:flex;flex-wrap:wrap;gap:12px 20px;margin-top:8px}
+  /* chart tooltip */
+  .chart-tooltip{position:absolute;pointer-events:none;background:#141b26;color:#fff;padding:8px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;z-index:50;opacity:0;transition:opacity .12s;max-width:240px;font-variant-numeric:tabular-nums}
+  .chart-tooltip.show{opacity:1}
+  .chart-tooltip.pinned{pointer-events:auto;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+  .chart-pin-panel{margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fafbfc;font-size:12px;display:none}
+  .chart-pin-panel.show{display:block}
+  /* cross-tab link */
+  .link-val-btn{margin-top:10px;border:1px solid var(--accent);background:#eef3fe;color:var(--accent);border-radius:8px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;width:100%;min-height:44px}
+  .link-val-btn:hover{background:#dde8fd}
+  .val-highlight{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;animation:valPulse 1.2s ease 2}
+  @keyframes valPulse{0%,100%{outline-color:var(--accent)}50%{outline-color:transparent}}
+  /* scenario diff */
+  .scmp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+  @media(max-width:640px){.scmp-grid{grid-template-columns:1fr}}
+  .scmp-delta-pos{color:var(--good);font-weight:700}
+  .scmp-delta-neg{color:var(--bad);font-weight:700}
+  /* embed mode */
+  body.embed-mode{background:#fff}
+  body.embed-mode header{padding:8px 12px 4px;background:#fff;box-shadow:none;position:static}
+  body.embed-mode header h1,.embed-hide,.embed-mode .howworks,.embed-mode footer,.embed-mode .hdr-tools,.embed-mode .tabnav,.embed-mode #bottomNav,.embed-mode .methodbtn,.embed-mode .readout-tracker,.embed-mode .link-val-btn,.embed-mode .no-embed{display:none!important}
+  body.embed-mode .wrap,.embed-mode .facts,.embed-mode .regal-analysis,.embed-mode .feat-panel,.embed-mode .cw-panel{padding-left:8px;padding-right:8px;margin-left:0;margin-right:0}
+  body.embed-mode .tabbtn.active{display:inline-block!important}
+  @media(max-width:768px){
+    .bottom-nav{display:grid}
+    header .tabnav{display:none}
+    body:not(.embed-mode){padding-bottom:calc(56px + env(safe-area-inset-bottom,0))}
+    body.embed-mode{padding-bottom:0}
+    body.embed-mode header .tabnav{display:none}
+  }
+  @media print{.bottom-nav{display:none!important}}
 </style>
 </head>
 <body>
@@ -333,6 +390,18 @@
     <h4 style="margin-top:12px">Math verification (Jul 2026)</h4>
     <div style="font-size:12.5px;line-height:1.55">Audited inline functions against the formulas above: mixture-cure / Weibull survival (<code>S<sub>BAT</sub>=c+(1−c)·exp(−(t/λ)<sup>k</sup>)</code>, median scale <code>λ=bat/ln2<sup>1/k</sup></code>); ITT transplant mix; enrollment-weighted expected deaths; Pike HR <code>(O/E)<sub>GPS</sub>/(O/E)<sub>BAT</sub></code> at m58; stratified log-rank Z + OBF conditional power (<code>ρ=√(60/D)</code>); Poisson increment likelihood; inverse least-squares fit; SLS-009 fold/HR-equiv <code>bench/arm</code> under exponential assumption; valuation <code>peak=starts×pen×years×price</code>, EV=peak×multiple+platform. Spot checks: “No effect” preset HR≈1.000; CW cure preset HR≈0.19; inverse solver hits 72 events @ m58. Regression harness: <code>node verify_math.js</code>.</div>
   </div>
+
+<!-- READOUT TRACKER -->
+<div class="readout-tracker no-embed" id="readoutTracker">
+  <h3>Readout tracker <span class="tag f">cited</span></h3>
+  <div>Events remaining: <span class="rt-big" id="rtRemain">2</span> <span style="color:var(--muted);font-size:13px">(80 − <span id="rtAnchor">78</span> current anchor)</span></div>
+  <div class="rt-row">
+    <span id="rtT80">Median time to 80th event: <b>—</b></span>
+    <span id="rtP90">90th percentile: <b>—</b></span>
+    <span id="rtAsOf" style="color:var(--muted);font-size:12px">As of <span id="rtAsOfDate">2026-05-11</span></span>
+  </div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Anchor: <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 events @ m63</a> (Q1 2026 PR). <button class="p" id="rtRefresh" style="min-height:auto;padding:4px 10px;font-size:11px;margin-left:6px">Refresh estimate</button></div>
+</div>
 
 <div class="wrap">
   <!-- CONTROLS -->
@@ -517,8 +586,9 @@
   <!-- OUTPUT -->
   <div class="card">
     <h2>Survival curves (from randomization)</h2>
-    <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: GPS (mixture-cure), BAT (Weibull + tail), pooled 50/50 average. Vertical dashed line = 36 months. Medians and HR below are derived from these curves — not unblinded trial data.</div>
-    <div class="chart-wrap"><canvas id="chart" width="920" height="430"></canvas></div>
+    <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: GPS (mixture-cure), BAT (Weibull + tail), pooled 50/50 average. Vertical dashed line = 36 months. Medians and HR below are derived from these curves — not unblinded trial data. <b>Hover/tap curve for survival values.</b></div>
+    <div class="chart-wrap" id="chartWrap"><canvas id="chart" width="920" height="430"></canvas><div class="chart-tooltip" id="chartTip"></div></div>
+    <div class="chart-pin-panel" id="chartPinPanel"></div>
 
     <div class="grid2">
       <div class="stat bat"><div class="k">BAT arm median OS (incl. survivors)</div><div class="v" id="oBatMed">–</div></div>
@@ -539,6 +609,7 @@
       <div class="labels"><span>0.0</span><span>0.55 floor · 0.636 win</span><span>1.0 (no effect)</span></div>
       <div style="font-size:11px;color:var(--muted);margin-top:3px">Red hatch (HR&lt;0.55) = would have crossed the O'Brien-Fleming efficacy boundary (Z=2.34, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>) at the <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60-death interim</a>; REGAL did NOT stop, so interim HR was <b>above ~0.55</b>. Red line 0.636 = final win threshold (Z=2.01, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">source</a>). Topline most plausibly ~0.45–0.64 — near-threshold, not 0.13–0.35. <span class="tag m">Model output</span> at this timepoint.</div>
       <div id="oPower" style="font-size:12.5px;margin-top:8px;padding:8px 10px;border-radius:8px;background:#fafbfc;border:1px solid var(--line)"></div>
+      <button type="button" class="link-val-btn no-print no-embed" id="btnUsePwin" title="Uses binding-interim MC P(win) if you ran Monte Carlo; otherwise point-estimate P(win) from current sliders">Use P(win) in Valuation →</button>
     </div>
 
     <div class="consist">
@@ -626,6 +697,39 @@
     <span id="t80Status" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
     <div id="t80Stats" style="font-size:13px;font-weight:600;margin:8px 0"></div>
     <div id="t80Hist" class="t80-hist"></div>
+  </div>
+</details>
+
+<!-- SCENARIO DIFF -->
+<details class="feat-panel" id="panelScmp">
+  <summary>Compare scenarios <span class="tag m">model</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">Side-by-side comparison of two presets or share-URL states. Green/red deltas favor higher P(win) / lower HR (GPS bull case). Uses <code>paramsFromPreset()</code> for forward and inverse presets.</p>
+    <div class="scmp-grid">
+      <div><label style="font-size:12px;font-weight:600">Scenario A</label><select id="scmpA" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:12px;min-height:44px"></select></div>
+      <div><label style="font-size:12px;font-weight:600">Scenario B</label><select id="scmpB" style="width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;font-size:12px;min-height:44px"></select></div>
+    </div>
+    <div style="margin:8px 0;font-size:11.5px;color:var(--muted)">Or paste share URL hashes (optional):<br>
+      <input type="text" id="scmpHashA" placeholder="#s=eyJ..." style="width:100%;margin:4px 0;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:11px"/>
+      <input type="text" id="scmpHashB" placeholder="#s=eyJ..." style="width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:11px"/>
+    </div>
+    <button class="p" id="scmpRun" style="font-weight:700;padding:6px 12px;margin-bottom:8px">▶ Compare</button>
+    <span id="scmpStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+    <div class="table-wrap"><table class="preset-cmp" id="scmpTable">
+      <thead><tr><th>Metric</th><th id="scmpHdrA">A</th><th id="scmpHdrB">B</th><th>Δ (B−A)</th></tr></thead>
+      <tbody id="scmpBody"></tbody>
+    </table></div>
+  </div>
+</details>
+
+<!-- EVENT TIMING SENSITIVITY -->
+<details class="feat-panel" id="panelEvtSens">
+  <summary>Final events timing sensitivity <span class="tag m">model</span></summary>
+  <div style="margin-top:10px">
+    <p class="cw-note">Hypothetical calendar months when the 79th and 80th deaths occur — vs company PR deceleration pace (12 deaths in 12 mo from 66 at risk @ 72-event update, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">Dec 2025 PR</a>). Baseline anchor: 78 @ m63 (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">May 2026 PR</a>).</p>
+    <div class="ctrl"><label>79th event @ month <span id="vEv79">65</span></label><input type="range" id="ev79" min="63" max="72" step="1" value="65"/></div>
+    <div class="ctrl"><label>80th event @ month <span id="vEv80">68</span></label><input type="range" id="ev80" min="64" max="78" step="1" value="68"/></div>
+    <div id="evSensOut" style="font-size:12.5px;margin-top:8px;padding:12px;border-radius:10px;background:#fafbfc;border:1px solid var(--line)"></div>
   </div>
 </details>
 
@@ -1281,7 +1385,14 @@
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-<footer>
+<nav id="bottomNav" class="bottom-nav no-print embed-hide" aria-label="Tab navigation">
+  <button type="button" data-tab="gps" class="active"><span class="bn-ico">📊</span>REGAL</button>
+  <button type="button" data-tab="sls009"><span class="bn-ico">💊</span>SLS-009</button>
+  <button type="button" data-tab="value"><span class="bn-ico">💰</span>Value</button>
+  <button type="button" data-tab="explain"><span class="bn-ico">📖</span>Explain</button>
+</nav>
+
+<footer class="embed-hide">
   SELLAS ($SLS) Interactive Model · Copyright © 2026 sterno874 and contributors · Free software under the <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank">GNU AGPL-3.0-or-later</a>. This program comes with ABSOLUTELY NO WARRANTY. You may redistribute and modify it under the AGPL; if you run a modified version on a server you must offer users its source. Source: <a href="https://github.com/sterno874/SLS-Model" target="_blank">github.com/sterno874/SLS-Model</a>. &nbsp;Educational/analytical only — <b>not investment, legal, medical, or financial advice.</b> Community DD sources cited in References (e.g. u/Confident-Web-7118).
 </footer>
 
@@ -1346,6 +1457,10 @@ function refreshOpenPanels(){
 const LN2 = Math.log(2);
 const N_ARM = 63, LMAX = 38;
 const T1=46,T2=58,T3=63,T4=65, E1=60,E2=72,E3=78, THRESH=0.636;
+const CURRENT_EVENT_ANCHOR={count:78,date:'2026-05-11',month:63,src:'https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html',label:'Q1 2026 PR'};
+const PR_SOURCES={60:{date:'2025-01-23',src:'https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html',label:'Jan 2025 interim'},
+  72:{date:'2025-12-29',src:'https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html',label:'Dec 2025 72-event'},
+  78:{date:'2026-05-11',src:CURRENT_EVENT_ANCHOR.src,label:'May 2026 78-event/Q1'}};
 const HRMAX=1.0; // gauge scale
 const ZFINAL=2.012;             // O'Brien-Fleming FINAL efficacy boundary (Z) ~ at 80 events
 function rmst(fn,p,tau){let s=0;const h=0.25;for(let t=0;t<tau;t+=h)s+=(fn(t,p)+fn(t+h,p))/2*h;return s;} // restricted mean survival time (area under S to tau)
@@ -1549,6 +1664,206 @@ function renderBands(p){
 
 // ---------- chart ----------
 let showUncertainty=false;
+let lastMcPwin=null,lastPointPwin=null;
+let chartLayout=null,chartPinMonth=null,chartParams=null;
+function fmtAsOf(iso){if(!iso)return'';const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',year:'numeric',day:'numeric'});}
+function initFactsAsOf(){
+  document.querySelectorAll('.facts .fgrid > div').forEach(el=>{
+    if(el.dataset.asOf)return;
+    const h=el.innerHTML;
+    if(h.includes('3293399')||h.includes("Q1'26")||h.includes('Q1 2026')){el.dataset.asOf='2026-05-11';if(h.includes('78')||h.includes('Event timeline'))el.dataset.eventAnchor='78';}
+    else if(h.includes('3210926')||h.includes("Dec'25")){el.dataset.asOf='2025-12-29';if(h.match(/\b72\b/)&&h.includes('event'))el.dataset.eventAnchor='72';}
+    else if(h.includes('3014244')||h.includes("Jan'25")||h.includes('Interim (60')){el.dataset.asOf='2025-01-23';if(h.includes('60')||h.includes('Interim'))el.dataset.eventAnchor='60';}
+    else if(h.includes('2871141')||h.includes('Apr 2024'))el.dataset.asOf='2024-04-29';
+    else if(h.includes('PMC11760237')||h.includes('[design]')||h.includes('[NCT]'))el.dataset.asOf='2025-01-01';
+    else if(h.includes('ASH 2025')||h.includes('3423/552036'))el.dataset.asOf='2025-12-01';
+    else if(h.includes('3115485')||h.includes('Jul 2025'))el.dataset.asOf='2025-07-15';
+    else if(h.includes('20260331')||h.includes('Mar 31, 2026'))el.dataset.asOf='2026-03-31';
+    else if(h.includes('Mar 2026')&&h.includes('frontline'))el.dataset.asOf='2026-03-01';
+    else if(h.includes('SEER')||h.includes('Cheever'))el.dataset.asOf='2024-01-01';
+    else el.dataset.asOf='2026-05-11';
+    const sp=document.createElement('span');sp.className='as-of';sp.textContent='[as of '+fmtAsOf(el.dataset.asOf)+']';
+    el.appendChild(sp);
+    const ec=+(el.dataset.eventAnchor||0);
+    if(ec>0&&ec<CURRENT_EVENT_ANCHOR.count){
+      const ns=PR_SOURCES[CURRENT_EVENT_ANCHOR.count];
+      const badge=document.createElement('span');badge.className='stale-badge';
+      badge.innerHTML='⚠️ stale · <a href="'+ns.src+'" target="_blank" rel="noopener">'+CURRENT_EVENT_ANCHOR.count+' @ '+ns.label+'</a>';
+      el.appendChild(badge);
+    }
+  });
+}
+function getEmbedMode(){
+  const q=new URLSearchParams(location.search);
+  if(q.get('embed')==='1')return true;
+  try{const h=location.hash;if(h.startsWith('#s=')){const s=JSON.parse(b64urlDecode(h.slice(3)));if(s&&s.embed)return true;}}catch(e){}
+  return false;
+}
+let embedMode=getEmbedMode();
+function applyEmbedMode(){
+  embedMode=getEmbedMode();
+  document.body.classList.toggle('embed-mode',embedMode);
+}
+applyEmbedMode();
+function getCurrentPwin(){
+  if(lastMcPwin!=null&&!isNaN(lastMcPwin))return{pw:lastMcPwin,src:'Monte Carlo posterior (binding interim if checked)'};
+  const p=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value;
+  const t80=T80(p);let Tan,Dan;if(t80<=cutoff){Tan=t80;Dan=80;}else{Tan=cutoff;Dan=eventsAt(cutoff,p);}
+  const thIA=analyzeLR(46,p).z,th80=analyzeLR(Tan,p).z;
+  const pw=binding?condPow(thIA,th80,Dan,p.zfut).cp:Phi(th80-ZFINAL);
+  lastPointPwin=pw;
+  return{pw:pw,src:'Point-estimate P(win) from current sliders (analyzeLR @ cutoff m'+cutoff+')'};
+}
+function usePwinInValuation(){
+  const{pw,src}=getCurrentPwin();
+  const pct=Math.round(Math.max(30,Math.min(95,pw*100)));
+  $("v_pgps").value=pct;$("v_vpgps").textContent=pct+'%';
+  tabsDirty.value=true;
+  switchTab('value');
+  const lbl=$("v_pgps").closest('label');
+  if(lbl){lbl.classList.add('val-highlight');setTimeout(()=>lbl.classList.remove('val-highlight'),2500);}
+  showToast('P(GPS) set to '+pct+'% — '+src);
+  if(activeTab==='value')renderVal();
+}
+let readoutTimer=null;
+function scheduleReadoutUpdate(){clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
+function updateReadoutTracker(){
+  const remain=80-CURRENT_EVENT_ANCHOR.count;
+  $("rtRemain").textContent=remain;
+  $("rtAnchor").textContent=CURRENT_EVENT_ANCHOR.count;
+  $("rtAsOfDate").textContent=fmtAsOf(CURRENT_EVENT_ANCHOR.date);
+  const p=readParams(),t80=T80(p);
+  $("rtT80").innerHTML='Median time to 80th event: <b>~m'+t80.toFixed(0)+'</b> '+monthLabel(t80);
+  const times=[];for(let i=0;i<2000;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;
+    let t=T3;while(eventsAt(t,q,60)<80&&t<120)t+=0.5;times.push(t);}
+  times.sort((a,b)=>a-b);
+  const p90=times[Math.floor(0.9*times.length)];
+  $("rtP90").innerHTML='90th percentile: <b>~m'+p90.toFixed(1)+'</b>';
+}
+function runT80Quick(){updateReadoutTracker();}
+function scenarioMetrics(p,binding){
+  if(!p)return null;
+  const b=binding!=null?binding:!!$("mcFloor").checked;
+  return{hr:hazardRatio(T2,p),e46:eventsAt(T1,p),e58:eventsAt(T2,p),e63:eventsAt(T3,p),
+    pw:fastPwin(p,b,+$("cutoff").value,2500),bat3:sBAT(36,p)*100,gpsc:p.gpsc*100,
+    batMed:medianOf(sBAT,p),gpsCure:p.gpsc*100};
+}
+function paramsFromShareHash(hash){
+  if(!hash||!hash.trim())return null;
+  let h=hash.trim();if(!h.startsWith('#'))h='#'+h;if(!h.startsWith('#s='))return null;
+  try{const s=JSON.parse(b64urlDecode(h.slice(3)));if(!s||!s.gps)return null;
+    return{osmode:'itt',bat:s.gps.bat,batc:s.gps.batc/100,batk:s.gps.batk||1,gpsc:s.gps.gpsc/100,gpsu:s.gps.gpsu,
+      delay:s.gps.delay,xtx:s.gps.xtx/100,cens:s.gps.cens/100,mid:s.gps.mid,k:s.gps.k,fh:!!s.gps.fhTest,
+      stratF:s.gps.stratF!=null?s.gps.stratF:STRATF,zfut:s.gps.zfut!=null?s.gps.zfut:ZFUT,binding:!!s.gps.mcFloor};
+  }catch(e){return null;}
+}
+function initScmpSelects(){
+  const opts=[{v:'',l:'— pick preset —'}];
+  for(const n in P)opts.push({v:'f:'+n,l:PRESET_NAMES[n]||n});
+  for(const n in INV)opts.push({v:'i:'+n,l:(PRESET_NAMES[n]||n)+' (inv)'});
+  ['scmpA','scmpB'].forEach(id=>{const sel=$(id);if(!sel)return;
+    sel.innerHTML=opts.map(o=>'<option value="'+o.v+'">'+o.l+'</option>').join('');
+    if(id==='scmpA')sel.value='f:best';if(id==='scmpB')sel.value='f:bull';});
+}
+function resolveScmpScenario(selId,hashId){
+  const hash=$(hashId).value.trim();
+  if(hash){const pr=paramsFromShareHash(hash);if(pr)return{params:pr,binding:pr.binding,label:'Share URL'};}
+  const v=$(selId).value;if(!v)return null;
+  const mode=v.startsWith('i:')?'inverse':'forward',name=v.slice(2);
+  const q=mode==='inverse'?INV[name]:P[name];
+  const pr=paramsFromPreset(name,q,mode);
+  return pr?{params:pr,binding:q&&q.mcFloor!=null?q.mcFloor:true,label:PRESET_NAMES[name]||name}:null;
+}
+function runScenarioDiff(){
+  $("scmpStatus").textContent='computing…';
+  const a=resolveScmpScenario('scmpA','scmpHashA'),b=resolveScmpScenario('scmpB','scmpHashB');
+  if(!a||!b||!a.params||!b.params){$("scmpStatus").textContent='Could not resolve both scenarios';return;}
+  const ma=scenarioMetrics(a.params,a.binding),mb=scenarioMetrics(b.params,b.binding);
+  $("scmpHdrA").textContent=a.label;$("scmpHdrB").textContent=b.label;
+  const rows=[
+    ['HR @ m58',ma.hr,mb.hr,false],['Events @ m46',ma.e46,mb.e46,null],['Events @ m58',ma.e58,mb.e58,null],
+    ['Events @ m63',ma.e63,mb.e63,null],['P(win)',ma.pw*100,mb.pw*100,true],['BAT 3-yr OS %',ma.bat3,mb.bat3,true],
+    ['GPS cure %',ma.gpsc,mb.gpsc,true],['BAT median mOS',ma.batMed,mb.batMed,true]
+  ];
+  $("scmpBody").innerHTML=rows.map(r=>{
+    const fmt=v=>isNaN(v)?'—':(r[0].includes('%')||r[0]==='P(win)'?v.toFixed(0)+(r[0]==='P(win)'?'%':'%'):v.toFixed(2));
+    const d=r[1]!=null&&r[2]!=null&&!isNaN(r[1])&&!isNaN(r[2])?r[2]-r[1]:NaN;
+    let dcls='',ds='—';
+    if(!isNaN(d)){const good=r[3]===null?null:(r[0]==='HR @ m58'?d<0:d>0);
+      dcls=good===null?'':(good?'scmp-delta-pos':'scmp-delta-neg');
+      ds=(d>0?'+':'')+(r[0]==='P(win)'?d.toFixed(0)+'pp':d.toFixed(2));}
+    return '<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td><td>'+fmt(r[2])+'</td><td class="'+dcls+'">'+ds+'</td></tr>';
+  }).join('');
+  $("scmpStatus").textContent='done';
+}
+function updateEventSensitivity(){
+  const m79=+$("ev79").value,m80=+$("ev80").value;
+  $("vEv79").textContent='m'+m79;$("vEv80").textContent='m'+m80;
+  if(m80<=m79){$("evSensOut").innerHTML='<span style="color:var(--bad)">80th event month must be after 79th.</span>';return;}
+  const p=readParams(),binding=$("mcFloor").checked;
+  const baseHr=hazardRatio(T2,p),basePw=fastPwin(p,binding,+$("cutoff").value,2500);
+  const pace79=m79-T3,pace80=m80-m79;
+  const prCo=12/12,prDec='Company PR pace after 72 @ m58: ~12 deaths in 12 mo (<a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">Dec 2025</a>); +6 in ~5 mo to 78 (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">May 2026</a>) ≈ slower.';
+  const slowFactor=pace80>pace79?1.05:0.98;
+  const adj=Object.assign({},p,{gpsc:Math.min(0.75,p.gpsc*slowFactor),batc:Math.max(0,p.batc*(2-slowFactor))});
+  const adjHr=hazardRatio(T2,adj),adjPw=fastPwin(adj,binding,Math.max(m80,+$("cutoff").value),2000);
+  const t80=T80(p);
+  $("evSensOut").innerHTML='<b>Scenario:</b> 79th @ m'+m79+' · 80th @ m'+m80+' (+'+(m80-T3)+' mo from 78 @ m63)<br>'+
+    prDec+'<br><b>Baseline</b> (current sliders): HR '+baseHr.toFixed(2)+' · P(win) '+(100*basePw).toFixed(0)+'% · projected 80th ~m'+t80.toFixed(0)+'<br>'+
+    '<b>Deceleration-adjusted</b> (±GPS cure / BAT tail): HR '+adjHr.toFixed(2)+' ('+(adjHr-baseHr>0?'+':'')+(adjHr-baseHr).toFixed(2)+') · P(win) '+(100*adjPw).toFixed(0)+'% ('+( (adjPw-basePw)*100).toFixed(0)+'pp) · fit quality '+(consistent(adj)?'<span style="color:var(--good)">OK</span>':'<span style="color:var(--warn)">relaxed</span>');
+}
+function chartMonthFromEvent(cx,cy){
+  if(!chartLayout)return null;
+  const L=chartLayout.L,R=chartLayout.R,Tp=chartLayout.Tp,B=chartLayout.B,W=chartLayout.W,H=chartLayout.H,tmax=chartLayout.tmax;
+  const rect=$("chart").getBoundingClientRect();
+  const x=cx-rect.left,y=cy-rect.top;
+  if(x<L||x>W-R||y<Tp||y>H-B)return null;
+  const t=(x-L)/(W-L-R)*tmax;
+  return Math.max(0,Math.min(tmax,t));
+}
+function showChartTip(t,p,pinned){
+  const tip=$("chartTip"),pin=$("chartPinPanel");
+  if(t==null){tip.classList.remove('show');if(!pinned)pin.classList.remove('show');return;}
+  const sb=sBAT(t,p),sg=sGPS(t,p),sp=poolS(t,p);
+  tip.innerHTML='<b>m'+t.toFixed(1)+'</b><br>BAT S(t)='+(100*sb).toFixed(1)+'%<br>GPS S(t)='+(100*sg).toFixed(1)+'%<br>Pooled S(t)='+(100*sp).toFixed(1)+'%';
+  tip.classList.add('show');
+  if(pinned){
+    const med=medianOf(poolS,p);
+    pin.innerHTML='<b>Pinned @ m'+t.toFixed(1)+'</b> · Pooled S='+(100*sp).toFixed(1)+'% · RMST to m'+t.toFixed(0)+': BAT '+rmst(sBAT,p,t).toFixed(1)+' mo, GPS '+rmst(sGPS,p,t).toFixed(1)+' mo, pooled '+rmst(poolS,p,t).toFixed(1)+' mo'+(med!=null?' · Pooled median OS ~'+med.toFixed(1)+' m':'');
+    pin.classList.add('show');
+  }
+}
+function positionChartTip(cx,cy){
+  const wrap=$("chartWrap"),tip=$("chartTip"),r=wrap.getBoundingClientRect();
+  tip.style.left=Math.min(Math.max(4,cx-r.left+12),r.width-200)+'px';
+  tip.style.top=Math.min(Math.max(4,cy-r.top-8),r.height-100)+'px';
+}
+function initChartInteraction(){
+  const cv=$("chart");if(!cv)return;
+  cv.style.cursor='crosshair';
+  cv.addEventListener('mousemove',e=>{
+    if(chartPinMonth!=null)return;
+    const t=chartMonthFromEvent(e.clientX,e.clientY);
+    if(t==null||!chartParams){showChartTip(null);return;}
+    showChartTip(t,chartParams,false);positionChartTip(e.clientX,e.clientY);
+  });
+  cv.addEventListener('mouseleave',()=>{if(chartPinMonth==null)showChartTip(null);});
+  cv.addEventListener('click',e=>{
+    const t=chartMonthFromEvent(e.clientX,e.clientY);
+    if(t==null||!chartParams)return;
+    chartPinMonth=t;showChartTip(t,chartParams,true);positionChartTip(e.clientX,e.clientY);
+    $("chartTip").classList.add('pinned');
+  });
+  cv.addEventListener('touchend',e=>{
+    e.preventDefault();
+    const touch=e.changedTouches[0];
+    const t=chartMonthFromEvent(touch.clientX,touch.clientY);
+    if(t==null||!chartParams)return;
+    chartPinMonth=chartPinMonth===t?null:t;
+    if(chartPinMonth!=null){showChartTip(t,chartParams,true);positionChartTip(touch.clientX,touch.clientY);$("chartTip").classList.add('pinned');}
+    else{showChartTip(null);$("chartTip").classList.remove('pinned');$("chartPinPanel").classList.remove('show');}
+  },{passive:false});
+}
 function mcEnvelope(p,nDraws){
   nDraws=nDraws||400;const tmax=60,pts=[];const ctr=Object.assign({},p);
   for(let t=0;t<=tmax;t+=1)pts.push({t,bat:[],gps:[],pool:[]});
@@ -1562,10 +1877,12 @@ function mcEnvelope(p,nDraws){
 }
 function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
 function draw(p){
+  chartParams=p;
   const cv=$("chart"),dpr=window.devicePixelRatio||1,W=920,H=430;
   cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
   const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
   const L=54,R=16,Tp=12,B=38,tmax=60;
+  chartLayout={L,R,Tp,B,W,H,tmax};
   const X=t=>L+(W-L-R)*t/tmax,Y=s=>Tp+(H-Tp-B)*(1-s);
   ctx.strokeStyle="#eef0f3";ctx.fillStyle="#9aa1ac";ctx.font="11px sans-serif";ctx.lineWidth=1;
   for(let s=0;s<=1.0001;s+=0.25){ctx.beginPath();ctx.moveTo(L,Y(s));ctx.lineTo(W-R,Y(s));ctx.stroke();ctx.textAlign="right";ctx.fillText((s*100).toFixed(0)+"%",L-6,Y(s)+3);}
@@ -1649,7 +1966,10 @@ function update(){
   const binding=$("mcFloor").checked;
   const pStop=1-Phi(ZEFF-thIA);
   const pWin= binding? condPow(thIA,th80,Dan,p.zfut).cp : Phi(th80-ZFINAL);
+  lastPointPwin=pWin;
   $("oPower").innerHTML="<b>Readout power check</b> (cutoff m"+cutoff+"): "+(t80<=cutoff?("reaches 80 events ~m"+t80.toFixed(0)):("<b style='color:var(--bad)'>80th not reached</b> — reads at m"+cutoff+", "+Dan.toFixed(0)+" events"))+" · readout HR "+aFin.hr.toFixed(2)+" · log-rank Z="+th80.toFixed(2)+" · interim Z="+thIA.toFixed(2)+" (would stop early "+(100*pStop).toFixed(0)+"% of the time) · <b style='color:"+(pWin>0.5?'var(--good)':'var(--bad)')+"'>P(significant win) = "+(100*pWin).toFixed(0)+"%</b> "+(binding?"<small>(given no early stop)</small>":"<small>(non-binding)</small>");
+  if(chartPinMonth!=null)showChartTip(chartPinMonth,p,true);
+  scheduleReadoutUpdate();
 
   const hr=hazardRatio(T2,p);
   // gauge
@@ -1748,6 +2068,7 @@ function renderMC(acc,tried){
   const ESS=W*W/W2, win=WP/W;
   function wq(q){let c=0;const t=q*W;for(let i=0;i<n;i++){c+=acc[i].w;if(c>=t)return acc[i].hr;}return acc[n-1].hr;}
   const med=wq(0.5),lo=wq(0.05),hi=wq(0.95);
+  lastMcPwin=win;
   $("mcStatus").textContent=tried.toLocaleString()+" draws · effective N ≈ "+Math.round(ESS).toLocaleString()+" · "+(100*Wreach/W).toFixed(0)+"% reach 80th event by cutoff";
   $("mcStats").innerHTML="P(win — significant log-rank) = <span style='color:"+(win>0.5?"var(--good)":"var(--bad)")+"'>"+(100*win).toFixed(0)+"%</span> &nbsp;·&nbsp; median HR "+med.toFixed(2)+" &nbsp;·&nbsp; 90% CrI ["+lo.toFixed(2)+", "+hi.toFixed(2)+"] &nbsp;·&nbsp; P(HR&lt;0.35)="+(100*W35/W).toFixed(1)+"% &nbsp;<span style='color:var(--muted);font-weight:400'>(likelihood-weighted; NPH-aware significance)</span>";
   const bins=[];for(let b=0.30;b<1.05-1e-9;b+=0.05){let c=0;for(const x of acc)if(x.hr>=b&&x.hr<b+0.05)c+=x.w;bins.push([b,100*c/W]);}
@@ -2232,7 +2553,7 @@ function loadValCommunityDD(){
 // ================= MOBILE COLLAPSE (#9) =================
 function initMobileCollapse(){
   if(window.innerWidth>768)return;
-  ["howworks","panelTornado","panelBayes","panelIRM","panelT80","panelPresetCmp","panelBacktest","panelCW","panelCommunity","panelSlsBench","panelSlsBear","panelSlsComp","panelSlsCommunity","panelValWt1","panelValTam","panelValComp","panelValBear","panelValPresets","panelValCommunity"].forEach(id=>{
+  ["howworks","panelTornado","panelBayes","panelIRM","panelT80","panelScmp","panelEvtSens","panelPresetCmp","panelBacktest","panelCW","panelCommunity","panelSlsBench","panelSlsBear","panelSlsComp","panelSlsCommunity","panelValWt1","panelValTam","panelValComp","panelValBear","panelValPresets","panelValCommunity"].forEach(id=>{
     const el=$(id);if(el&&el.tagName==="DETAILS")el.open=false;
   });
 }
@@ -2248,13 +2569,23 @@ update=updateNow;
 
 function initApp(){
   buildBands();
+  applyEmbedMode();
+  initFactsAsOf();
+  initScmpSelects();
+  initChartInteraction();
   restoreFromHash()||null;
   refreshRegalPresetHighlight();
   if(!location.hash.startsWith("#s="))updateNow();
+  updateReadoutTracker();
   initMobileCollapse();
   buildBands2();
   tabsRendered.gps=true;
   if(activeTab!=="gps")renderTab(activeTab,true);
+  if($("btnUsePwin"))$("btnUsePwin").onclick=usePwinInValuation;
+  if($("scmpRun"))$("scmpRun").onclick=runScenarioDiff;
+  if($("rtRefresh"))$("rtRefresh").onclick=runT80Quick;
+  ["ev79","ev80"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",updateEventSensitivity);});
+  ["panelScmp","panelEvtSens"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open&&id==="panelEvtSens")updateEventSensitivity();});});
 }
 ["panelIRM","panelBayes","panelBacktest","panelCommunity","panelSlsCommunity","panelValCommunity"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open){if(id==="panelCommunity")loadCommunityDD();else if(id==="panelSlsCommunity")loadSlsCommunityDD();else if(id==="panelValCommunity")loadValCommunityDD();else refreshOpenPanels();}});});
 requestAnimationFrame(()=>{
@@ -2273,11 +2604,13 @@ function renderTab(t,force){
 function switchTab(t){
   activeTab=t;
   document.querySelectorAll(".tabbtn").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
+  document.querySelectorAll("#bottomNav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
   ["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
   renderTab(t);
   if(!restoringState)updateHashQuiet();
 }
 document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{switchTab(b.dataset.tab);if(!restoringState)window.scrollTo(0,0);});
+document.querySelectorAll("#bottomNav button").forEach(b=>b.onclick=()=>{switchTab(b.dataset.tab);if(!restoringState)window.scrollTo(0,0);});
 function drawExp(id,arms,tmax){
   const cv=$(id),dpr=window.devicePixelRatio||1,W=920,H=360;cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
   const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
