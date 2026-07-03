@@ -29,9 +29,9 @@
 </div>
 <header>
   <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Best Available Guess summary">
-    <div class="best-est-item" style="flex:1 1 100%;margin-bottom:2px" title="Header strip reflects the active scenario — defaults to Best Available Guess on load">
+    <div class="best-est-item best-est-item--scenario" title="Header strip reflects the active scenario — defaults to Best Available Guess on load">
       <span class="best-est-label">Active scenario</span>
-      <span class="best-est-val" id="bePresetLabel" style="font-size:13px">Best Available Guess ★</span>
+      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Best Available Guess ★</span>
     </div>
     <div class="best-est-item" title="GPS hazard ratio from current REGAL survival parameters (Pike estimate @ m58)">
       <span class="best-est-label">GPS HR <span class="tag m">model</span></span>
@@ -51,7 +51,7 @@
   <div class="hdr-top">
     <div class="hdr-title-block">
       <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
-      <div class="sub" style="margin-bottom:2px">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
+      <div class="sub">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
     </div>
     <div class="readout-estimate no-embed" id="readoutEstimate" aria-live="polite" hidden>
       <div class="re-main">Est. 80th event: <b id="reDate">—</b> <span class="tag m">model est.</span></div>
@@ -64,7 +64,7 @@
   <div class="hdr-tools no-print">
     <button type="button" class="primary" id="btnShare" title="Copy URL with all slider state encoded in the hash — zero server storage">🔗 Copy share link</button>
     <button type="button" id="btnPrint" title="Print report with charts and scenario summary">🖨 Print report</button>
-    <label style="font-size:12px;display:flex;gap:5px;align-items:center;margin:0"><input type="checkbox" id="showUncertainty"/> Show uncertainty bands</label>
+    <label><input type="checkbox" id="showUncertainty"/> Show uncertainty bands</label>
   </div>
   <div class="tabnav">
     <button class="tabbtn active" data-tab="gps">1 · REGAL / GPS (Phase 3)</button>
@@ -95,7 +95,7 @@
       <p style="margin:8px 0 0;font-size:12px;color:var(--muted)">Full derivation: click <b>Methodology</b> below. Tags: <span class="tag f">fact</span> primary source · <span class="tag m">model</span> simulation · <span class="tag a">assumption</span> undisclosed slider.</p>
     </div>
   </details>
-  <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-gps')">📐 Methodology — REGAL / GPS math</button></div>
+  <div class="tab-intro-bar"><button class="methodbtn" onclick="toggleMethod('m-gps')">📐 Methodology — REGAL / GPS math</button></div>
   <div class="methodpanel" id="m-gps" hidden>
     <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.
     <h4>1 · Survival &amp; events</h4>
@@ -662,7 +662,7 @@
       </details>
     </div>
   </details>
-  <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-sls')">📐 Methodology — SLS-009 math</button></div>
+  <div class="tab-intro-bar"><button class="methodbtn" onclick="toggleMethod('m-sls')">📐 Methodology — SLS-009 math</button></div>
   <div class="methodpanel" id="m-sls" hidden>
     <b>Different trial, different math.</b> SLS-009 (tambiciclib; a selective CDK9 inhibitor, licensed from GenFleet) is in a <b>single-arm Phase 2</b> with azacitidine + venetoclax — no randomized control, so efficacy is judged against a <b>historical benchmark</b>.
     <h4>Effect measures</h4>Both arms modeled as exponential OS. <b>Fold-improvement</b> = arm median ÷ benchmark median. Under exponential survival the <b>HR-equivalent</b> = benchmark median ÷ arm median (constant hazard ratio). Months gained = difference of medians.
@@ -670,7 +670,7 @@
     <h4>Frontline (the bigger prize)</h4>Newly-diagnosed control is Aza/Ven (VIALE-A mOS 14.7m); a Phase 3 there would use a stratified log-rank like REGAL. We show median-OS uplift only.
     <div style="color:var(--muted);margin-top:8px">Poke holes: single-arm-vs-historical is confounded by selection; ORR ≠ OS; the ~2.5-mo benchmark and 8.9-mo arm are small Phase-2 cohorts; frontline figures are projections.</div>
   </div>
-  <div style="padding:0 18px"><div class="sub">SLS-009 + AZA/VEN in relapsed/refractory AML-MR after prior venetoclax — Phase 2, single-arm vs historical. Green-tagged numbers are the reported Phase-2 readouts; move the sliders to stress them.</div></div>
+  <div class="tab-lead"><div class="sub">SLS-009 + AZA/VEN in relapsed/refractory AML-MR after prior venetoclax — Phase 2, single-arm vs historical. Green-tagged numbers are the reported Phase-2 readouts; move the sliders to stress them.</div></div>
 
   <div class="wrap">
     <div class="card">
@@ -857,7 +857,7 @@
       </details>
     </div>
   </details>
-  <div style="padding:12px 18px 0"><button class="methodbtn" onclick="toggleMethod('m-val')">📐 Methodology — valuation math</button></div>
+  <div class="tab-intro-bar"><button class="methodbtn" onclick="toggleMethod('m-val')">📐 Methodology — valuation math</button></div>
   <div class="methodpanel" id="m-val" hidden>
     <b>Peak-sales × multiple, with a survival-driven prevalence pool.</b>
     <h4>The key dynamic (population grows if patients survive)</h4>At steady state, patients <em>on therapy</em> = annual new starts × penetration × <b>average years on therapy</b>. Longer survival ⇒ more years on drug ⇒ a larger prevalent pool. <code>Peak annual revenue = new-starts/yr × penetration × avg-years × annual price</code>.
@@ -866,7 +866,7 @@
     <h4>P(approval) risk adjustment</h4>Monte Carlo optionally multiplies each engine's peak by P(GPS) and P(SLS-009) — user-set priors from Tabs 1–2, not regulatory forecasts. Defaults (65% / 55%) reflect REGAL event pace + SLS-009 single-arm stage; stress-test freely.
     <div style="color:var(--muted);margin-top:8px">Poke holes: penetration, price, duration and the multiple are all assumptions; the addressable pools are estimates; this ignores time-value/discounting, competition, and dilution beyond the share count; it is a back-of-envelope, not a DCF.</div>
   </div>
-  <div style="padding:0 18px"><div class="sub">A transparent back-of-envelope. Set the addressable pools, pricing, penetration and how long patients stay on therapy (which grows with survival), and a peak-sales multiple. Everything here is an assumption except the anchored facts (US AML incidence, Venclexta comp).</div></div>
+  <div class="tab-lead"><div class="sub">A transparent back-of-envelope. Set the addressable pools, pricing, penetration and how long patients stay on therapy (which grows with survival), and a peak-sales multiple. Everything here is an assumption except the anchored facts (US AML incidence, Venclexta comp).</div></div>
 
   <div class="wrap">
     <div class="card">
@@ -1087,8 +1087,8 @@
 
 <!-- ================= TAB 4 : EXPLAIN ================= -->
 <div id="tab-explain" class="tabpage" hidden>
-  <div style="padding:12px 18px 0">
-    <div class="sub" style="margin-bottom:8px">The same three models — REGAL/GPS, SLS-009, and the valuation — explained at six depths. Pick your level. Sources are named/linked throughout.</div>
+  <div class="tab-intro-bar">
+    <div class="sub">The same three models — REGAL/GPS, SLS-009, and the valuation — explained at six depths. Pick your level. Sources are named/linked throughout.</div>
     <div class="presets">
       <button class="p lvlb active" data-lvl="eli5">ELI5</button>
       <button class="p lvlb" data-lvl="ms">Middle school</button>
@@ -1098,7 +1098,7 @@
       <button class="p lvlb" data-lvl="phd">PhD — no sugar</button>
     </div>
   </div>
-  <div class="facts"><div class="card"><div id="explbody" style="font-size:14px;line-height:1.65"></div></div></div>
+  <div class="facts"><div class="card"><div id="explbody"></div></div></div>
 </div><!-- /tab-explain -->
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
