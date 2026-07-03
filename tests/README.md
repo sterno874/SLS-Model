@@ -38,3 +38,19 @@ Mutants that **survive** indicate missing or weak assertions — add golden-valu
 ### CI
 
 GitHub Actions runs `npm test` on every push/PR. Mutation testing runs on pushes to `main` (see `.github/workflows/verify-math.yml`).
+
+## Indicator audit log (Jul 2026)
+
+| Issue | Status | Fix |
+|-------|--------|-----|
+| `batc` 1σ band conflated plateau with Kurosawa 3-yr OS | Fixed | Dynamic cap via `batcFor3yrCap`; tooltip/source copy |
+| Frozen header / preset cmp used Pike HR @ m58 vs readout gauge | Fixed | `hrGaugeState().hrForFinal` / `readoutHr()` |
+| Valuation peaks/EV unlabeled when risk-adjust toggled | Fixed | gross/risk-adj tags on peaks, EV head, $/sh suffix |
+| `gpsc` band cited CR1 47% plateau as CR2 prior | Fixed | Source line + CFG tooltip distinguish CR1 vs CR2 |
+| `gpsu` band vs Phase 2 CR2 whole-arm mOS | Fixed | Source line clarifies uncured-only vs whole-arm |
+| Dead trial ID NCT05309745 (404 on ClinicalTrials.gov) | Fixed | Replaced with NCT04588922 throughout shipped UI |
+| Milestone backtest bare "HR" label | Fixed | "HR @ mXX" + note vs readout gauge |
+| Stress presets implied m58 HR in subtitles | Fixed | bear/capbreach use readout HR (~0.57 / ~0.67) |
+| Inverse panel "Implied HR @ m58" | Deferred | Intentional anchor snapshot label |
+| IRM table HR @ m58 | Deferred | CW reference table, not gauge readout |
+| Milestone P(win) fast MC approximation | Deferred | Documented in card copy |

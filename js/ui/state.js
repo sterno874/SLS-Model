@@ -1,4 +1,4 @@
-import { STRATF, ZFUT, inverseSolve, passesVerdict, hazardRatio, T2 } from "../math/survival.js";
+import { STRATF, ZFUT, inverseSolve, passesVerdict, hrGaugeState } from "../math/survival.js";
 
 export const VALID_TABS = ["gps", "sls009", "value", "explain", "biology"];
 export const EXPLAIN_LEVELS = ["eli5", "ms", "hs", "col", "pro", "phd"];
@@ -359,10 +359,10 @@ export const FROZEN_BEST_EST = {
   valPreset: SHARE_VALP.best
 };
 
-/** DOM-free frozen header metrics: biology-first GPS HR, SLS-009 OS ratio, gross buyout @ P(success)=100%. */
+/** DOM-free frozen header metrics: readout HR (matches final gauge), SLS-009 OS ratio, gross buyout @ P(success)=100%. */
 export function computeFrozenBestEst() {
   const p = paramsFromPresetQ(FROZEN_BEST_EST.gpsPreset);
-  const gpsHr = hazardRatio(T2, p);
+  const gpsHr = hrGaugeState(p, 72).hrForFinal;
   const sls = FROZEN_BEST_EST.slsPreset;
   const slsOsRatio = sls.sls_bench / sls.sls_os;
   const v = FROZEN_BEST_EST.valPreset;

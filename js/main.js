@@ -237,6 +237,10 @@ const CFG=[
    why:"PRIOR (blue): steepness of the enrollment S-curve. Enrollment accelerated after the Nov 2022 protocol amendment; ~21 of 127 patients enrolled in the final ~5 months [1][11]."}
 ];
 function pct(v,mn,mx){return Math.min(100,Math.max(0,(v-mn)/(mx-mn)*100));}
+function readoutHr(p,cutoff){
+  cutoff=cutoff!=null?cutoff:+(($("cutoff")&&$("cutoff").value)||72);
+  return hrGaugeState(p,cutoff).hrForFinal;
+}
 
 function batcPriorSig(p){
   const c=CFG.find(x=>x.id==="batc");if(!c)return null;
@@ -254,7 +258,6 @@ function updateBatcSigmaBand(p){
   sig.title=c.why+" At BAT median "+p.bat.toFixed(1)+" mo, plateau ≤ "+bands.maxPct+"% keeps 3-yr OS ≤ "+bands.cap3+"% cap.";
   const hint=$("batcCapHint");if(hint)hint.textContent="At BAT median "+p.bat.toFixed(1)+" mo, plateau ≤ "+bands.maxPct+"% keeps 3-yr OS ≤ "+bands.cap3+"% cap.";
 }
-
 
 // build static sigma strips once
 function buildBands(){
@@ -401,7 +404,8 @@ function updateReadoutTracker(){
 function scenarioMetrics(p,binding){
   if(!p)return null;
   const b=binding!=null?binding:!!$("mcFloor").checked;
-  return{hr:hazardRatio(T2,p),e46:eventsAt(T1,p),e58:eventsAt(T2,p),e63:eventsAt(T3,p),
+  const cutoff=+($("cutoff")&&$("cutoff").value)||72;
+  return{hr:readoutHr(p,cutoff),hrM58:hazardRatio(T2,p),e46:eventsAt(T1,p),e58:eventsAt(T2,p),e63:eventsAt(T3,p),
     pw:fastPwin(p,b,+$("cutoff").value,2500),bat3:sBAT(36,p)*100,gpsc:p.gpsc*100,
     batMed:medianOf(sBAT,p),gpsCure:p.gpsc*100};
 }
@@ -438,7 +442,7 @@ function runScenarioDiff(){
   const ma=scenarioMetrics(a.params,a.binding),mb=scenarioMetrics(b.params,b.binding);
   $("scmpHdrA").textContent=a.label;$("scmpHdrB").textContent=b.label;
   const rows=[
-    ['HR @ m58',ma.hr,mb.hr,false],    ['Events @ m46 (model)',ma.e46,mb.e46,null],['Events @ m58 (model)',ma.e58,mb.e58,null],
+    ['Readout HR (final gauge)',ma.hr,mb.hr,false],    ['Events @ m46 (model)',ma.e46,mb.e46,null],['Events @ m58 (model)',ma.e58,mb.e58,null],
     ['Events @ m63 (model; PR=78)',ma.e63,mb.e63,null],['P(win)',ma.pw*100,mb.pw*100,true],['BAT 3-yr OS %',ma.bat3,mb.bat3,true],
     ['GPS cure %',ma.gpsc,mb.gpsc,true],['BAT median mOS',ma.batMed,mb.batMed,true]
   ];
@@ -446,7 +450,7 @@ function runScenarioDiff(){
     const fmt=v=>isNaN(v)?'—':(r[0].includes('%')||r[0]==='P(win)'?v.toFixed(0)+(r[0]==='P(win)'?'%':'%'):v.toFixed(2));
     const d=r[1]!=null&&r[2]!=null&&!isNaN(r[1])&&!isNaN(r[2])?r[2]-r[1]:NaN;
     let dcls='',ds='—';
-    if(!isNaN(d)){const good=r[3]===null?null:(r[0]==='HR @ m58'?d<0:d>0);
+    if(!isNaN(d)){const good=r[3]===null?null:(r[0].startsWith('Readout HR')?d<0:d>0);
       dcls=good===null?'':(good?'scmp-delta-pos':'scmp-delta-neg');
       ds=(d>0?'+':'')+(r[0]==='P(win)'?d.toFixed(0)+'pp':d.toFixed(2));}
     return '<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td><td>'+fmt(r[2])+'</td><td class="'+dcls+'">'+ds+'</td></tr>';
@@ -1044,13 +1048,13 @@ function renderBacktest(){
   const p=readParams(),binding=$("mcFloor").checked;
   $("backtestCards").innerHTML=MILESTONES.map(m=>{
     const hr=hazardRatio(m.month,p),pw=fastPwin(p,binding,Math.max(72,m.month+6),3000,m.dataThrough);
-    return '<div class="mcard"><div class="mt">'+m.label+' — '+m.events+' @ m'+m.month+'</div><div class="mv">'+(isNaN(hr)?"—":hr.toFixed(2))+' HR</div><div style="font-size:13px">P(win|data then) ≈ <b>'+(isNaN(pw)?"—":(100*pw).toFixed(0)+"%")+'</b></div><div style="font-size:10px;color:var(--muted);margin-top:4px">'+m.src+' · Poisson likelihood truncated to milestones then known · same survival sliders as now (not re-fit)</div></div>';
+    return '<div class="mcard"><div class="mt">'+m.label+' — '+m.events+' @ m'+m.month+'</div><div class="mv">'+(isNaN(hr)?"—":'HR @ m'+m.month+' '+hr.toFixed(2))+'</div><div style="font-size:12px;color:var(--muted)">Pike snapshot — differs from projected readout HR on the gauge</div><div style="font-size:13px">P(win|data then) ≈ <b>'+(isNaN(pw)?"—":(100*pw).toFixed(0)+"%")+'</b> <span class="tag m">approx MC</span></div><div style="font-size:10px;color:var(--muted);margin-top:4px">'+m.src+' · Poisson likelihood truncated to milestones then known · same survival sliders as now (not re-fit)</div></div>';
   }).join("");
 }
 
 // ================= PRINT SUMMARY (#9) =================
 function updatePrintSummary(){
-  const p=readParams(),hr=hazardRatio(T2,p);
+  const p=readParams(),hr=readoutHr(p);
   const ps=$("printSummary");
   ps.replaceChildren();
 
@@ -1065,7 +1069,7 @@ function updatePrintSummary(){
   ps.appendChild(document.createElement("br"));
 
   ps.appendChild(document.createTextNode(
-    "BAT mOS "+($("oBatMed").textContent||"—")+" · GPS mOS "+($("oGpsMed").textContent||"—")+" · HR "+(isNaN(hr)?"—":hr.toFixed(2))
+    "BAT mOS "+($("oBatMed").textContent||"—")+" · GPS mOS "+($("oGpsMed").textContent||"—")+" · readout HR "+(isNaN(hr)?"—":hr.toFixed(2))
   ));
   ps.appendChild(document.createElement("br"));
 
@@ -1390,13 +1394,17 @@ function renderVal(){
   $("vv_cr2").textContent=cr2.toLocaleString();$("vv_cr1").textContent=cr1.toLocaleString();$("vv_gpen").textContent=(gpen*100).toFixed(0)+" %";$("vv_gprice").textContent="$"+gprice+" K";$("vv_gyears").textContent=gyears.toFixed(1)+" yr";
   $("vv_flpool").textContent=flpool.toLocaleString();$("vv_rrpool").textContent=rrpool.toLocaleString();$("vv_spen").textContent=(spen*100).toFixed(0)+" %";$("vv_sprice").textContent="$"+sprice+" K";$("vv_syears").textContent=syears.toFixed(1)+" yr";
   $("vv_platform").textContent="$"+platform.toFixed(1)+" B";$("vv_mult").textContent=mult.toFixed(1)+"×";$("vv_shares").textContent=shares+" M";
+  const ra=$("v_riskadj")&&$("v_riskadj").checked;
+  const raTag=ra?'<span class="tag a">risk-adj</span>':'<span class="tag m">gross</span>';
   const{gpool,gpsPeak,slsPeak,totPeak,EV,ps}=computeValuationMetrics();
-  $("oGpsPeak").innerHTML=fmtB(gpsPeak);$("oSlsPeak").innerHTML=fmtB(slsPeak);$("oTotPeak").innerHTML=fmtB(totPeak);
+  $("oGpsPeak").innerHTML=fmtB(gpsPeak)+" "+raTag;$("oSlsPeak").innerHTML=fmtB(slsPeak)+" "+raTag;$("oTotPeak").innerHTML=fmtB(totPeak)+" "+raTag;
   $("oPool").innerHTML=Math.round(gpool).toLocaleString();
-  $("oEV").textContent=fmtB(EV);$("oPS").textContent="$"+ps.toFixed(2);
+  $("oEV").textContent=fmtB(EV);
+  const evHead=$("oEvHead");if(evHead)evHead.innerHTML=(ra?"Risk-adjusted enterprise value":"Gross enterprise value")+' <span class="tag m">model output</span>';
+  $("oPS").textContent="$"+ps.toFixed(2)+(ra?" risk-adj/sh":" gross/sh");
   const buyLo=(totPeak*Math.max(1,mult-1.5)+platform*1000)/shares, buyHi=(totPeak*(mult+1.5)+platform*1000)/shares;
   $("oBuy").textContent="$"+buyLo.toFixed(0)+"–$"+buyHi.toFixed(0)+"/sh";
-  $("oValNote").innerHTML="Peak sales = new-starts × penetration × avg-years-on-therapy × price (<span class=\"tag m\">model output</span>). Longer survival ⇒ larger prevalent pool (see <b>TAM math</b> panel). EV = peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B WT1 platform. Multiple ~4–8× (<a href=\"https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm\" target=\"_blank\" rel=\"noopener\">Gilead–Forty Seven</a>; <a href=\"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K\" target=\"_blank\" rel=\"noopener\">Venclexta ~$2.6B</a>). Onureg caution (<a href=\"https://www.nejm.org/doi/full/10.1056/NEJMoa2001094\" target=\"_blank\" rel=\"noopener\">QUAZAR</a>). Every input is an <span class=\"tag a\">assumption</span>; not a DCF or investment advice.";
+  $("oValNote").innerHTML=(ra?"Peaks and EV are risk-adjusted by P(GPS) and P(SLS-009) below. ":"Peaks and EV are <b>gross</b> (100% approval) — enable risk-adjustment in the MC panel to scale peaks. ")+"Peak sales = new-starts × penetration × avg-years-on-therapy × price (<span class=\"tag m\">model output</span>). EV = "+(ra?"risk-adj ":"")+"peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B WT1 platform lump (not peak×multiple). Buyout range ≈ EV ±1.5× peak, not peak sales alone. Multiple ~4–8× (<a href=\"https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm\" target=\"_blank\" rel=\"noopener\">Gilead–Forty Seven</a>). Every input is an <span class=\"tag a\">assumption</span>; not investment advice.";
   if(typeof renderBands2==="function")renderBands2();
 }
 const debouncedRenderVal=debounce(renderVal,75);

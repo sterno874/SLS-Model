@@ -225,8 +225,8 @@ test("bear preset fits anchors and HR near threshold", () => {
   assert.ok(hr >= 0.54 && hr < 0.636);
 });
 
-test("header best-est defaults: GPS HR ~0.25 @ m58 (cw42 biology-first preset)", () => {
-  assert.ok(Math.abs(computeFrozenBestEst().gpsHr - 0.254) < 0.02);
+test("header best-est defaults: GPS readout HR ~0.246 (cw42 biology-first preset)", () => {
+  assert.ok(Math.abs(computeFrozenBestEst().gpsHr - 0.246) < 0.02);
 });
 
 test("fmtCalMonth and monthToDate agree", () => {

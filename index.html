@@ -33,8 +33,8 @@
       <span class="best-est-label">Prediction</span>
       <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Best Available Guess ★ · 100% success</span>
     </div>
-    <div class="best-est-item" title="GPS hazard ratio from frozen Best Available Guess (42% cure, cw42 inverse) — Pike estimate @ m58">
-      <span class="best-est-label">GPS HR <span class="tag m">model</span></span>
+    <div class="best-est-item" title="Projected readout HR from frozen Best Available Guess (42% cure, cw42 inverse) @ ~80 events — matches the final HR gauge, not the m58 snapshot">
+      <span class="best-est-label">GPS readout HR <span class="tag m">model</span></span>
       <span class="best-est-val" id="beGpsHr">—</span>
     </div>
     <span class="best-est-sep" aria-hidden="true">·</span>
@@ -156,8 +156,8 @@
     <div class="pgrp" id="presetLabel" data-regal-mode="forward">Core CW stress tests</div>
     <div class="pgrp-hint" data-regal-mode="forward">Each preset stress-tests one specific concern from u/Confident-Web-7118 or u/uhdisj41 DD — not arbitrary slider positions.</div>
     <div class="presets" data-regal-mode="forward">
-      <button class="p" data-preset="bear" data-regal-mode="forward" title="CW bear case: heterogeneous BAT long-tail (16%) holds survivors while GPS cure is modest — HR ~0.55 near OBF interim floor (~0.547) and win threshold (0.636). Still fits 60/72/78.">BAT tail holds survivors<span class="p-sub">Strong BAT tail · HR ~0.55 · near-miss stress</span></button>
-      <button class="p" data-preset="bull" data-regal-mode="forward" title="CW bull case: high GPS cure (~40%), low BAT tail, immediate onset — optimistic DD read with HR ~0.17.">Bull: strong GPS cure<span class="p-sub">40% cure · low BAT tail · HR ~0.17</span></button>
+      <button class="p" data-preset="bear" data-regal-mode="forward" title="CW bear case: heterogeneous BAT long-tail (16%) holds survivors while GPS cure is modest — readout HR ~0.57 near win threshold (0.636). Still fits 60/72/78.">BAT tail holds survivors<span class="p-sub">Strong BAT tail · readout HR ~0.57 · near-threshold stress</span></button>
+      <button class="p" data-preset="bull" data-regal-mode="forward" title="CW bull case: high GPS cure (~40%), low BAT tail, immediate onset — optimistic DD read with readout HR ~0.19.">Bull: strong GPS cure<span class="p-sub">40% cure · low BAT tail · readout HR ~0.19</span></button>
       <button class="p" data-preset="critique" data-regal-mode="forward" title="u/uhdisj41 critique: modest GPS benefit + biological BAT-tail ceiling — P(win) ~⅔, not CW's ~90%. Tests whether moderate efficacy still fits anchors.">Critique: ~⅔ coin flip<span class="p-sub">uhdisj41 moderate GPS · P(win) ~66%</span></button>
       <button class="p" data-preset="cw" data-regal-mode="forward" title="CW Part 1 published forward parameters: BAT 9m, GPS cure ~41%, uncured ~36m, non-binding interim — P(win) ~85%. Source: u/Confident-Web-7118.">CW published point (~85%)<span class="p-sub">CW Part 1 params · 41% cure · non-binding IA</span></button>
     </div>
@@ -179,7 +179,7 @@
     <div class="pgrp-hint" data-regal-mode="forward">Null-effect ridge and biology-cap breach — still fit blinded anchors but test CW's identification concerns.</div>
     <div class="presets" id="presetEdge" data-regal-mode="forward">
       <button class="p" data-preset="noeffect" data-regal-mode="forward" title="Identifiability ridge: HR ≈ 1 null effect with ~28% long-survivor tail on BOTH arms — still fits 60/72/78. CW/uhdisj41 central concern.">Ridge: null effect fits anchors<span class="p-sub">HR ≈ 1 · shared tail · ridge demo</span></button>
-      <button class="p" data-preset="capbreach" data-regal-mode="forward" title="Implausible biology stress: BAT 3-yr OS ~70% (>>Kurosawa ~14%) yet still fits event anchors — HR ~0.64 misses win threshold. Red-hatched sliders expected.">Implausible BAT cap (stress)<span class="p-sub">BAT 3-yr OS >>14% · HR ~0.64 miss</span></button>
+      <button class="p" data-preset="capbreach" data-regal-mode="forward" title="Implausible biology stress: BAT 3-yr OS ~70% (>>Kurosawa ~14%) yet still fits event anchors — readout HR ~0.67 misses win threshold. Red-hatched sliders expected.">Implausible BAT cap (stress)<span class="p-sub">BAT 3-yr OS >>14% · readout HR ~0.67 miss</span></button>
     </div>
 
     <div class="bandkey" id="bandkeyForward" data-regal-mode="forward">
@@ -956,7 +956,7 @@
         <div class="stat"><div class="k">Prevalent GPS pool (on therapy)</div><div class="v" id="oPool">–</div></div>
       </div>
       <div class="ev-result">
-        <div class="ev-result-label">Enterprise value <span class="tag m">model output</span></div>
+        <div class="ev-result-label" id="oEvHead">Enterprise value <span class="tag m">model output</span></div>
         <div class="bignum" style="color:var(--accent)" id="oEV">–</div>
         <div class="ev-result-sub">≈ <b id="oPS">–</b> / share &nbsp;·&nbsp; buyout range <b id="oBuy">–</b></div>
       </div>
