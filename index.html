@@ -28,22 +28,22 @@
   </div>
 </div>
 <header>
-  <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Best Available Guess summary">
-    <div class="best-est-item best-est-item--scenario" title="Header strip reflects the active scenario — defaults to Best Available Guess on load">
-      <span class="best-est-label">Active scenario</span>
-      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Best Available Guess ★</span>
+  <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Best Available Guess prediction at 100% success">
+    <div class="best-est-item best-est-item--scenario" title="Frozen best-case prediction from Best Available Guess presets — does not change when sliders move">
+      <span class="best-est-label">Prediction</span>
+      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Best Available Guess ★ · 100% success</span>
     </div>
-    <div class="best-est-item" title="GPS hazard ratio from current REGAL survival parameters (Pike estimate @ m58)">
+    <div class="best-est-item" title="GPS hazard ratio from frozen Best Available Guess (42% cure, cw42 inverse) — Pike estimate @ m58">
       <span class="best-est-label">GPS HR <span class="tag m">model</span></span>
       <span class="best-est-val" id="beGpsHr">—</span>
     </div>
     <span class="best-est-sep" aria-hidden="true">·</span>
-    <div class="best-est-item" title="SLS-009 median OS ratio under exponential assumption (benchmark mOS ÷ treatment mOS) — not a randomized log-rank HR">
+    <div class="best-est-item" title="SLS-009 median OS ratio from frozen best preset (benchmark mOS ÷ treatment mOS) — assumes 100% achievement">
       <span class="best-est-label">SLS OS ratio <span class="tag m">model</span></span>
       <span class="best-est-val" id="beSlsHr">—</span>
     </div>
     <span class="best-est-sep" aria-hidden="true">·</span>
-    <div class="best-est-item" title="Risk-adjusted enterprise value per share from current Valuation tab inputs">
+    <div class="best-est-item" title="Gross enterprise value per share if both GPS and SLS-009 succeed (P=100%, no risk adjustment)">
       <span class="best-est-label">Target $/sh <span class="tag m">model</span></span>
       <span class="best-est-val" id="beBuyout">—</span>
     </div>

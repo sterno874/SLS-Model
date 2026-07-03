@@ -21,6 +21,8 @@ import {
   paramsFromPreset,
   isPlausible,
   computeValuationMetrics,
+  computeFrozenBestEst,
+  FROZEN_BEST_EST,
   VALID_TABS,
   EXPLAIN_LEVELS,
   REQUIRED_PRESET_KEYS,
@@ -225,6 +227,35 @@ test("inverseSolve cw42 preset yields finite BAT and GPS uncured medians", () =>
   assert.ok(ir.sol);
   assert.ok(Number.isFinite(ir.sol.bat));
   assert.ok(Number.isFinite(ir.sol.gpsu));
+});
+
+test("computeFrozenBestEst: frozen header @ 100% success (Best Available Guess presets)", () => {
+  const f = computeFrozenBestEst();
+  assert.ok(Math.abs(f.gpsHr - 0.254) < 0.02);
+  assert.ok(Math.abs(f.slsOsRatio - FROZEN_BEST_EST.slsPreset.sls_bench / FROZEN_BEST_EST.slsPreset.sls_os) < 1e-9);
+  assert.match(f.label, /Best Available Guess/);
+  assert.match(f.label, /100% success/);
+  const gross = computeValuationMetrics({
+    cr2: FROZEN_BEST_EST.valPreset.v_cr2,
+    cr1: FROZEN_BEST_EST.valPreset.v_cr1,
+    gpen: FROZEN_BEST_EST.valPreset.v_gpen,
+    gprice: FROZEN_BEST_EST.valPreset.v_gprice,
+    gyears: FROZEN_BEST_EST.valPreset.v_gyears,
+    flpool: FROZEN_BEST_EST.valPreset.v_flpool,
+    rrpool: FROZEN_BEST_EST.valPreset.v_rrpool,
+    spen: FROZEN_BEST_EST.valPreset.v_spen,
+    sprice: FROZEN_BEST_EST.valPreset.v_sprice,
+    syears: FROZEN_BEST_EST.valPreset.v_syears,
+    platform: FROZEN_BEST_EST.valPreset.v_platform,
+    mult: FROZEN_BEST_EST.valPreset.v_mult,
+    shares: FROZEN_BEST_EST.valPreset.v_shares,
+    riskadj: false,
+    pgps: 100,
+    psls: 100
+  });
+  assert.ok(Math.abs(f.EV - gross.EV) < 0.01);
+  assert.ok(Math.abs(f.ps - gross.ps) < 0.01);
+  assert.ok(f.ps > computeValuationMetrics({ ...VAL_DEFAULTS, riskadj: true }).ps);
 });
 
 test("computeValuationMetrics risk-adjusted lowers peak vs gross", () => {

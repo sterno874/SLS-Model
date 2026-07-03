@@ -1,4 +1,4 @@
-import { STRATF, ZFUT, inverseSolve, passesVerdict } from "../math/survival.js";
+import { STRATF, ZFUT, inverseSolve, passesVerdict, hazardRatio, T2 } from "../math/survival.js";
 
 export const VALID_TABS = ["gps", "sls009", "value", "explain", "biology"];
 export const EXPLAIN_LEVELS = ["eli5", "ms", "hs", "col", "pro", "phd"];
@@ -348,4 +348,41 @@ export function computeValuationMetrics(v) {
   const EV = totPeak * mult + platform * 1000;
   const ps = EV / shares;
   return { gpool, gpsPeak, slsPeak, totPeak, EV, ps, riskAdjusted: ra };
+}
+
+/** Frozen header-strip inputs — Best Available Guess @ 100% program success.
+ *  Keep in sync with P / SLSP / VALP preset tables in js/main.js. */
+export const FROZEN_BEST_EST = {
+  label: "Best Available Guess ★ · 100% success",
+  gpsPreset: SHARE_P.best,
+  slsPreset: SHARE_SLSP.best,
+  valPreset: SHARE_VALP.best
+};
+
+/** DOM-free frozen header metrics: biology-first GPS HR, SLS-009 OS ratio, gross buyout @ P(success)=100%. */
+export function computeFrozenBestEst() {
+  const p = paramsFromPresetQ(FROZEN_BEST_EST.gpsPreset);
+  const gpsHr = hazardRatio(T2, p);
+  const sls = FROZEN_BEST_EST.slsPreset;
+  const slsOsRatio = sls.sls_bench / sls.sls_os;
+  const v = FROZEN_BEST_EST.valPreset;
+  const { EV, ps } = computeValuationMetrics({
+    cr2: v.v_cr2,
+    cr1: v.v_cr1,
+    gpen: v.v_gpen,
+    gprice: v.v_gprice,
+    gyears: v.v_gyears,
+    flpool: v.v_flpool,
+    rrpool: v.v_rrpool,
+    spen: v.v_spen,
+    sprice: v.v_sprice,
+    syears: v.v_syears,
+    platform: v.v_platform,
+    mult: v.v_mult,
+    shares: v.v_shares,
+    riskadj: false,
+    pgps: 100,
+    psls: 100
+  });
+  return { label: FROZEN_BEST_EST.label, gpsHr, slsOsRatio, EV, ps };
 }

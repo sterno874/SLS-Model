@@ -27,6 +27,7 @@ import {
   fmtCalMonth,
   monthToDate
 } from "../js/math/survival.js";
+import { computeFrozenBestEst } from "../js/ui/state.js";
 import { mk, T1, poisLL, poisLogLThrough } from "./helpers.js";
 
 test("exponential median S(bat)=0.5", () => {
@@ -201,7 +202,7 @@ test("bear preset fits anchors and HR near threshold", () => {
 });
 
 test("header best-est defaults: GPS HR ~0.25 @ m58 (cw42 biology-first preset)", () => {
-  assert.ok(Math.abs(hazardRatio(T2, mk({})) - 0.254) < 0.02);
+  assert.ok(Math.abs(computeFrozenBestEst().gpsHr - 0.254) < 0.02);
 });
 
 test("fmtCalMonth and monthToDate agree", () => {

@@ -56,7 +56,8 @@ import {
   buildShareHash,
   paramsFromPreset as paramsFromPresetPure,
   isPlausible,
-  computeValuationMetrics as computeValuationMetricsPure
+  computeValuationMetrics as computeValuationMetricsPure,
+  computeFrozenBestEst
 } from './ui/state.js';
 
 const $ = id => document.getElementById(id);
@@ -1250,7 +1251,6 @@ function scheduleSettle(){
 }
 function updateNow(){
   _updateOrig();
-  updateBestEstStrip();
   if(!restoringState){scheduleSettle();}
 }
 update=updateNow;
@@ -1278,6 +1278,7 @@ function initApp(){
   onClick("scmpRun",runScenarioDiff);
   ["ev79","ev80"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",updateEventSensitivity);});
   ["panelScmp","panelEvtSens"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open&&id==="panelEvtSens")updateEventSensitivity();});});
+  updateBestEstStrip();
 }
 ["panelIRM","panelBayes","panelBacktest","panelCommunity","panelSlsCommunity","panelValCommunity"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open){if(id==="panelCommunity")loadCommunityDD();else if(id==="panelSlsCommunity")loadSlsCommunityDD();else if(id==="panelValCommunity")loadValCommunityDD();else refreshOpenPanels();}});});
 requestAnimationFrame(()=>{
@@ -1326,18 +1327,19 @@ function computeValuationMetrics(){
     riskadj:$("v_riskadj")&&$("v_riskadj").checked,pgps:+$("v_pgps").value,psls:+$("v_psls").value
   });
 }
+let frozenBestEstCache=null;
 function updateBestEstStrip(){
   if(embedMode||!$("bestEstStrip"))return;
-  const p=readParams();
-  const hr=hazardRatio(T2,p);
+  if(!frozenBestEstCache)frozenBestEstCache=computeFrozenBestEst();
+  const{label,gpsHr,slsOsRatio,EV,ps}=frozenBestEstCache;
+  const presetEl=$("bePresetLabel");
+  if(presetEl)presetEl.textContent=label;
   const gpsEl=$("beGpsHr");
-  if(gpsEl)gpsEl.textContent=isNaN(hr)?"—":hr.toFixed(2);
-  const os=+$("sls_os").value,bench=+$("sls_bench").value;
+  if(gpsEl)gpsEl.textContent=isNaN(gpsHr)?"—":gpsHr.toFixed(2);
   const slsEl=$("beSlsHr");
-  if(slsEl)slsEl.textContent=(bench>0&&os>0)?(bench/os).toFixed(2):"—";
-  const{EV,ps,riskAdjusted}=computeValuationMetrics();
+  if(slsEl)slsEl.textContent=slsOsRatio.toFixed(2);
   const buyEl=$("beBuyout");
-  if(buyEl)buyEl.textContent=(EV>=1000?"EV $"+(EV/1000).toFixed(1)+"B · ":"")+"$"+ps.toFixed(0)+"/sh"+(riskAdjusted?" (risk-adj)":"");
+  if(buyEl)buyEl.textContent=(EV>=1000?"EV $"+(EV/1000).toFixed(1)+"B · ":"")+"$"+ps.toFixed(0)+"/sh";
 }
 function renderSLS(){
   const os=+$("sls_os").value,bench=+$("sls_bench").value,orr=+$("sls_orr").value;
@@ -1352,11 +1354,9 @@ function renderSLS(){
   $("oFront").innerHTML="<b>Frontline (bigger market):</b> +SLS-009 lifts Aza/Ven mOS by <b>"+(fls-flb).toFixed(1)+" mo</b> ("+flb.toFixed(1)+"→"+fls.toFixed(1)+", control per <a href=\"https://www.nejm.org/doi/full/10.1056/NEJMoa2012971\" target=\"_blank\" rel=\"noopener\">VIALE-A</a>); in TP53-mut by <b>"+(tps-tpb).toFixed(1)+" mo</b> ("+tpb.toFixed(1)+"→"+tps.toFixed(1)+"). <span class=\"tag a\">Projections</span> — a randomized Phase 3 would test them.";
   drawExp("slsChart",[{med:os,c:getCSS('--gps'),lbl:"SLS-009 + AZA/VEN"},{med:bench,c:getCSS('--bat'),lbl:"historical benchmark"}],36);
   if(typeof renderBands2==="function")renderBands2();
-  updateBestEstStrip();
 }
 const debouncedRenderSLS=debounce(renderSLS,75);
-const debouncedBestEst=debounce(updateBestEstStrip,75);
-function onSlsInput(){tabsDirty.sls009=true;debouncedBestEst();if(activeTab==="sls009")debouncedRenderSLS();}
+function onSlsInput(){tabsDirty.sls009=true;if(activeTab==="sls009")debouncedRenderSLS();}
 ["sls_os","sls_bench","sls_orr","fl_base","fl_sls","tp_base","tp_sls"].forEach(id=>on(id,"input",onSlsInput));
 
 // ================= TAB 3 : VALUATION =================
@@ -1376,10 +1376,9 @@ function renderVal(){
   $("oBuy").textContent="$"+buyLo.toFixed(0)+"–$"+buyHi.toFixed(0)+"/sh";
   $("oValNote").innerHTML="Peak sales = new-starts × penetration × avg-years-on-therapy × price (<span class=\"tag m\">model output</span>). Longer survival ⇒ larger prevalent pool (see <b>TAM math</b> panel). EV = peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B WT1 platform. Multiple ~4–8× (<a href=\"https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm\" target=\"_blank\" rel=\"noopener\">Gilead–Forty Seven</a>; <a href=\"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K\" target=\"_blank\" rel=\"noopener\">Venclexta ~$2.6B</a>). Onureg caution (<a href=\"https://www.nejm.org/doi/full/10.1056/NEJMoa2001094\" target=\"_blank\" rel=\"noopener\">QUAZAR</a>). Every input is an <span class=\"tag a\">assumption</span>; not a DCF or investment advice.";
   if(typeof renderBands2==="function")renderBands2();
-  updateBestEstStrip();
 }
 const debouncedRenderVal=debounce(renderVal,75);
-function onValInput(){tabsDirty.value=true;debouncedBestEst();if(activeTab==="value")debouncedRenderVal();}
+function onValInput(){tabsDirty.value=true;if(activeTab==="value")debouncedRenderVal();}
 ["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares"].forEach(id=>on(id,"input",onValInput));
 on("v_riskadj","change",onValInput);
 // ---- generic prior/implausible/anchor bands for Tab 2 & 3 sliders ----
