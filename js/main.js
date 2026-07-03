@@ -853,22 +853,34 @@ function captureState(){
     ui:{showUncertainty,irm_lead:+$("irm_lead").value,bf_e58:+$("bf_e58").value,bf_cure:+$("bf_cure").value,explainLvl:curLvl}};
 }
 function encodeStateToHash(){return buildShareHash(captureState());}
+const GPS_SHARE_KEYS=["bat","batc","batk","gpsc","gpsu","delay","xtx","cens","mid","k","batcap","stratF","zfut","cutoff"];
+const SLS_SHARE_KEYS=["sls_os","sls_bench","sls_orr","fl_base","fl_sls","tp_base","tp_sls","sls_flev"];
+const VAL_SHARE_KEYS=["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares","v_pgps","v_psls"];
+function applySliderValues(ids,block){
+  if(!block)return;
+  for(const id of ids){if(block[id]==null)continue;const el=$(id);if(el)el.value=block[id];}
+}
 function applyState(s){
   if(!s||s.v!==1)return false;
   restoringState=true;lastMcPwin=null; // restoring a shared state changes params → invalidate cached MC P(win)
   try{
-    if(s.gps){const g=s.gps;for(const k of ["bat","batc","batk","gpsc","gpsu","delay","xtx","cens","mid","k","batcap","stratF","zfut","cutoff"])if(g[k]!=null&&$(k))$(k).value=g[k];if(g.autofit!=null)$("autofit").checked=g.autofit;if(g.fhTest!=null)$("fhTest").checked=g.fhTest;if(g.mcFloor!=null)$("mcFloor").checked=g.mcFloor;}
-    if(s.sls){for(const k in s.sls)if($(k))$(k).value=s.sls[k];}
-    if(s.val){for(const k in s.val){if(k==="v_riskadj"&&$("v_riskadj"))$("v_riskadj").checked=!!s.val[k];else if($(k))$(k).value=s.val[k];}}
-    if(s.ui){if(s.ui.showUncertainty!=null){showUncertainty=s.ui.showUncertainty;$("showUncertainty").checked=showUncertainty;}if(s.ui.irm_lead!=null)$("irm_lead").value=s.ui.irm_lead;if(s.ui.bf_e58!=null)$("bf_e58").value=s.ui.bf_e58;if(s.ui.bf_cure!=null)$("bf_cure").value=s.ui.bf_cure;if(s.ui.explainLvl)curLvl=s.ui.explainLvl;}
     activeRegalPreset=s.activeRegalPreset||activeRegalPreset;activeInvPreset=s.activeInvPreset||activeInvPreset;
     activeSlsPreset=s.activeSlsPreset||activeSlsPreset;activeValPreset=s.activeValPreset||activeValPreset;
+    applySliderValues(GPS_SHARE_KEYS,s.gps);
+    if(s.gps){if(s.gps.autofit!=null)$("autofit").checked=s.gps.autofit;if(s.gps.fhTest!=null)$("fhTest").checked=s.gps.fhTest;if(s.gps.mcFloor!=null)$("mcFloor").checked=s.gps.mcFloor;}
+    applySliderValues(SLS_SHARE_KEYS,s.sls);
+    applySliderValues(VAL_SHARE_KEYS,s.val);
+    if(s.val&&s.val.v_riskadj!=null&&$("v_riskadj"))$("v_riskadj").checked=!!s.val.v_riskadj;
+    if(s.ui){if(s.ui.showUncertainty!=null){showUncertainty=s.ui.showUncertainty;$("showUncertainty").checked=showUncertainty;}if(s.ui.irm_lead!=null)$("irm_lead").value=s.ui.irm_lead;if(s.ui.bf_e58!=null)$("bf_e58").value=s.ui.bf_e58;if(s.ui.bf_cure!=null)$("bf_cure").value=s.ui.bf_cure;if(s.ui.explainLvl)curLvl=s.ui.explainLvl;}
     if(s.regalMode)setRegalMode(s.regalMode);
-    refreshRegalPresetHighlight();highlightPresets("button[data-sls]","sls",activeSlsPreset);highlightPresets("button[data-val]","val",activeValPreset);
+    else refreshRegalPresetHighlight();
+    highlightPresets("button[data-sls]","sls",activeSlsPreset);highlightPresets("button[data-val]","val",activeValPreset);
     tabsRendered.gps=true;
-    updateNow();
+    if(s.sls)tabsDirty.sls009=true;
+    if(s.val)tabsDirty.value=true;
     if(s.tab)switchTab(s.tab);
     else if(s.ui&&s.ui.explainLvl){curLvl=s.ui.explainLvl;renderTab("explain",true);}
+    updateNow();
   }finally{restoringState=false;}
   return true;
 }
@@ -1303,8 +1315,8 @@ function initApp(){
     applyRegalPreset("best");
   }else{
     restoreFromHash()||null;
-    refreshRegalPresetHighlight();
-    updateNow();
+    if(activeTab==="gps")updateNow();
+    else renderTab(activeTab,true);
   }
   updateReadoutTracker();
   initMobileCollapse();

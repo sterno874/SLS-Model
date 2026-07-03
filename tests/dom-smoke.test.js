@@ -172,6 +172,16 @@ test("paramsFromShareHash accepts v1 delta hashes", () => {
   assert.match(js, /decodeShareHash\(hash\.trim\(\)\)/);
 });
 
+test("applyState restores all tab slider blocks before switching tabs", () => {
+  assert.match(js, /SLS_SHARE_KEYS/);
+  assert.match(js, /VAL_SHARE_KEYS/);
+  assert.match(js, /applySliderValues\(SLS_SHARE_KEYS,s\.sls\)/);
+  assert.match(js, /applySliderValues\(VAL_SHARE_KEYS,s\.val\)/);
+  assert.match(js, /if\(s\.tab\)switchTab\(s\.tab\);[\s\S]*updateNow\(\)/);
+  assert.match(js, /if\(s\.sls\)tabsDirty\.sls009=true/);
+  assert.match(js, /if\(s\.val\)tabsDirty\.value=true/);
+});
+
 test("embed-hide chrome is present for embed mode styling", () => {
   assert.match(html, /class="[^"]*embed-hide/);
   assert.match(html, /class="[^"]*no-embed/);

@@ -208,3 +208,61 @@ test("biology tab round-trips in share hash", () => {
   assert.equal(decoded.tab, "biology");
   assert.deepEqual(decoded, s);
 });
+
+test("sls009 bear preset + slider delta round-trips full state", () => {
+  const s = freshLoadState();
+  s.tab = "sls009";
+  s.activeSlsPreset = "bear";
+  Object.assign(s.sls, SHARE_SLSP.bear);
+  s.sls.tp_sls = 11.5;
+  const hash = buildShareHash(s);
+  const decoded = decodeShareHash(hash);
+  assert.equal(decoded.tab, "sls009");
+  assert.equal(decoded.activeSlsPreset, "bear");
+  assert.equal(decoded.sls.tp_sls, 11.5);
+  assert.equal(decoded.sls.sls_os, SHARE_SLSP.bear.sls_os);
+  assert.deepEqual(decoded, s);
+});
+
+test("valuation cw preset + P(approval) sliders round-trip", () => {
+  const s = freshLoadState();
+  s.tab = "value";
+  s.activeValPreset = "cw";
+  Object.assign(s.val, SHARE_VALP.cw);
+  s.val.v_pgps = 72;
+  s.val.v_psls = 48;
+  s.val.v_platform = 5.5;
+  const hash = buildShareHash(s);
+  const decoded = decodeShareHash(hash);
+  assert.equal(decoded.tab, "value");
+  assert.equal(decoded.activeValPreset, "cw");
+  assert.equal(decoded.val.v_pgps, 72);
+  assert.equal(decoded.val.v_psls, 48);
+  assert.equal(decoded.val.v_platform, 5.5);
+  assert.deepEqual(decoded, s);
+});
+
+test("preset-only sls009 bull URL encodes tab + sp marker (slider deltas omitted)", () => {
+  const s = freshLoadState();
+  s.tab = "sls009";
+  s.activeSlsPreset = "bull";
+  Object.assign(s.sls, SHARE_SLSP.bull);
+  const hash = buildShareHash(s);
+  const payload = JSON.parse(b64urlDecode(hash.slice(4)));
+  assert.equal(payload.t, "sls009");
+  assert.equal(payload.sp, "bull");
+  assert.equal(payload.so, undefined);
+  assert.deepEqual(decodeShareHash(hash), s);
+});
+
+test("preset-only value bull URL encodes tab + vp marker", () => {
+  const s = freshLoadState();
+  s.tab = "value";
+  s.activeValPreset = "bull";
+  Object.assign(s.val, SHARE_VALP.bull);
+  const hash = buildShareHash(s);
+  const payload = JSON.parse(b64urlDecode(hash.slice(4)));
+  assert.equal(payload.t, "value");
+  assert.equal(payload.vp, "bull");
+  assert.deepEqual(decodeShareHash(hash), s);
+});
