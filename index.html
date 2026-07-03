@@ -29,7 +29,18 @@
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:var(--bg);color:var(--ink);line-height:1.45}
   header{padding:20px 22px 6px;background:linear-gradient(180deg,#fff 0%,var(--bg) 100%)}
+  .hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px 24px;flex-wrap:wrap}
+  .hdr-title-block{flex:1;min-width:min(100%,280px)}
   h1{font-size:21px;margin:0 0 4px;letter-spacing:-.01em}
+  .readout-estimate{text-align:right;font-size:12px;line-height:1.45;color:var(--muted);flex-shrink:0;max-width:340px;padding-top:2px}
+  .readout-estimate .re-main{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .readout-estimate .re-main b{font-weight:700;color:var(--accent)}
+  .readout-estimate .re-ci{font-size:11.5px;margin-top:1px}
+  .readout-estimate .re-events{font-size:10.5px;margin-top:3px;color:var(--muted)}
+  .readout-estimate .tag.m{font-size:9px;padding:0 5px;vertical-align:1px}
+  @media(max-width:640px){
+    .readout-estimate{text-align:left;max-width:100%;width:100%;padding-top:8px;border-top:1px solid var(--line);margin-top:4px}
+  }
   .sub{color:var(--muted);font-size:13px;max-width:1100px;line-height:1.55}
   .wrap{display:grid;grid-template-columns:minmax(320px,380px) 1fr;gap:16px;padding:14px 18px 10px;align-items:start}
   @media (max-width:920px){.wrap{grid-template-columns:1fr}}
@@ -294,36 +305,6 @@
   .bottom-nav button{border:none;background:transparent;border-radius:10px;padding:8px 4px;min-height:44px;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;line-height:1.2}
   .bottom-nav button .bn-ico{font-size:18px;line-height:1}
   .bottom-nav button.active{color:var(--accent);background:#eef3fe}
-  /* readout clock — compact trial countdown (REGAL tab top-right) */
-  #tab-gps{position:relative}
-  #tab-gps .howworks{margin-right:118px}
-  .readout-clock{position:absolute;top:6px;right:18px;z-index:25;display:flex;flex-direction:column;align-items:flex-end;gap:3px;font-size:11px;line-height:1.35;--rc-pct:97.5}
-  .rc-face{position:relative;width:68px;height:68px;padding:0;border:1px solid #c9daf8;border-radius:50%;background:linear-gradient(145deg,#fff 0%,#eef3fe 100%);box-shadow:0 2px 10px rgba(47,111,237,.12);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:box-shadow .15s,border-color .15s}
-  .rc-face:hover,.rc-face[aria-expanded=true]{border-color:var(--accent);box-shadow:0 3px 14px rgba(47,111,237,.22)}
-  .rc-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-  .rc-ring-bg{fill:none;stroke:#dde8fd;stroke-width:2.2}
-  .rc-ring-fill{fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:100 100;stroke-dashoffset:calc(100 - var(--rc-pct));transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .35s ease}
-  .rc-center{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;line-height:1}
-  .rc-count{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent);letter-spacing:-.02em}
-  .rc-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:1px}
-  .rc-meta{display:flex;align-items:center;gap:4px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
-  .rc-t80 b{color:var(--ink);font-weight:700}
-  .rc-refresh{border:1px solid var(--line);background:#fff;border-radius:50%;width:22px;height:22px;padding:0;font-size:13px;line-height:1;cursor:pointer;color:var(--accent);display:flex;align-items:center;justify-content:center}
-  .rc-refresh:hover{border-color:var(--accent);background:#eef3fe}
-  .rc-popover{position:absolute;top:calc(100% + 6px);right:0;width:min(300px,calc(100vw - 36px));padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;box-shadow:0 8px 28px rgba(20,27,38,.14);font-size:12.5px;line-height:1.55;z-index:30}
-  .rc-popover[hidden]{display:none}
-  .rc-popover h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
-  .rc-popover .rt-row{display:flex;flex-direction:column;gap:4px;margin:8px 0}
-  .rc-popover .rt-foot{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
-  .rc-popover .rt-foot a{color:var(--accent)}
-  @media(max-width:640px){
-    #tab-gps .howworks{margin-right:62px}
-    .readout-clock{top:4px;right:10px}
-    .rc-face{width:54px;height:54px}
-    .rc-count{font-size:18px}
-    .rc-label{font-size:7px}
-    .rc-meta{display:none}
-  }
   /* chart tooltip */
   .chart-tooltip{position:absolute;pointer-events:none;background:#141b26;color:#fff;padding:8px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;z-index:50;opacity:0;transition:opacity .12s;max-width:240px;font-variant-numeric:tabular-nums}
   .chart-tooltip.show{opacity:1}
@@ -343,7 +324,7 @@
   /* embed mode */
   body.embed-mode{background:#fff}
   body.embed-mode header{padding:8px 12px 4px;background:#fff;box-shadow:none;position:static}
-  body.embed-mode header h1,.embed-hide,.embed-mode .howworks,.embed-mode footer,.embed-mode .hdr-tools,.embed-mode .tabnav,.embed-mode #bottomNav,.embed-mode .methodbtn,.embed-mode .readout-clock,.embed-mode .link-val-btn,.embed-mode .no-embed{display:none!important}
+  body.embed-mode header h1,.embed-hide,.embed-mode .howworks,.embed-mode footer,.embed-mode .hdr-tools,.embed-mode .tabnav,.embed-mode #bottomNav,.embed-mode .methodbtn,.embed-mode .readout-estimate,.embed-mode .link-val-btn,.embed-mode .no-embed{display:none!important}
   body.embed-mode .wrap,.embed-mode .facts,.embed-mode .regal-analysis,.embed-mode .feat-panel,.embed-mode .cw-panel{padding-left:8px;padding-right:8px;margin-left:0;margin-right:0}
   body.embed-mode .tabbtn.active{display:inline-block!important}
   @media(max-width:768px){
@@ -364,8 +345,17 @@
   </div>
 </div>
 <header>
-  <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
-  <div class="sub" style="margin-bottom:2px">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
+  <div class="hdr-top">
+    <div class="hdr-title-block">
+      <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
+      <div class="sub" style="margin-bottom:2px">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
+    </div>
+    <div class="readout-estimate no-embed" id="readoutEstimate" aria-live="polite" hidden>
+      <div class="re-main">Est. 80th event: <b id="reDate">—</b> <span class="tag m">model est.</span></div>
+      <div class="re-ci" id="reCI">90% CI: —</div>
+      <div class="re-events"><span id="reEvents">78/80 events</span> · <span class="cite"><a id="reAnchorLink" href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 @ May 2026 PR</a></span></div>
+    </div>
+  </div>
   <div class="hdr-tools no-print">
     <button type="button" class="primary" id="btnShare" title="Copy URL with all slider state encoded in the hash — zero server storage">🔗 Copy share link</button>
     <button type="button" id="btnPrint" title="Print report with charts and scenario summary">🖨 Print report</button>
@@ -380,33 +370,6 @@
 </header>
 
 <div id="tab-gps" class="tabpage">
-<!-- READOUT CLOCK — compact trial countdown -->
-<div class="readout-clock no-embed" id="readoutClock">
-  <button type="button" class="rc-face" id="rcToggle" aria-expanded="false" aria-controls="rcPopover" title="REGAL readout tracker — click for details">
-    <svg class="rc-ring" viewBox="0 0 36 36" aria-hidden="true">
-      <circle class="rc-ring-bg" cx="18" cy="18" r="15.9"/>
-      <circle class="rc-ring-fill" id="rcRingFill" cx="18" cy="18" r="15.9" pathLength="100"/>
-    </svg>
-    <span class="rc-center">
-      <span class="rc-count" id="rtRemain">2</span>
-      <span class="rc-label">to go</span>
-    </span>
-  </button>
-  <div class="rc-meta">
-    <span class="rc-t80">T80 <b id="rcT80Num">—</b></span>
-    <button type="button" class="rc-refresh" id="rtRefresh" title="Refresh T80 estimate" aria-label="Refresh estimate">↻</button>
-  </div>
-  <div class="rc-popover" id="rcPopover" hidden role="dialog" aria-label="Readout tracker details">
-    <h4>Readout tracker <span class="tag f">cited</span></h4>
-    <div>Events remaining: <b style="font-size:18px;color:var(--accent)"><span id="rtRemainPop">2</span></b> <span style="color:var(--muted)">(80 − <span id="rtAnchor">78</span> anchor)</span></div>
-    <div class="rt-row">
-      <span id="rtT80">Median time to 80th event: <b>—</b></span>
-      <span id="rtP90">90th percentile: <b>—</b></span>
-      <span id="rtAsOf" style="color:var(--muted);font-size:12px">As of <span id="rtAsOfDate">2026-05-11</span></span>
-    </div>
-    <div class="rt-foot">Anchor: <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78 events @ m63</a> (Q1 2026 PR). Ring = <span id="rcPctLabel">97.5</span>% to 80th event.</div>
-  </div>
-</div>
   <details class="howworks">
     <summary>How this works — KM curves, event matching, HR &amp; Monte Carlo</summary>
     <div class="howworks-body">
@@ -1509,6 +1472,13 @@ const ZEFF=2.34, ZFUT=0.4, STRATF=0.90; // interim efficacy boundary Z; mild fut
 function Phi(x){const s=x<0?-1:1;x=Math.abs(x)/Math.SQRT2;const t=1/(1+0.3275911*x);const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return 0.5*(1+s*y);}
 function phi(x){return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);}
 function monthLabel(m){const d=new Date(2021,1,1);d.setMonth(d.getMonth()+Math.round(Math.min(m,120)));return "("+d.toLocaleString('en-US',{month:'short',year:'numeric'})+")";}
+function monthToDate(m){const d=new Date(2021,1,1);d.setMonth(d.getMonth()+Math.round(Math.min(m,120)));return d;}
+function fmtCalMonth(m){return monthToDate(m).toLocaleString('en-US',{month:'short',year:'numeric'});}
+function fmtCalRange(mLo,mHi){
+  const dLo=monthToDate(mLo),dHi=monthToDate(mHi);
+  if(dLo.getFullYear()===dHi.getFullYear())return dLo.toLocaleString('en-US',{month:'short'})+'–'+dHi.toLocaleString('en-US',{month:'short',year:'numeric'});
+  return fmtCalMonth(mLo)+'–'+fmtCalMonth(mHi);
+}
 // Poisson likelihood on event-count increments (models the counting noise; SD≈√λ)
 function lpois(k,lam){if(lam<=1e-9)return k===0?0:-1e9;let lf=0;for(let i=2;i<=k;i++)lf+=Math.log(i);return -lam+k*Math.log(lam)-lf;}
 function pois(k,lam){return Math.exp(lpois(k,lam));}
@@ -1744,6 +1714,7 @@ let embedMode=getEmbedMode();
 function applyEmbedMode(){
   embedMode=getEmbedMode();
   document.body.classList.toggle('embed-mode',embedMode);
+  updateReadoutVisibility();
 }
 applyEmbedMode();
 function getCurrentPwin(){
@@ -1768,39 +1739,21 @@ function usePwinInValuation(){
 }
 let readoutTimer=null;
 function scheduleReadoutUpdate(){clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
+function updateReadoutVisibility(){
+  const el=$("readoutEstimate");
+  if(el)el.hidden=(activeTab!=='gps'||embedMode);
+}
 function updateReadoutTracker(){
-  const remain=80-CURRENT_EVENT_ANCHOR.count,pct=CURRENT_EVENT_ANCHOR.count/80*100;
-  $("rtRemain").textContent=remain;
-  if($("rtRemainPop"))$("rtRemainPop").textContent=remain;
-  $("rtAnchor").textContent=CURRENT_EVENT_ANCHOR.count;
-  $("rtAsOfDate").textContent=fmtAsOf(CURRENT_EVENT_ANCHOR.date);
-  const clock=$("readoutClock");
-  if(clock)clock.style.setProperty("--rc-pct",pct.toFixed(2));
-  if($("rcPctLabel"))$("rcPctLabel").textContent=pct.toFixed(1);
+  updateReadoutVisibility();
   const p=readParams(),t80=T80(p);
-  if($("rcT80Num"))$("rcT80Num").textContent="~m"+t80.toFixed(0);
-  $("rtT80").innerHTML='Median time to 80th event: <b>~m'+t80.toFixed(0)+'</b> '+monthLabel(t80);
+  if($("reDate"))$("reDate").textContent=fmtCalMonth(t80);
+  if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80 events';
   const times=[];for(let i=0;i<2000;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;
     let t=T3;while(eventsAt(t,q,60)<80&&t<120)t+=0.5;times.push(t);}
   times.sort((a,b)=>a-b);
-  const p90=times[Math.floor(0.9*times.length)];
-  $("rtP90").innerHTML='90th percentile: <b>~m'+p90.toFixed(1)+'</b>';
-}
-function runT80Quick(){updateReadoutTracker();}
-function toggleReadoutPopover(open){
-  const pop=$("rcPopover"),btn=$("rcToggle");if(!pop||!btn)return;
-  const show=open!=null?open:pop.hidden;
-  pop.hidden=!show;btn.setAttribute("aria-expanded",show?"true":"false");
-}
-function initReadoutClock(){
-  const btn=$("rcToggle"),pop=$("rcPopover");
-  if(btn)btn.onclick=e=>{e.stopPropagation();toggleReadoutPopover();};
-  if($("rtRefresh"))$("rtRefresh").onclick=e=>{e.stopPropagation();runT80Quick();};
-  document.addEventListener("click",e=>{
-    if(!pop||pop.hidden)return;
-    if(!e.target.closest("#readoutClock"))toggleReadoutPopover(false);
-  });
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")toggleReadoutPopover(false);});
+  const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
+  const p10=qf(0.05),p90=qf(0.95);
+  if($("reCI"))$("reCI").textContent='90% CI: '+fmtCalRange(p10,p90);
 }
 function scenarioMetrics(p,binding){
   if(!p)return null;
@@ -2650,7 +2603,6 @@ function initApp(){
   if(activeTab!=="gps")renderTab(activeTab,true);
   if($("btnUsePwin"))$("btnUsePwin").onclick=usePwinInValuation;
   if($("scmpRun"))$("scmpRun").onclick=runScenarioDiff;
-  initReadoutClock();
   ["ev79","ev80"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",updateEventSensitivity);});
   ["panelScmp","panelEvtSens"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open&&id==="panelEvtSens")updateEventSensitivity();});});
 }
@@ -2673,6 +2625,7 @@ function switchTab(t){
   document.querySelectorAll(".tabbtn").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-selected",on?"true":"false");});
   document.querySelectorAll("#bottomNav button").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-current",on?"page":"false");});
   ["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
+  updateReadoutVisibility();
   renderTab(t);
   if(!restoringState)updateHashQuiet();
 }
