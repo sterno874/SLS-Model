@@ -57,20 +57,60 @@ test("inverse-only buttons are not duplicated as data-preset", () => {
   }
 });
 
-test("four top tab buttons exist with expected data-tab values", () => {
+test("top tab buttons exist with expected data-tab values", () => {
   const tabs = matchAll(/class="tabbtn[^"]*"[^>]*data-tab="([^"]+)"/g, html).map(
     (m) => m[1]
   );
-  assert.equal(tabs.length, 4);
+  assert.equal(tabs.length, 5);
   assert.deepEqual(tabs, VALID_TABS);
 });
 
-test("bottom nav exposes all four tabs", () => {
+test("bottom nav exposes all five tabs", () => {
   const navTabs = matchAll(
     /<nav id="bottomNav"[\s\S]*?<\/nav>/g,
     html
   )[0][0].match(/data-tab="([^"]+)"/g).map((s) => s.slice(10, -1));
+  assert.equal(navTabs.length, 5);
   assert.deepEqual(navTabs, VALID_TABS);
+});
+
+test("The Biology tab is fully wired (page, header tab, bottom nav)", () => {
+  assert.match(html, /id="tab-biology"/);
+  assert.match(html, /class="tabbtn"[^>]*data-tab="biology"/);
+  const nav = matchAll(/<nav id="bottomNav"[\s\S]*?<\/nav>/g, html)[0][0];
+  assert.match(nav, /data-tab="biology"/);
+  assert.match(js, /tabsRendered=\{[^}]*biology/);
+  assert.match(
+    js,
+    /\["gps","sls009","value","explain","biology"\]\.forEach\(id=>\{\$\("tab-"\+id\)/
+  );
+});
+
+test("The Biology tab has labeled inline SVG diagrams (no raster)", () => {
+  const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
+  const svgs = matchAll(/<svg[^>]*class="bio-svg"/g, bio);
+  assert.ok(svgs.length >= 5, `expected >=5 diagrams, found ${svgs.length}`);
+  assert.match(bio, /<figcaption class="bio-figcaption"/);
+  assert.match(bio, /<text /);
+  assert.doesNotMatch(bio, /<img/);
+});
+
+test("The Biology tab cites primary sources for each mechanism", () => {
+  const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
+  assert.match(bio, /pubmed\.ncbi\.nlm\.nih\.gov\/19723653/); // Cheever 2009 WT1 #1
+  assert.match(bio, /clinicaltrials\.gov\/study\/NCT04229979/); // REGAL/GPS
+  assert.match(bio, /clinicaltrials\.gov\/study\/NCT04588922/); // SLS-009
+  assert.match(bio, /pmc\.ncbi\.nlm\.nih\.gov\/articles\/PMC8143439/); // CDK9 review
+  assert.match(bio, /haematologica\.org\/article\/view\/5781/); // Kurosawa
+  const links = matchAll(/href="https?:\/\/[^"]+"/g, bio);
+  assert.ok(links.length >= 15, `expected >=15 source links, found ${links.length}`);
+});
+
+test("The Biology tab preserves honesty flags (blinded / single-arm / no combo)", () => {
+  const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
+  assert.match(bio, /blinded/i);
+  assert.match(bio, /single-arm/i);
+  assert.match(bio, /no human trial combin/i);
 });
 
 test("six Explain level buttons exist with expected data-lvl values", () => {

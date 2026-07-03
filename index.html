@@ -72,6 +72,7 @@
     <button class="tabbtn" data-tab="sls009">2 · SLS-009 (Phase 2)</button>
     <button class="tabbtn" data-tab="value">3 · Valuation &amp; WT1 platform</button>
     <button class="tabbtn" data-tab="explain">4 · Explain (ELI5 → PhD)</button>
+    <button class="tabbtn" data-tab="biology">5 · The Biology</button>
   </div>
 </header>
 
@@ -1132,6 +1133,353 @@
   <div class="facts expl-content"><div class="card expl-card"><div id="explbody"></div></div></div>
 </div><!-- /tab-explain -->
 
+<div id="tab-biology" class="tabpage" hidden>
+  <div class="tab-intro-bar">
+    <details class="howworks howworks-inline">
+      <summary>How this works</summary>
+      <div class="howworks-body">
+        <p>This tab explains the <b>biology behind SELLAS' two drug candidates</b> from the target up: what the target molecule does, then how the drug is designed to act on it. Diagrams are hand-built inline SVG (no AI images), labeled and on the same color tokens as the rest of the app.</p>
+        <p>Every mechanistic claim links a primary source (peer-reviewed paper, ClinicalTrials.gov record, or company filing). Where the biology is textbook-established we say so; where a step is the drug's <em>intended</em> mechanism rather than a proven clinical result, we flag it; and clinical numbers that are single-arm or still blinded are flagged as company-reported.</p>
+        <p class="field-note">Tags: <span class="tag f">Established</span> textbook / peer-reviewed biology · <span class="tag m">Theoretical MOA</span> intended mechanism, not a proven clinical outcome · <span class="tag a">Company-reported</span> single-arm or blinded data from SELLAS.</p>
+      </div>
+    </details>
+    <span class="tab-intro-sep" aria-hidden="true">|</span>
+    <a class="methodlink" href="#gps" onclick="document.querySelector('.tabbtn[data-tab=gps]').click();return false;">See REGAL model →</a>
+  </div>
+
+  <div class="bio-content">
+
+    <!-- ===== 1 · INTRO ===== -->
+    <section class="bio-section" id="bio-intro">
+      <h2><span class="bio-kicker">Overview</span> Two shots on goal, two different mechanisms</h2>
+      <p class="bio-lead">SELLAS is developing <b>two mechanistically unrelated cancer drugs</b>, both aimed at acute myeloid leukemia (AML) and related myeloid cancers. One is an <b>immunotherapy</b> that trains the patient's T cells against a leukemia antigen; the other is a <b>targeted small molecule</b> that shuts off a survival gene program inside the cancer cell.</p>
+      <div class="bio-modality-grid">
+        <div class="bio-modality mod-gps">
+          <h4><span class="swatch" style="background:var(--gps)"></span>GPS (galinpepimut-S) — immunotherapy</h4>
+          <p>A WT1-directed peptide vaccine. It teaches CD4⁺ and CD8⁺ T cells to recognize and kill cells that overexpress the <b>WT1</b> protein — used to keep patients in remission. <span class="tag f">Established</span></p>
+        </div>
+        <div class="bio-modality mod-sls">
+          <h4><span class="swatch" style="background:var(--good)"></span>SLS-009 (tambiciclib) — targeted small molecule</h4>
+          <p>A selective inhibitor of the kinase <b>CDK9</b>. Blocking CDK9 collapses the short-lived survival transcripts MCL-1 and MYC, pushing leukemic blasts into apoptosis. <span class="tag f">Established</span> <span class="tag m">Theoretical MOA</span></p>
+        </div>
+      </div>
+      <p class="bio-honesty"><b>Honest framing:</b> these are two independent programs, not a single combination product. There is <b>no human trial combining GPS + SLS-009</b> — the "platform" is a two-asset pipeline, discussed in the last section. The REGAL Phase 3 (GPS) remains <b>blinded</b> pending its 80-event final analysis, and the SLS-009 data are from an <b>early single-arm</b> study.</p>
+      <div class="bio-legend">
+        <span><b>Evidence tags:</b></span>
+        <span><span class="tag f">Established</span> peer-reviewed / textbook</span>
+        <span><span class="tag m">Theoretical MOA</span> intended mechanism</span>
+        <span><span class="tag a">Company-reported</span> single-arm / blinded</span>
+      </div>
+    </section>
+
+    <!-- ===== 2 · WT1 (target) ===== -->
+    <section class="bio-section" id="bio-wt1">
+      <h2><span class="bio-kicker">Target 1</span> WT1 — the leukemia antigen GPS goes after</h2>
+      <p><b>WT1</b> (Wilms' tumor 1) is a zinc-finger <b>transcription factor</b>. It is largely switched off in healthy adult tissue but is <b>overexpressed in the majority of AML and MDS</b> blasts, which makes it a tumor-associated antigen the immune system can, in principle, be pointed at. <span class="tag f">Established</span></p>
+      <p>In 2009 an NCI pilot project ranked 75 cancer antigens against pre-set criteria (therapeutic function, immunogenicity, specificity, oncogenicity, expression). <b>WT1 ranked #1</b> — the single highest-priority target antigen for cancer immunotherapy. That ranking is the core rationale for a WT1 vaccine. <span class="tag f">Established</span></p>
+      <h3>Why a transcription factor makes a usable antigen</h3>
+      <p>Even though WT1 sits inside the cell (and its nucleus), fragments of it are continuously chopped up and displayed on the cell surface bound to MHC molecules. A T cell that has been trained on those WT1 peptide-MHC complexes can therefore recognize a WT1⁺ blast from the outside — no need for the protein to be on the surface itself. <span class="tag f">Established</span></p>
+      <ul>
+        <li><b>Overexpressed, not neo-antigen:</b> WT1 is a normal self-protein overexpressed by the tumor, so the immune response has to overcome tolerance — the design problem GPS tries to solve (next section). <span class="tag f">Established</span></li>
+        <li><b>Broad applicability:</b> WT1 is expressed across AML, MDS, and several solid tumors, which is why SELLAS frames it as a platform antigen. <span class="tag f">Established</span></li>
+      </ul>
+      <ul class="bio-sources">
+        <li>Cheever et al. 2009, <em>Clin Cancer Res</em> — NCI antigen prioritization, WT1 ranked #1: <a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank" rel="noopener">PubMed 19723653</a></li>
+        <li>SELLAS science overview (WT1 biology / NCI ranking): <a href="https://sellaslifesciences.com/science/" target="_blank" rel="noopener">sellaslifesciences.com/science</a></li>
+        <li>Jamy &amp; Cicic 2025, REGAL design review (WT1 antigen rationale): <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">PMC11760237</a></li>
+      </ul>
+    </section>
+
+    <!-- ===== 3 · GPS (drug) ===== -->
+    <section class="bio-section" id="bio-gps">
+      <h2><span class="bio-kicker">Drug 1</span> GPS / galinpepimut-S — a WT1 peptide vaccine</h2>
+      <p><b>GPS</b> is a mixture of <b>four WT1-derived peptides</b>: two are <b>heteroclitic</b> (deliberately mutated by a single amino acid to look "non-self" and break tolerance), and two are longer native WT1 peptides. Together they cover both <b>CD8⁺</b> (MHC class I) and <b>CD4⁺</b> (MHC class II) responses across a broad range of HLA types. <span class="tag f">Established</span></p>
+      <p>The peptides are given with the adjuvant <b>Montanide</b> and pre-dosing with <b>GM-CSF</b>, which recruits and activates antigen-presenting cells (APCs) so the peptides are presented efficiently. The intended result is a population of <b>WT1-specific CD8⁺ cytotoxic T lymphocytes (CTLs)</b>, helped by CD4⁺ T cells, that patrol for and lyse WT1⁺ residual leukemic cells. <span class="tag f">Established</span> <span class="tag m">Theoretical MOA</span></p>
+
+      <figure class="bio-figure">
+        <svg class="bio-svg" viewBox="0 0 760 320" role="img" aria-labelledby="d2title d2desc" preserveAspectRatio="xMidYMid meet">
+          <title id="d2title">GPS vaccine mechanism of action</title>
+          <desc id="d2desc">Four WT1 peptides plus Montanide adjuvant and GM-CSF activate an antigen-presenting cell, which primes CD4+ helper and CD8+ cytotoxic T cells that lyse WT1-positive leukemic cells.</desc>
+          <defs>
+            <marker id="d2ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#5b6472"/></marker>
+            <marker id="d2arg" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#2f6fed"/></marker>
+            <marker id="d2arb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#d64545"/></marker>
+          </defs>
+          <!-- inputs -->
+          <text class="dg-t-b" x="88" y="26" text-anchor="middle">GPS components</text>
+          <rect class="dg-box-gps" x="16" y="42" width="144" height="40" rx="8"/>
+          <text class="dg-t" x="88" y="60" text-anchor="middle">4 WT1 peptides</text>
+          <text class="dg-t-sm" x="88" y="74" text-anchor="middle">2 heteroclitic + 2 native</text>
+          <rect class="dg-box" x="16" y="90" width="144" height="34" rx="8"/>
+          <text class="dg-t" x="88" y="111" text-anchor="middle">Montanide adjuvant</text>
+          <rect class="dg-box" x="16" y="132" width="144" height="34" rx="8"/>
+          <text class="dg-t" x="88" y="153" text-anchor="middle">GM-CSF (recruits APCs)</text>
+          <!-- arrows to APC -->
+          <path class="dg-flow-gps" d="M160,62 C200,62 200,150 236,150" marker-end="url(#d2arg)"/>
+          <path class="dg-flow" d="M160,107 C200,107 205,150 236,150" marker-end="url(#d2ar)"/>
+          <path class="dg-flow" d="M160,149 L236,150" marker-end="url(#d2ar)"/>
+          <!-- APC -->
+          <rect class="dg-box" x="240" y="118" width="150" height="64" rx="10"/>
+          <text class="dg-t-b" x="315" y="144" text-anchor="middle">APC / dendritic cell</text>
+          <text class="dg-t-sm" x="315" y="162" text-anchor="middle">presents WT1 on</text>
+          <text class="dg-t-sm" x="315" y="176" text-anchor="middle">MHC class I + II</text>
+          <path class="dg-flow-gps" d="M390,150 L470,150" marker-end="url(#d2arg)"/>
+          <!-- T cells -->
+          <rect class="dg-box-gps" x="474" y="96" width="150" height="44" rx="10"/>
+          <text class="dg-t" x="549" y="115" text-anchor="middle">CD4⁺ helper T cell</text>
+          <text class="dg-t-sm" x="549" y="131" text-anchor="middle">licenses / sustains CTL</text>
+          <rect class="dg-box-gps" x="474" y="160" width="150" height="44" rx="10"/>
+          <text class="dg-t" x="549" y="179" text-anchor="middle">CD8⁺ CTL</text>
+          <text class="dg-t-sm" x="549" y="195" text-anchor="middle">WT1-specific killer</text>
+          <path class="dg-flow-gps" d="M549,140 L549,160" marker-end="url(#d2arg)"/>
+          <!-- kill -->
+          <path class="dg-flow-bad" d="M624,182 C680,182 690,250 655,262" marker-end="url(#d2arb)"/>
+          <rect class="dg-box-bad" x="500" y="250" width="150" height="56" rx="10"/>
+          <text class="dg-t-b" x="575" y="274" text-anchor="middle">Lysis of WT1⁺ blast</text>
+          <text class="dg-t-sm" x="575" y="292" text-anchor="middle">clears residual disease → hold remission</text>
+        </svg>
+        <figcaption class="bio-figcaption"><b>Diagram 2 — GPS vaccine flow.</b> Peptides + Montanide + GM-CSF activate an APC, which primes CD4⁺ help and CD8⁺ CTLs; the CTLs lyse WT1⁺ minimal-residual-disease blasts. This is why GPS is positioned in the <b>maintenance / second-complete-remission (CR2)</b> setting — clearing residual cells to delay relapse, not debulking active disease. <span class="tag m">Theoretical MOA</span></figcaption>
+      </figure>
+
+      <figure class="bio-figure">
+        <svg class="bio-svg" viewBox="0 0 760 250" role="img" aria-labelledby="d1title d1desc" preserveAspectRatio="xMidYMid meet">
+          <title id="d1title">WT1 antigen presentation and CTL killing</title>
+          <desc id="d1desc">A WT1-positive blast's antigen is presented by an APC on MHC, priming WT1-specific CD8 and CD4 T cells, which then recognize and lyse WT1-positive residual blasts.</desc>
+          <defs>
+            <marker id="d1ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#5b6472"/></marker>
+            <marker id="d1arb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#d64545"/></marker>
+          </defs>
+          <text class="dg-t-b" x="380" y="24" text-anchor="middle">How a T cell "sees" an intracellular transcription factor</text>
+          <rect class="dg-box-warn" x="12" y="96" width="150" height="72" rx="10"/>
+          <text class="dg-t-b" x="87" y="128" text-anchor="middle">WT1⁺ blast</text>
+          <text class="dg-t-sm" x="87" y="146" text-anchor="middle">overexpresses WT1</text>
+          <path class="dg-flow" d="M162,132 L206,132" marker-end="url(#d1ar)"/>
+          <text class="dg-t-sm" x="184" y="122" text-anchor="middle">peptides</text>
+          <rect class="dg-box" x="210" y="96" width="150" height="72" rx="10"/>
+          <text class="dg-t-b" x="285" y="124" text-anchor="middle">APC</text>
+          <text class="dg-t-sm" x="285" y="142" text-anchor="middle">WT1 peptide on</text>
+          <text class="dg-t-sm" x="285" y="156" text-anchor="middle">MHC I &amp; II</text>
+          <path class="dg-flow" d="M360,132 L404,132" marker-end="url(#d1ar)"/>
+          <text class="dg-t-sm" x="382" y="122" text-anchor="middle">prime</text>
+          <rect class="dg-box-gps" x="408" y="96" width="150" height="72" rx="10"/>
+          <text class="dg-t-b" x="483" y="124" text-anchor="middle">WT1-specific</text>
+          <text class="dg-t-sm" x="483" y="142" text-anchor="middle">CD8⁺ CTL +</text>
+          <text class="dg-t-sm" x="483" y="156" text-anchor="middle">CD4⁺ help</text>
+          <path class="dg-flow-bad" d="M558,132 L602,132" marker-end="url(#d1arb)"/>
+          <text class="dg-t-sm" x="580" y="122" text-anchor="middle">recognize</text>
+          <rect class="dg-box-bad" x="606" y="96" width="150" height="72" rx="10"/>
+          <text class="dg-t-b" x="681" y="128" text-anchor="middle">Lysis of blast</text>
+          <text class="dg-t-sm" x="681" y="146" text-anchor="middle">MHC-restricted kill</text>
+          <path class="dg-flow-bad" d="M681,168 C681,214 300,214 220,214 C120,214 87,192 87,170" marker-end="url(#d1arb)" stroke-dasharray="6 5"/>
+          <text class="dg-t-sm" x="400" y="230" text-anchor="middle">CTLs patrol for and re-target any residual WT1⁺ cells</text>
+        </svg>
+        <figcaption class="bio-figcaption"><b>Diagram 1 — WT1 antigen presentation → priming → killing.</b> WT1 is intracellular, but fragments are displayed on MHC, so trained CD8⁺ CTLs (with CD4⁺ help) can recognize and lyse WT1⁺ cells. <span class="tag f">Established</span> immunobiology.</figcaption>
+      </figure>
+
+      <p class="bio-honesty"><b>Honesty flag:</b> immunogenicity (T-cell responses to WT1) is well documented for GPS, but the pivotal <b>REGAL Phase 3 (NCT04229979)</b> overall-survival readout is <b>still blinded</b> — the final analysis triggers at 80 events (78 reported as of the May 2026 update). Whether the immune mechanism translates into a survival benefit is the open question. <span class="tag a">Company-reported / blinded</span></p>
+      <ul class="bio-sources">
+        <li>Jamy &amp; Cicic 2025 — GPS peptide composition (WT1-A1, WT1-427 long, WT1-331 long, WT1-122A1 long), Montanide + GM-CSF rationale: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">PMC11760237</a></li>
+        <li>REGAL Phase 3 trial record: <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a></li>
+        <li>SELLAS science page — heteroclitic principle, CD4/CD8 design: <a href="https://sellaslifesciences.com/science/" target="_blank" rel="noopener">sellaslifesciences.com/science</a></li>
+        <li>Kurosawa et al. 2010, <em>Haematologica</em> — AML survival after first relapse (context for the maintenance setting): <a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">haematologica.org/article/view/5781</a></li>
+      </ul>
+    </section>
+
+    <!-- ===== 4 · CDK9 (target) ===== -->
+    <section class="bio-section" id="bio-cdk9">
+      <h2><span class="bio-kicker">Target 2</span> CDK9 / P-TEFb — the transcription switch SLS-009 flips off</h2>
+      <p><b>CDK9</b> is the catalytic subunit of <b>P-TEFb</b> (positive transcription elongation factor b; CDK9 paired with cyclin T). Its job is to phosphorylate <b>serine-2 (Ser2)</b> of the RNA polymerase II C-terminal domain (CTD), which releases paused polymerase into <b>productive transcriptional elongation</b>. <span class="tag f">Established</span></p>
+      <p>Why cancer cares: the genes most dependent on this elongation step are ones with <b>short-lived mRNAs and proteins</b> — above all <b>MCL-1</b> (an anti-apoptotic BCL-2-family protein) and <b>MYC</b>. Because MCL-1 protein turns over in roughly an hour, its level tracks ongoing transcription almost in real time. Shut off CDK9 and MCL-1 falls fast, removing a key brake on apoptosis. <span class="tag f">Established</span></p>
+
+      <figure class="bio-figure">
+        <svg class="bio-svg" viewBox="0 0 760 340" role="img" aria-labelledby="d3title d3desc" preserveAspectRatio="xMidYMid meet">
+          <title id="d3title">CDK9/P-TEFb transcription and the effect of inhibition</title>
+          <desc id="d3desc">CDK9 phosphorylates RNA Pol II CTD Ser2, driving elongation of short-lived MCL-1 and MYC transcripts and blast survival; SLS-009 blocks CDK9, collapsing those transcripts and triggering apoptosis.</desc>
+          <defs>
+            <marker id="d3ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#5b6472"/></marker>
+            <marker id="d3arn" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#1f9d55"/></marker>
+            <marker id="d3arb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#d64545"/></marker>
+          </defs>
+          <!-- top row: normal -->
+          <text class="dg-t-b" x="20" y="24">Untreated blast</text>
+          <rect class="dg-box-ink" x="16" y="36" width="120" height="52" rx="9"/>
+          <text class="dg-t" x="76" y="58" text-anchor="middle">RNA Pol II</text>
+          <text class="dg-t-sm" x="76" y="74" text-anchor="middle">paused</text>
+          <rect class="dg-box-gps" x="176" y="36" width="132" height="52" rx="9"/>
+          <text class="dg-t" x="242" y="55" text-anchor="middle">CDK9·CycT</text>
+          <text class="dg-t-sm" x="242" y="71" text-anchor="middle">(P-TEFb)</text>
+          <path class="dg-flow" d="M136,62 L172,62" marker-end="url(#d3ar)"/>
+          <rect class="dg-box" x="348" y="36" width="150" height="52" rx="9"/>
+          <text class="dg-t" x="423" y="55" text-anchor="middle">CTD Ser2-P</text>
+          <text class="dg-t-sm" x="423" y="71" text-anchor="middle">→ elongation</text>
+          <path class="dg-flow-gps" d="M308,62 L344,62" marker-end="url(#d3ar)"/>
+          <text class="dg-t-sm" x="326" y="52" text-anchor="middle">phos.</text>
+          <rect class="dg-box" x="538" y="36" width="150" height="52" rx="9"/>
+          <text class="dg-t" x="613" y="55" text-anchor="middle">MCL-1 / MYC</text>
+          <text class="dg-t-sm" x="613" y="71" text-anchor="middle">short-lived mRNA</text>
+          <path class="dg-flow" d="M498,62 L534,62" marker-end="url(#d3ar)"/>
+          <path class="dg-flow-good" d="M613,88 L613,120" marker-end="url(#d3arn)"/>
+          <rect class="dg-box-ink" x="538" y="124" width="150" height="44" rx="9"/>
+          <text class="dg-t-b" x="613" y="151" text-anchor="middle">Blast survival</text>
+          <!-- divider -->
+          <line x1="16" y1="196" x2="744" y2="196" stroke="#dde2e8" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <!-- bottom row: inhibited -->
+          <text class="dg-t-b" x="20" y="224">With SLS-009 (CDK9 inhibitor)</text>
+          <rect class="dg-box-sls" x="16" y="236" width="150" height="52" rx="9"/>
+          <text class="dg-t" x="91" y="258" text-anchor="middle">SLS-009</text>
+          <text class="dg-t-sm" x="91" y="274" text-anchor="middle">binds CDK9</text>
+          <!-- inhibition bar onto CDK9 target -->
+          <rect class="dg-box-gps" x="206" y="236" width="132" height="52" rx="9"/>
+          <text class="dg-t" x="272" y="258" text-anchor="middle">CDK9 blocked</text>
+          <text class="dg-t-sm" x="272" y="274" text-anchor="middle">no Ser2-P</text>
+          <path class="dg-flow-block" d="M166,262 L200,262" marker-end="url(#d3arb)"/>
+          <path class="dg-flow-bad" d="M338,262 L378,262" marker-end="url(#d3arb)"/>
+          <rect class="dg-box-warn" x="382" y="236" width="160" height="52" rx="9"/>
+          <text class="dg-t" x="462" y="258" text-anchor="middle">MCL-1 collapses</text>
+          <text class="dg-t-sm" x="462" y="274" text-anchor="middle">t½ ≈ 1 h → drops fast</text>
+          <path class="dg-flow-bad" d="M542,262 L582,262" marker-end="url(#d3arb)"/>
+          <rect class="dg-box-bad" x="586" y="236" width="150" height="52" rx="9"/>
+          <text class="dg-t-b" x="661" y="258" text-anchor="middle">Apoptosis</text>
+          <text class="dg-t-sm" x="661" y="274" text-anchor="middle">of the blast</text>
+        </svg>
+        <figcaption class="bio-figcaption"><b>Diagram 3 — CDK9/P-TEFb axis.</b> Top: CDK9 phosphorylates Pol II CTD Ser2, driving elongation of short-lived MCL-1/MYC transcripts that keep the blast alive. Bottom: SLS-009 blocks CDK9, Ser2 phosphorylation stops, the labile MCL-1 protein falls within hours, and the cell dies. <span class="tag f">Established</span> mechanism; the CDK9→MCL-1 dependency is the drug's rationale. <span class="tag m">Theoretical MOA</span></figcaption>
+      </figure>
+
+      <ul class="bio-sources">
+        <li>Anshabo et al. 2021 — <em>CDK9: a comprehensive review</em> (P-TEFb, CTD Ser2, MCL-1/MYC): <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8143439/" target="_blank" rel="noopener">PMC8143439</a></li>
+        <li>Fu et al. 2021 — <em>CDK9 keeps RNA polymerase II on track</em>: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8257543/" target="_blank" rel="noopener">PMC8257543</a></li>
+        <li>Boffo et al. 2018 — <em>CDK9 inhibitors in AML</em> (MCL-1/MYC dependency): <a href="https://doi.org/10.1186/s13046-018-0704-8" target="_blank" rel="noopener">J Exp Clin Cancer Res 37:36</a></li>
+        <li>Bewersdorf &amp; Zeidan 2019 — transcriptional silencing of MCL-1 via CDK inhibition in AML: <a href="https://www.frontiersin.org/journals/oncology/articles/10.3389/fonc.2019.01205/full" target="_blank" rel="noopener">Front. Oncol.</a></li>
+      </ul>
+    </section>
+
+    <!-- ===== 5 · SLS-009 (drug) ===== -->
+    <section class="bio-section" id="bio-sls">
+      <h2><span class="bio-kicker">Drug 2</span> SLS-009 / tambiciclib — a selective CDK9 inhibitor</h2>
+      <p><b>SLS-009</b> (tambiciclib; formerly GFH009) is a <b>highly selective, potent CDK9 inhibitor</b>. By blocking CDK9 it suppresses transcription of MCL-1 and MYC, tipping leukemic blasts toward apoptosis (Diagram 3). SELLAS positions it as a differentiated CDK9 inhibitor with improved selectivity/toxicity versus earlier, non-selective compounds. <span class="tag f">Established</span> <span class="tag a">Company-reported</span></p>
+      <h3>Why it pairs with azacitidine + venetoclax</h3>
+      <p>Azacitidine + venetoclax (AZA/VEN) is the standard of care for older/unfit newly-diagnosed AML. <b>Venetoclax inhibits BCL-2</b>, but leukemic cells commonly escape by leaning on <b>MCL-1</b> — a different anti-apoptotic protein venetoclax does not touch. Upregulated MCL-1 is a well-documented driver of venetoclax resistance. Because SLS-009 pulls MCL-1 <em>down</em>, adding it to AZA/VEN is a <b>dual BCL-2 + MCL-1 blockade</b>: close both apoptosis escape routes at once. <span class="tag f">Established</span> <span class="tag m">Theoretical MOA</span></p>
+
+      <figure class="bio-figure">
+        <svg class="bio-svg" viewBox="0 0 760 300" role="img" aria-labelledby="d4title d4desc" preserveAspectRatio="xMidYMid meet">
+          <title id="d4title">Dual apoptosis blockade with venetoclax and SLS-009</title>
+          <desc id="d4desc">Venetoclax inhibits BCL-2 and SLS-009 suppresses MCL-1; with both anti-apoptotic guards removed, BAX and BAK trigger mitochondrial outer membrane permeabilization and apoptosis.</desc>
+          <defs>
+            <marker id="d4ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#5b6472"/></marker>
+            <marker id="d4arb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#d64545"/></marker>
+          </defs>
+          <!-- drugs -->
+          <rect class="dg-box-warn" x="16" y="40" width="150" height="48" rx="9"/>
+          <text class="dg-t-b" x="91" y="60" text-anchor="middle">Venetoclax</text>
+          <text class="dg-t-sm" x="91" y="77" text-anchor="middle">BCL-2 inhibitor</text>
+          <rect class="dg-box-sls" x="16" y="212" width="150" height="48" rx="9"/>
+          <text class="dg-t-b" x="91" y="232" text-anchor="middle">SLS-009 → CDK9i</text>
+          <text class="dg-t-sm" x="91" y="249" text-anchor="middle">suppresses MCL-1</text>
+          <!-- guards -->
+          <rect class="dg-box" x="250" y="40" width="160" height="48" rx="9"/>
+          <text class="dg-t-b" x="330" y="60" text-anchor="middle">BCL-2</text>
+          <text class="dg-t-sm" x="330" y="77" text-anchor="middle">anti-apoptotic guard</text>
+          <rect class="dg-box" x="250" y="212" width="160" height="48" rx="9"/>
+          <text class="dg-t-b" x="330" y="232" text-anchor="middle">MCL-1</text>
+          <text class="dg-t-sm" x="330" y="249" text-anchor="middle">anti-apoptotic guard</text>
+          <!-- inhibition bars (blunt/red) -->
+          <path class="dg-flow-block" d="M166,64 L246,64" marker-end="url(#d4arb)"/>
+          <path class="dg-flow-block" d="M166,236 L246,236" marker-end="url(#d4arb)"/>
+          <text class="dg-t-sm" x="206" y="30" text-anchor="middle">inhibits</text>
+          <text class="dg-t-sm" x="206" y="205" text-anchor="middle">lowers</text>
+          <!-- guards normally hold BIM -->
+          <rect class="dg-box-warn" x="446" y="126" width="150" height="48" rx="9"/>
+          <text class="dg-t-b" x="521" y="146" text-anchor="middle">BIM / BAX / BAK</text>
+          <text class="dg-t-sm" x="521" y="163" text-anchor="middle">pro-apoptotic, released</text>
+          <path class="dg-flow" d="M410,64 C430,64 430,132 442,140" marker-end="url(#d4ar)" stroke-dasharray="5 4"/>
+          <path class="dg-flow" d="M410,236 C430,236 430,160 442,152" marker-end="url(#d4ar)" stroke-dasharray="5 4"/>
+          <text class="dg-t-sm" x="430" y="100" text-anchor="middle">both guards</text>
+          <text class="dg-t-sm" x="430" y="114" text-anchor="middle">removed →</text>
+          <!-- to apoptosis -->
+          <path class="dg-flow-bad" d="M596,150 L636,150" marker-end="url(#d4arb)"/>
+          <rect class="dg-box-bad" x="640" y="120" width="112" height="60" rx="10"/>
+          <text class="dg-t-b" x="696" y="146" text-anchor="middle">MOMP →</text>
+          <text class="dg-t-b" x="696" y="164" text-anchor="middle">apoptosis</text>
+        </svg>
+        <figcaption class="bio-figcaption"><b>Diagram 4 — dual apoptosis blockade.</b> Venetoclax neutralizes BCL-2; SLS-009 (via CDK9 inhibition) strips away MCL-1. With both anti-apoptotic guards gone, pro-apoptotic BAX/BAK drive mitochondrial outer-membrane permeabilization (MOMP) and the blast dies. This is the rationale for adding SLS-009 to AZA/VEN, especially after venetoclax failure. <span class="tag m">Theoretical MOA</span></figcaption>
+      </figure>
+
+      <h3>ASXL1 / TP53 relevance</h3>
+      <p>In the Phase 2 study (r/r AML with MDS-related changes, after prior venetoclax), responses were enriched in patients with <b>ASXL1 mutations</b> — a subgroup with historically poor prognosis — and preclinical work shows activity in <b>ASXL1-mutated and TP53-knockout</b> AML lines. SELLAS reports the combination met its primary endpoints in that r/r setting and is moving toward a frontline study. <span class="tag a">Company-reported</span> <span class="tag m">Theoretical MOA</span></p>
+      <p class="bio-honesty"><b>Honesty flag:</b> the SLS-009 efficacy data are from an <b>early, single-arm</b> Phase 2 (no randomized control); response rates and the ASXL1 signal are promising but not yet confirmed against a comparator. Frontline benefit is a hypothesis a randomized trial would have to test. <span class="tag a">Company-reported / single-arm</span></p>
+      <ul class="bio-sources">
+        <li>SLS-009 (GFH009) trial record — CDK9 inhibitor + AZA/VEN, ASXL1 cohorts: <a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a></li>
+        <li>Zeidan et al., ASH 2024 abstract — Phase 2a SLS-009 + AZA/VEN in r/r AML: <a href="https://ash.confex.com/ash/2024/webprogram/Paper198686.html" target="_blank" rel="noopener">ASH 2024 #198686</a></li>
+        <li>Blood 2025 abstract — Phase 2 SLS-009 + AZA/VEN in AML-MR after prior venetoclax: <a href="https://doi.org/10.1182/blood-2025-3423" target="_blank" rel="noopener">Blood (2025) 10.1182/blood-2025-3423</a></li>
+        <li>SELLAS PR (ASH 2025; tambiciclib naming, ASXL1/TP53 preclinical): <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Presentation-of-Phase-2-Data-of-SLS009-in-Combination-with-Azacitidine-and-Venetoclax-in-RelapsedRefractory-AML-with-MDS-Related-Changes-AML-MR-at-the-2025-American-Society-of-Hematology-ASH-Annual-Meeting/default.aspx" target="_blank" rel="noopener">SELLAS ASH 2025 release</a></li>
+        <li>MCL-1 as a venetoclax-resistance escape (RAS/MAPK → MCL-1): <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8858957/" target="_blank" rel="noopener">PMC8858957</a> · resistance review <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12071220/" target="_blank" rel="noopener">PMC12071220</a></li>
+        <li>AZA/VEN frontline standard (VIALE-A): <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2012971" target="_blank" rel="noopener">DiNardo et al., NEJM 2020</a></li>
+      </ul>
+    </section>
+
+    <!-- ===== 6 · PLATFORM FIT ===== -->
+    <section class="bio-section" id="bio-platform">
+      <h2><span class="bio-kicker">Platform fit</span> Where each drug acts — and what is NOT proven</h2>
+      <p>The two programs are <b>mechanistically independent</b> and act at different points in the AML disease course. GPS is an antigen-directed <b>immunotherapy</b> best suited to low-disease-burden maintenance; SLS-009 is a <b>cell-intrinsic</b> apoptosis primer suited to active or resistant disease alongside AZA/VEN.</p>
+
+      <figure class="bio-figure">
+        <svg class="bio-svg" viewBox="0 0 760 240" role="img" aria-labelledby="d5title d5desc" preserveAspectRatio="xMidYMid meet">
+          <title id="d5title">Where each drug acts in the AML disease course</title>
+          <desc id="d5desc">A timeline from frontline induction through remission, relapse, and second remission, showing SLS-009 acting in frontline and relapsed/refractory settings and GPS acting in CR2 maintenance.</desc>
+          <defs>
+            <marker id="d5ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#5b6472"/></marker>
+          </defs>
+          <!-- timeline -->
+          <line x1="30" y1="120" x2="726" y2="120" class="dg-flow" marker-end="url(#d5ar)"/>
+          <!-- stage ticks -->
+          <circle cx="90" cy="120" r="5" fill="#5b6472"/><text class="dg-t" x="90" y="150" text-anchor="middle">Frontline</text><text class="dg-t-sm" x="90" y="166" text-anchor="middle">AZA/VEN</text>
+          <circle cx="260" cy="120" r="5" fill="#5b6472"/><text class="dg-t" x="260" y="150" text-anchor="middle">CR1</text><text class="dg-t-sm" x="260" y="166" text-anchor="middle">remission</text>
+          <circle cx="430" cy="120" r="5" fill="#5b6472"/><text class="dg-t" x="430" y="150" text-anchor="middle">Relapse / refractory</text>
+          <circle cx="600" cy="120" r="5" fill="#5b6472"/><text class="dg-t" x="600" y="150" text-anchor="middle">CR2</text><text class="dg-t-sm" x="600" y="166" text-anchor="middle">second remission</text>
+          <!-- SLS-009 markers (above line) -->
+          <rect class="dg-box-sls" x="34" y="46" width="128" height="46" rx="9"/>
+          <text class="dg-t" x="98" y="65" text-anchor="middle">SLS-009 + AZA/VEN</text>
+          <text class="dg-t-sm" x="98" y="81" text-anchor="middle">frontline (planned)</text>
+          <path class="dg-flow" d="M98,92 L90,114" marker-end="url(#d5ar)"/>
+          <rect class="dg-box-sls" x="366" y="46" width="128" height="46" rx="9"/>
+          <text class="dg-t" x="430" y="65" text-anchor="middle">SLS-009 + AZA/VEN</text>
+          <text class="dg-t-sm" x="430" y="81" text-anchor="middle">r/r (Phase 2)</text>
+          <path class="dg-flow" d="M430,92 L430,114" marker-end="url(#d5ar)"/>
+          <!-- GPS marker (below line) -->
+          <rect class="dg-box-gps" x="536" y="188" width="150" height="40" rx="9"/>
+          <text class="dg-t" x="611" y="206" text-anchor="middle">GPS maintenance</text>
+          <text class="dg-t-sm" x="611" y="221" text-anchor="middle">REGAL Phase 3 (CR2)</text>
+          <path class="dg-flow" d="M600,126 L600,186" marker-end="url(#d5ar)"/>
+        </svg>
+        <figcaption class="bio-figcaption"><b>Diagram 5 — disease-course fit.</b> SLS-009 targets active/resistant disease with AZA/VEN (studied in relapsed/refractory; frontline planned); GPS targets minimal residual disease in second remission (REGAL). Frontline SLS-009 and the entire GPS→SLS-009 sequencing idea are <b>strategy, not trial-proven</b>. <span class="tag m">Theoretical MOA</span></figcaption>
+      </figure>
+
+      <div class="bio-course-grid">
+        <div class="bio-modality mod-gps">
+          <h4>GPS — immune / maintenance</h4>
+          <p>Antigen-directed, works best against low-burden residual disease; positioned as CR2 maintenance to delay relapse. <span class="tag a">REGAL blinded</span></p>
+        </div>
+        <div class="bio-modality mod-sls">
+          <h4>SLS-009 — targeted / active disease</h4>
+          <p>Cell-intrinsic apoptosis primer; restores/deepens response to AZA/VEN by removing the MCL-1 escape. <span class="tag a">Single-arm Phase 2</span></p>
+        </div>
+        <div class="bio-modality">
+          <h4>Combined platform</h4>
+          <p>Shared WT1/AML focus and a two-asset story — but <b>no human trial combines GPS + SLS-009.</b> <span class="tag m">Strategy only</span></p>
+        </div>
+      </div>
+
+      <p class="bio-honesty"><b>Bottom line — what is and isn't established:</b> The <em>biology</em> of both targets (WT1 as an antigen; CDK9→MCL-1/MYC) is well established. The <em>drug mechanisms</em> (GPS priming WT1-specific T cells; SLS-009 collapsing MCL-1 to overcome venetoclax resistance) are sound theoretical MOAs with supporting data. What remains <b>unproven</b>: GPS's survival benefit (REGAL blinded, final at 80 events), SLS-009's efficacy versus a randomized control (single-arm), and any GPS + SLS-009 combination (does not exist in the clinic).</p>
+      <ul class="bio-sources">
+        <li>REGAL Phase 3 (GPS, CR2 maintenance): <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a> · design: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">PMC11760237</a></li>
+        <li>SLS-009 (r/r AML + AZA/VEN; frontline planned): <a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a></li>
+        <li>SELLAS pipeline / two-asset platform: <a href="https://sellaslifesciences.com/science/" target="_blank" rel="noopener">sellaslifesciences.com/science</a></li>
+      </ul>
+    </section>
+
+  </div>
+</div><!-- /tab-biology -->
+
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <nav id="bottomNav" class="bottom-nav no-print embed-hide" aria-label="Tab navigation">
@@ -1139,6 +1487,7 @@
   <button type="button" data-tab="sls009" aria-label="SLS-009 tab"><span class="bn-ico" aria-hidden="true">💊</span>SLS-009</button>
   <button type="button" data-tab="value" aria-label="Valuation tab"><span class="bn-ico" aria-hidden="true">💰</span>Value</button>
   <button type="button" data-tab="explain" aria-label="Explain tab"><span class="bn-ico" aria-hidden="true">📖</span>Explain</button>
+  <button type="button" data-tab="biology" aria-label="The Biology tab"><span class="bn-ico" aria-hidden="true">🧬</span>Biology</button>
 </nav>
 
 <footer class="embed-hide">

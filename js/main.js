@@ -119,7 +119,7 @@ function debounce(fn,ms){
   let t;return function(){clearTimeout(t);const a=arguments,s=this;t=setTimeout(()=>fn.apply(s,a),ms);};
 }
 let updateTimer=null,updateSpinnerTimer=null,pendingDrawRaf=null,pendingDrawP=null,lastBandsKey="";
-const tabsRendered={gps:false,sls009:false,value:false,explain:false};
+const tabsRendered={gps:false,sls009:false,value:false,explain:false,biology:false};
 const tabsDirty={sls009:true,value:true,explain:true};
 function panelOpen(id){const el=$(id);return!!(el&&el.open);}
 function scheduleDraw(p){
@@ -1252,12 +1252,13 @@ function renderTab(t,force){
   if(t==="sls009"&&(force||tabsDirty.sls009||!tabsRendered.sls009)){renderSLS();tabsRendered.sls009=true;tabsDirty.sls009=false;}
   if(t==="value"&&(force||tabsDirty.value||!tabsRendered.value)){renderVal();tabsRendered.value=true;tabsDirty.value=false;}
   if(t==="explain"&&(force||!tabsRendered.explain)){showLevel(curLvl);tabsRendered.explain=true;}
+  if(t==="biology")tabsRendered.biology=true;
 }
 function switchTab(t){
   activeTab=t;
   document.querySelectorAll(".tabbtn").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-selected",on?"true":"false");});
   document.querySelectorAll("#bottomNav button").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-current",on?"page":"false");});
-  ["gps","sls009","value","explain"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
+  ["gps","sls009","value","explain","biology"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
   updateReadoutVisibility();
   renderTab(t);
   if(!restoringState)updateHashQuiet();
