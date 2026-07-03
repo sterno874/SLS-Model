@@ -141,7 +141,7 @@ Both use the same mixture-cure machinery; only the **direction of fit** reverses
 The **Best Available Guess ★** preset is **not** a neutral literature anchor fit. It follows a three-step pipeline:
 
 1. **Biology-first:** Fix GPS cure at **42%** — upper band of Phase 2/WT1 MOA-informed estimates (35–42%; CR1 ~47% 3-yr plateau is selection-biased; CR2 showed no plateau but ~64% immune-response rate supports a substantial cure fraction).
-2. **Inverse solve:** Run `inverseSolve` with **cw42** settings (42% cure, 3-mo onset delay, BAT 3-yr OS cap **14%** per Kurosawa transplant-ineligible CR2) → implied BAT median **13.0 mo**, BAT tail **0%**, GPS uncured mOS **54.1 mo**.
+2. **Inverse solve:** Run `inverseSolve` with **cw42** settings (42% cure, 3-mo onset delay, BAT 3-yr OS cap **14%** per Kurosawa transplant-ineligible CR2) → implied BAT median **13.0 mo**, BAT long-survivor **plateau 0%** (no separate cure fraction in the mixture model), GPS uncured mOS **54.1 mo**. **BAT 3-yr OS ~15%** still comes from the Weibull exponential tail at that median — biologically consistent with Kurosawa ~14%, not “zero long survivors.”
 3. **Forward verify:** Copy solver output into the forward `best` preset sliders; confirm `passesVerdict` on 60/72/78 anchors and readout HR **~0.25** (well below 0.636 win threshold, unlike the old ~0.47 neutral fit).
 
 This aligns forward and inverse default scenarios: clicking **Best Available Guess** or inverse **GPS 42% cure (CW inverse)** should show the same survival parameters and HR readout.

@@ -127,7 +127,7 @@
     <div class="preset-start" id="presetStart" data-regal-mode="forward">
       <div class="pgrp">Start here</div>
       <div class="presets presets-best">
-        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 42% GPS cure (Phase 2/WT1 MOA band), Kurosawa BAT 3-yr OS cap (~14%), 3-mo GPS onset delay. Forward sliders = inverseSolve(cw42) output locked to 60/72/78 anchors. Binding interim (registrational default).">Best Available Guess ★<span class="p-sub">42% cure · anchor-locked · binding IA</span></button>
+        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 42% GPS cure (Phase 2/WT1 MOA band), Kurosawa BAT 3-yr OS cap (~14%), 3-mo GPS onset delay. Forward sliders = inverseSolve(cw42) output locked to 60/72/78 anchors. BAT long-survivor plateau 0% — 3-yr OS ~15% comes from Weibull tail at 13-mo median, not a separate cure fraction. Binding interim (registrational default).">Best Available Guess ★<span class="p-sub">42% cure · BAT 3yr ~15% · binding IA</span></button>
       </div>
     </div>
 
@@ -207,10 +207,10 @@
     </div>
 
     <div class="ctrl" id="batcWrap" data-regal-mode="forward">
-      <label for="batc">BAT long-survivor fraction <span id="vBatc">0%</span><span class="derived-tag" id="batcDerivedTag" hidden>implied</span></label>
+      <label for="batc">BAT long-survivor plateau <span id="vBatc">0%</span><span class="derived-tag" id="batcDerivedTag" hidden>implied</span></label>
       <input type="range" id="batc" min="0" max="30" step="1" value="0"/>
       <div class="bands" id="band-batc"></div>
-      <small class="source-line">Favorable-risk BAT patients who survive years. Published no-HCT relapsed AML: whole-cohort ~14% 3-yr OS, CR2/no-HCT subgroups ~19–78% by risk (<a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Kurosawa 2010</a>). Main lever toward a losing HR.</small>
+      <small class="source-line">Mixture-model cure plateau — patients on a flat long-term survival curve. <em>Not</em> the same as 3-yr OS (see readout): with 0% plateau, a 13-mo exponential median still yields ~15% alive at 3 years via the Weibull tail. Kurosawa whole-cohort no-HCT ~14% 3-yr OS (<a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Haematologica 2010</a>). Main lever toward a losing HR.</small>
     </div>
     </div>
 

@@ -178,7 +178,7 @@ function applyInverseResult(r){
   if(!r||!r.sol){$("invStatus").textContent=r&&r.reason?r.reason:"";return false;}
   const s=r.sol;
   $("bat").value=s.bat;$("batc").value=Math.round(s.batc*100);$("gpsu").value=s.gpsu.toFixed(1);
-  $("invBat").textContent=s.bat.toFixed(1)+" m";$("invBatc").textContent=(s.batc*100).toFixed(0)+"%";
+  $("invBat").textContent=s.bat.toFixed(1)+" m";$("invBatc").textContent=(s.batc*100).toFixed(0)+"% plateau · "+(sBAT(36,s)*100).toFixed(0)+"% 3yr OS";
   $("invGpsu").textContent=s.gpsu.toFixed(1)+" m";
   const pm=medianOf(poolS,s),hr=hazardRatio(T2,s);
   $("invPool").textContent=pm===null?">240 m":pm.toFixed(1)+" m";
@@ -573,7 +573,7 @@ function update(){
     const auto=$("autofit").checked;$("gpscWrap").classList.toggle("disabled",auto);
     if(auto){const r=autofitCure(p);if(r.sol===null)noSol=r.reason;else{p.gpsc=r.sol;$("gpsc").value=Math.round(r.sol*100);}}
   }
-  $("vBat").textContent=p.bat.toFixed(1)+" m";$("vBatc").textContent=(p.batc*100).toFixed(0)+"%";
+  $("vBat").textContent=p.bat.toFixed(1)+" m";$("vBatc").textContent=(p.batc*100).toFixed(0)+"% plateau · "+(sBAT(36,p)*100).toFixed(0)+"% 3yr OS";
   $("vGpsc").textContent=(p.gpsc*100).toFixed(0)+"%";$("vGpsu").textContent=p.gpsu.toFixed(1)+" m";
   $("vDelay").textContent=p.delay.toFixed(1)+" m";$("vMid").textContent=p.mid+" m";$("vK").textContent=p.k.toFixed(2);
   $("vXtx").textContent=(p.xtx*100).toFixed(0)+"%";$("vCens").textContent=(p.cens*100).toFixed(0)+"%";
