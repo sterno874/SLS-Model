@@ -23,12 +23,36 @@ import {
   passesVerdict,
   autofitCure,
   inverseSolve,
+  batcFor3yrCap,
   Tfor,
   fmtCalMonth,
   monthToDate
 } from "../js/math/survival.js";
 import { computeFrozenBestEst } from "../js/ui/state.js";
 import { mk, T1, poisLL, poisLogLThrough } from "./helpers.js";
+
+test("bat=13 batc=0: sBAT(36) ≈ 14.7% (Weibull tail alone)", () => {
+  const p = mk({ bat: 13, batc: 0 });
+  assert.ok(Math.abs(sBAT(36, p) * 100 - 14.67) < 0.5);
+});
+
+test("bat=13 batc=10: sBAT(36) > 20%", () => {
+  const p = mk({ bat: 13, batc: 0.10 });
+  assert.ok(sBAT(36, p) * 100 > 20);
+});
+
+test("batcFor3yrCap: at bat=10 allows plateau headroom under 14% cap", () => {
+  const p = mk({ bat: 10, batc: 0 });
+  const max = batcFor3yrCap(p, 10, 14);
+  assert.ok(sBAT(36, { ...p, bat: 10, batc: max }) * 100 <= 14.01);
+  assert.ok(max * 100 > 5);
+});
+
+test("batcFor3yrCap: at bat=13 cap=14 leaves ~0% plateau room", () => {
+  const p = mk({ bat: 13, batc: 0 });
+  const max = batcFor3yrCap(p, 13, 14);
+  assert.ok(max * 100 < 1);
+});
 
 test("exponential median S(bat)=0.5", () => {
   const p = mk({ bat: 10, batc: 0, batk: 1 });

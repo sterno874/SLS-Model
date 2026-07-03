@@ -47,6 +47,7 @@ import {
   consistent,
   passesVerdict,
   autofitCure,
+  batcFor3yrCap,
   inverseSolve
 } from './math/survival.js';
 import {
@@ -216,9 +217,9 @@ const CFG=[
  {id:"bat", field:"bat", min:6,max:20,step:0.5,sc:1,   sig:{b3:[6,16],b2:[7,14],b1:[8.5,12.5],mu:10.5}, imp:[15,20],
    why:"PRIOR (blue): median of the non-tail BAT component — a FROM-RANDOMIZATION quantity. REGAL design assumes 8.0m [1]; ven-era CR2/R-R salvage ~8–12m by mutation [10]; Kurosawa CR2 transplant-INELIGIBLE supports the low end [9]. NOTE: the ≤6-mo CR2→randomization window + &gt;6-mo life-expectancy entry criterion positively select the cohort, lifting this ~1–3mo above from-CR2 literature (left-truncation / lead-time) — this shifts the ABSOLUTE median, NOT the HR. 1σ 8.5–12.5m, 3σ to 16m.",
    impwhy:"IMPLAUSIBLE (>15m): exceeds QUAZAR's CR1-placebo median of 14.8m [6] — CR2 is a worse-prognosis state than CR1, so its median must be lower. No CR2 transplant-ineligible dataset supports a median this high [8][9]. Implausible, not impossible."},
- {id:"batc",field:"batc",min:0,max:30,step:1,  sc:0.01,sig:{b3:[0,22],b2:[0,17],b1:[4,13],mu:9}, imp:[20,30],
-   why:"PRIOR (blue): long-survivor fraction, FROM RANDOMIZATION. Kurosawa (158 relapsed AML, no transplant, survived ≥2 mo — NOT pure CR2) [9]: whole-cohort 3-yr OS 14%; CR2/no-HCT subgroups run higher (intermediate ~19%, unfavorable ~35%, favorable CBF ~50–78%). Left-truncation lifts the from-randomization tail a few points above the from-CR2 figure. 1σ 4–13%. NOTE: fitting the events while respecting the no-halt tends to FORCE this ≥18–24% — an unresolved tension (see impwhy).",
-   impwhy:"IMPLAUSIBLE (>20% plateau ⇒ >~26% 3-yr OS): exceeds even intermediate-risk CR2 (~19% [9]) plus lead-time lift; needs heavy favorable-CBF enrichment or transplant crossover. The puzzle: data + no-halt fits push into this zone anyway — which is mild evidence the interim was NON-binding (letting a lower BAT tail / lower HR back in) OR the arm is unusually favorable. Use the transplant slider for a legitimate tail."},
+ {id:"batc",field:"batc",min:0,max:30,step:1,  sc:0.01,sig:{b3:[0,12],b2:[0,8],b1:[0,5],mu:1}, imp:[20,30],
+   why:"PRIOR (blue): additive long-survivor PLATEAU fraction (batc) — flat tail patients, NOT total 3-yr OS. Kurosawa CR2 transplant-ineligible ~14% [9] is a 3-YR OS biology cap; at typical BAT medians the Weibull tail alone already yields ~15% at 3yr with batc=0, so little room remains for extra plateau. Static 1σ 0–5% (μ≈1%); blue band shrinks with BAT median vs the cap slider (default 14%). NOTE: event-fit tension at 18–24% plateau persists (see impwhy).",
+   impwhy:"IMPLAUSIBLE (>20% plateau): at typical BAT medians pushes 3-yr OS well above the Kurosawa ~14% cap even before GPS benefit. Bear preset (16%) is a deliberate stress test. The puzzle: data + no-halt fits push into high-plateau zones anyway — mild evidence the interim was NON-binding OR the control arm is unusually favorable. Use the transplant slider for a legitimate tail."},
  {id:"gpsc",field:"gpsc",min:0,max:75,step:1,  sc:0.01,sig:{b3:[0,70],b2:[0,55],b1:[10,40],mu:25},
    why:"PRIOR (blue): GPS cure/plateau fraction — highly uncertain. Phase 2 CR1 showed a ~47% 3-yr plateau [1] (but selection-biased); Phase 2 CR2 (the closest analog) showed NO plateau [7]; T-cell immune-response rate ~64% [1]. Wide band on purpose."},
  {id:"gpsu",field:"gpsu",min:6,max:55,step:0.5,sc:1,   sig:{b3:[6,55],b2:[8,48],b1:[13,40],mu:20},
@@ -237,11 +238,31 @@ const CFG=[
 ];
 function pct(v,mn,mx){return Math.min(100,Math.max(0,(v-mn)/(mx-mn)*100));}
 
+function batcPriorSig(p){
+  const c=CFG.find(x=>x.id==="batc");if(!c)return null;
+  const cap3=+$("batcap")?.value||14;
+  const maxPct=Math.min(c.max,Math.round(batcFor3yrCap(p,p.bat,cap3)*100));
+  const s=c.sig;
+  return{b1:[0,Math.min(s.b1[1],maxPct)],b2:[0,Math.min(s.b2[1],maxPct)],b3:[0,Math.min(s.b3[1],maxPct)],mu:Math.min(s.mu,maxPct),maxPct,cap3};
+}
+function updateBatcSigmaBand(p){
+  const sig=$("sigma-batc");if(!sig||regalMode==="inverse")return;
+  const c=CFG.find(x=>x.id==="batc");const bands=batcPriorSig(p);if(!c||!bands)return;
+  const segs=sig.querySelectorAll(".seg:not(.imp)"),keys=["b3","b2","b1"];
+  keys.forEach((k,i)=>{const lohi=bands[k],s=segs[i];if(!s)return;
+    s.style.left=pct(lohi[0],c.min,c.max)+"%";s.style.width=Math.max(0,pct(lohi[1],c.min,c.max)-pct(lohi[0],c.min,c.max))+"%";});
+  sig.title=c.why+" At BAT median "+p.bat.toFixed(1)+" mo, plateau ≤ "+bands.maxPct+"% keeps 3-yr OS ≤ "+bands.cap3+"% cap.";
+  const hint=$("batcCapHint");if(hint)hint.textContent="At BAT median "+p.bat.toFixed(1)+" mo, plateau ≤ "+bands.maxPct+"% keeps 3-yr OS ≤ "+bands.cap3+"% cap.";
+}
+
+
 // build static sigma strips once
 function buildBands(){
   CFG.forEach(c=>{
     const host=$("band-"+c.id);if(!host)return;
-    const sig=document.createElement("div");sig.className="strip sigma";sig.title=c.why||"Prior plausibility band (1σ/2σ/3σ).";
+    const sig=document.createElement("div");sig.className="strip sigma";
+    if(c.id==="batc")sig.id="sigma-batc";
+    sig.title=c.why||"Prior plausibility band (1σ/2σ/3σ).";
     const mk=(lohi,op)=>{const s=document.createElement("div");s.className="seg";
       s.style.left=pct(lohi[0],c.min,c.max)+"%";s.style.width=(pct(lohi[1],c.min,c.max)-pct(lohi[0],c.min,c.max))+"%";
       s.style.background="rgba(47,111,237,"+op+")";return s;};
@@ -575,6 +596,7 @@ function update(){
     if(auto){const r=autofitCure(p);if(r.sol===null)noSol=r.reason;else{p.gpsc=r.sol;$("gpsc").value=Math.round(r.sol*100);}}
   }
   $("vBat").textContent=p.bat.toFixed(1)+" m";$("vBatc").textContent=(p.batc*100).toFixed(0)+"% plateau · "+(sBAT(36,p)*100).toFixed(0)+"% 3yr OS";
+  updateBatcSigmaBand(p);
   $("vGpsc").textContent=(p.gpsc*100).toFixed(0)+"%";$("vGpsu").textContent=p.gpsu.toFixed(1)+" m";
   $("vDelay").textContent=p.delay.toFixed(1)+" m";$("vMid").textContent=p.mid+" m";$("vK").textContent=p.k.toFixed(2);
   $("vXtx").textContent=(p.xtx*100).toFixed(0)+"%";$("vCens").textContent=(p.cens*100).toFixed(0)+"%";
