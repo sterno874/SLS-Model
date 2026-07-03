@@ -55,6 +55,8 @@ function mcPathToT80(q,bins){bins=bins||110;let t=T3;while(eventsAtAnchored(t,q,
 
 // ---------- HR (Pike) ----------
 function hazardRatio(T,p){const h=0.5;let Ob=0,Og=0,Eb=0,Eg=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;}if(Eb<1e-6||Eg<1e-6)return NaN;return (Og/Eg)/(Ob/Eb);}
+// HR gauge display state: separates interim IA floor (@ m46) from final readout threshold
+function hrGaugeState(p,cutoff,bins){bins=bins||110;const hrInterim=hazardRatio(T1,p),hrM58=hazardRatio(T2,p);const{t80,Tan,Dan}=t80Analysis(p,cutoff,bins);const aFin=analyzeLR(Tan,p);const hrReadout=isNaN(aFin.hr)?null:aFin.hr;const hrForFinal=hrReadout!=null?hrReadout:hrM58;return{hrInterim,hrM58,hrReadout,Tan,Dan,t80,readoutSameAsM58:Tan===T2,interimClearsFloor:!isNaN(hrInterim)&&hrInterim>IFLOOR,interimWouldStop:!isNaN(hrInterim)&&hrInterim<=IFLOOR,hrForFinal,finalClears:!isNaN(hrForFinal)&&hrForFinal<THRESH};}
 // combined point-HR (Pike) + proper stratified log-rank expected z at analysis time T
 function analyzeLR(T,p){const h=1;const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;const wt=fh?(1-poolS(t,p)):1;U+=wt*(db-dt*nb/nt);V+=wt*wt*dt*(nb/nt)*(ng/nt);}const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb);const z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);return{hr:hr,z:z};}
 // conditional power given the interim landed in the CONTINUE zone [zfut,ZEFF]; returns P(continue) & conditional power
@@ -126,6 +128,6 @@ export {
   lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix,
   sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored,
   T80PrPace, T80, t80Analysis, mcPathToT80,
-  hazardRatio, analyzeLR, condPow, Tfor, medianOf, consistent, passesVerdict, autofitCure,
+  hazardRatio, analyzeLR, hrGaugeState, condPow, Tfor, medianOf, consistent, passesVerdict, autofitCure,
   eventErr, bisectField, batcFor3yrCap, inverseSolve
 };

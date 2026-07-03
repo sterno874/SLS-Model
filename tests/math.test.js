@@ -6,6 +6,8 @@ import {
   E2,
   E3,
   IFLOOR,
+  THRESH,
+  hrGaugeState,
   CURRENT_EVENT_ANCHOR,
   sBATbase,
   sGPSbase,
@@ -152,10 +154,20 @@ test("readout power: anchored Dan uses 78 floor when model under-predicts m63", 
   assert.ok(t80Analysis(under, 84).Dan >= 78);
 });
 
-test("best preset HR clears 0.636 but sits below interim floor", () => {
+test("best preset: m58 HR in early-stop zone but readout clears final threshold", () => {
   const best = mk({});
-  const hr = hazardRatio(T2, best);
-  assert.ok(hr < 0.636 && hr < IFLOOR);
+  const gs = hrGaugeState(best, 72);
+  assert.ok(gs.hrM58 < 0.636 && gs.hrM58 < IFLOOR);
+  assert.ok(gs.finalClears, "readout HR should clear 0.636 on the final gauge");
+  assert.ok(gs.hrForFinal < THRESH, "final gauge marker sits in green zone");
+});
+
+test("hrGaugeState: final row uses readout HR, not m58 when cutoff differs", () => {
+  const best = mk({});
+  const gs = hrGaugeState(best, 72);
+  assert.ok(!isNaN(gs.hrForFinal));
+  assert.ok(gs.hrForFinal < THRESH);
+  assert.equal(typeof gs.interimClearsFloor, "boolean");
 });
 
 test("bear preset HR clears 0.636 and stays above interim floor", () => {

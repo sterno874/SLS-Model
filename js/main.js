@@ -48,6 +48,7 @@ import {
   mcPathToT80,
   hazardRatio,
   analyzeLR,
+  hrGaugeState,
   condPow,
   Tfor,
   medianOf,
@@ -548,6 +549,8 @@ function draw(p){
 function fmtM(x){return x===null?'<small>Not reached</small>':x.toFixed(1)+' <small>m</small>';}
 function badge(el,ok,mid){el.textContent=ok?'OK':(mid?'close':'off');el.className='badge '+(ok?'b-good':(mid?'b-warn':'b-bad'));}
 
+function hrMarkLeft(hr){return "calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"% - 1.5px)";}
+
 function readParams(){return{bat:+$("bat").value,batc:+$("batc").value/100,batk:+$("batk").value,gpsc:+$("gpsc").value/100,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value/100,cens:+$("cens").value/100,osmode:"itt",mid:+$("mid").value,k:+$("k").value,fh:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value};}
 
 function update(){
@@ -573,7 +576,9 @@ function update(){
   if(bk!==lastBandsKey){lastBandsKey=bk;renderBands(p);}
 
   if(noSol){
-    $("oHRnum").textContent="no solution";$("hrMark").style.left="-99px";
+    $("oHRnum").textContent="—";$("oIAstatus").textContent="—";
+    $("hrInterimMark").style.left="-99px";$("hrReadoutMark").style.left="-99px";
+    $("oHRreadoutCtx").textContent="";$("oHRfootnote").textContent="";
     $("verdict").className="verdict v-none";
     $("verdict").textContent="NO SOLUTION: "+noSol+". (Same dead-end the DD hit with a 4-month delay — the assumed shape can't fit the data.)";
     ["oBatMed","oGpsMed","oBat3","oGps3","oRmst","o80","e1","e2","e3","e4","pm"].forEach(i=>$(i).textContent="—");$("oPower").textContent="";
@@ -601,33 +606,42 @@ function update(){
   scheduleReadoutUpdate();
 
   const hr=hazardRatio(T2,p);
-  const hrRead=isNaN(aFin.hr)?null:aFin.hr;
-  // gauge — primary marker @ m58 (interim-era); secondary @ readout cutoff when available
-  const hrM58Txt=isNaN(hr)?"—":hr.toFixed(2);
-  const hrReadTxt=hrRead!=null?hrRead.toFixed(2):null;
-  $("oHRnum").innerHTML=isNaN(hr)
+  const gs=hrGaugeState(p,cutoff);
+  const hrFin=gs.hrForFinal;
+  // interim IA row (@ m46) — red hatch only here
+  const hrIA=gs.hrInterim;
+  $("oIAstatus").innerHTML=isNaN(hrIA)
     ?"—"
-    :("HR <b>"+hrM58Txt+"</b> @ m58 (interim-era)"+(hrReadTxt!=null&&Tan!==T2?" · readout HR <b>"+hrReadTxt+"</b> @ m"+Tan.toFixed(0):"")+(hr<THRESH?' — clears <em>final</em> 0.636 threshold':' — misses final 0.636'));
-  $("hrThresh").style.left=(THRESH/HRMAX*100)+"%";
+    :("HR <b>"+hrIA.toFixed(2)+"</b> @ m46 — "+(gs.interimClearsFloor
+      ?'<span class="ia-pass">cleared early-stop floor (≈0.55)</span> · consistent with IDMC continue'
+      :'<span class="ia-warn">below early-stop floor (≈0.55)</span> · would have triggered efficacy stop'));
   $("hrInterim").style.left="0%";$("hrInterim").style.width=(IFLOOR/HRMAX*100)+"%";
   $("hrInterim").style.background="repeating-linear-gradient(45deg,rgba(214,69,69,.28),rgba(214,69,69,.28) 4px,rgba(214,69,69,.1) 4px,rgba(214,69,69,.1) 8px)";
-  $("hrInterim").style.borderRight="1px dashed var(--bad)";
-  $("hrMark").style.left="calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"% - 1.5px)";
-  const hrReadout=$("hrReadoutMark");
-  if(hrReadout){
-    if(hrRead!=null&&Tan!==T2)hrReadout.style.left="calc("+Math.min(100,Math.max(0,hrRead/HRMAX*100))+"% - 1.5px)";
-    else hrReadout.style.left="-99px";
+  $("hrInterimMark").style.left=isNaN(hrIA)?"-99px":hrMarkLeft(hrIA);
+  // final readout row — 0.636 threshold only, no red hatch
+  $("oHRreadoutCtx").textContent="@ m"+gs.Tan.toFixed(0)+" (~"+gs.Dan.toFixed(0)+" events)";
+  $("oHRnum").innerHTML=isNaN(hrFin)
+    ?"—"
+    :("HR <b>"+hrFin.toFixed(2)+"</b> — "+(gs.finalClears
+      ?'<span class="ia-pass">clears final 0.636</span>'
+      :'<span class="ia-fail">misses final 0.636</span>'));
+  $("hrThresh").style.left=(THRESH/HRMAX*100)+"%";
+  $("hrReadoutMark").style.left=isNaN(hrFin)?"-99px":hrMarkLeft(hrFin);
+  const foot=$("oHRfootnote");
+  if(foot){
+    let ft="Final win threshold 0.636 @ 80 events (Z=2.01; <a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/\" target=\"_blank\" rel=\"noopener\">Jamy &amp; Cicic 2025</a>). <span class=\"tag m\">Model output</span>";
+    if(!isNaN(gs.hrM58)&&!gs.readoutSameAsM58){
+      ft+=" For context: HR @ m58 was <b>"+gs.hrM58.toFixed(2)+"</b> — effect can strengthen after the interim.";
+    }
+    foot.innerHTML=ft;
   }
   const gn=$("hrGaugeNote");
   if(gn){
     gn.style.display="block";
-    let note="Gauge markers: <b>black</b> = Pike HR @ m58 (interim-era, ~72 events); ";
-    if(hrReadTxt!=null&&Tan!==T2)note+="<b>blue</b> = projected readout HR @ m"+Tan.toFixed(0)+" (~"+Dan.toFixed(0)+" events); ";
-    note+="<b>red hatch</b> = interim implausibility (@ 60 events — HR≲0.55 would have stopped early per OBF; REGAL continued). <b>Red line 0.636</b> = final win threshold @ 80 events.";
-    if(!isNaN(hr)&&hr<IFLOOR&&hr<THRESH){
-      note+=" Your m58 HR sits in the hatch yet clears 0.636 — back-loaded GPS benefit or non-binding interim is the usual reconciliation.";
-    }
-    gn.innerHTML=note;
+    gn.innerHTML="<b>Two different bars:</b> interim early-stop ≈0.55 (@ 60 events) vs final win 0.636 (@ 80 events). "
+      +(binding
+        ?"Monte Carlo below uses <b>binding</b> interim — weights scenarios by P(IDMC continues)."
+        :"Monte Carlo below uses <b>non-binding</b> interim — IA is informational only.");
   }
 
   const ev1=eventsAt(T1,p),ev2=eventsAt(T2,p),ev3=eventsAt(T3,p),ev4=eventsAt(T4,p);

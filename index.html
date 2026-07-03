@@ -105,7 +105,7 @@
     <h4>1 · Survival &amp; events</h4>
     BAT arm = Weibull (shape <code>k</code>, k=1 → exponential) + a long-survivor "cure" fraction; GPS arm = mixture-cure (plateau <code>c</code> + uncured exponential) with an optional onset delay; optional post-enrollment transplant tail (ITT) added to both. Expected deaths by calendar month <code>T</code> = Σ over the enrollment S-curve of <code>(1 − S(T − enroll))</code>, ×(1 − censoring/2).
     <h4>2 · Hazard ratio &amp; significance</h4>
-    HR via the Pike/O–E estimator. Significance via the proper <b>stratified log-rank score</b> <code>Z = (Σ w·(O−E))/√(Σ w²·V) · √(strat-efficiency)</code> computed from the curves — so a late-loaded effect is correctly penalized (unweighted <code>w=1</code>; Fleming-Harrington <code>w=1−S_pool</code>). Win = <code>Z ≥ 2.01</code> (the O'Brien-Fleming final boundary, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>). Schoenfeld: 90% power at HR 0.636 needs ~205 events (<a href="https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank" target="_blank" rel="noopener">calculator</a>), so 0.636 at 80 events is the ~50%-power <em>bar</em>.
+    HR via the Pike/O–E estimator. Significance via the proper <b>stratified log-rank score</b> <code>Z = (Σ w·(O−E))/√(Σ w²·V) · √(strat-efficiency)</code> computed from the curves — so a late-loaded effect is correctly penalized (unweighted <code>w=1</code>; Fleming-Harrington <code>w=1−S_pool</code>). Win = <code>Z ≥ 2.01</code> (the O'Brien-Fleming final boundary, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>). Schoenfeld: 90% power at HR 0.636 needs ~205 events (<a href="https://homepage.univie.ac.at/robin.ristl/samplesize.php?test=logrank" target="_blank" rel="noopener">calculator</a>), so 0.636 at 80 events is the ~50%-power <em>bar</em>. The output panel shows these as <b>two separate readouts</b>: interim HR @ m46 vs the ~0.55 early-stop floor (REGAL continued), and projected readout HR vs the final 0.636 win threshold @ 80 events — they are not the same bar.
     <h4>3 · Monte-Carlo posterior</h4>
     Sample priors (slider = center, 1σ band = spread) → weight each draw by the <b>Poisson likelihood</b> of the observed event increments (60, +12, +6, still &lt;80) → for a binding efficacy interim, soft-condition on "no early stop" (weight = P(continue); win = conditional power via the Brownian-motion correlation √(t₁/t₂)) — power-neutral, banks early wins. P(win) = Σ(w·p_win)/Σ(w).
     <h4>4 · Anchor-constrained inversion (inverse mixture-cure fit)</h4>
@@ -319,17 +319,39 @@
       <div class="stat"><div class="k">Projected 80th event</div><div class="v" id="o80">–</div></div>
     </div>
 
-    <div class="gauge">
-      <div class="k" style="font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Hazard ratio (GPS vs BAT) — <b id="oHRnum" style="color:var(--ink)">–</b></div>
-      <div class="track" id="hrtrack">
-        <div class="interim" id="hrInterim" title="Interim implausibility (@ 60 events)"></div>
-        <div class="thresh" id="hrThresh" title="Final win threshold 0.636 @ 80 events"></div>
-        <div class="hrmark" id="hrMark" title="HR @ m58 (interim-era)"></div>
-        <div class="hrmark hrmark-readout" id="hrReadoutMark" title="Projected readout HR @ analysis cutoff"></div>
+    <div class="hr-metrics">
+      <div class="hr-metric hr-metric-interim">
+        <div class="hr-metric-head">
+          <span class="hr-metric-title">Interim efficacy check @ m46 (60 events)</span>
+        </div>
+        <div class="hr-metric-summary" id="oIAstatus">–</div>
+        <div class="gauge gauge-compact">
+          <div class="track track-interim">
+            <div class="interim" id="hrInterim" title="Early-stop zone: HR ≲ 0.55 (O'Brien-Fleming Z=2.34)"></div>
+            <div class="hrmark" id="hrInterimMark" title="HR @ m46"></div>
+          </div>
+          <div class="labels"><span>0</span><span>Early-stop floor ≈0.55</span><span>1.0</span></div>
+        </div>
+        <p class="hr-metric-note">At the <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 interim</a>, IDMC continued — so interim HR was above the O'Brien-Fleming efficacy boundary (Z=2.34, HR≲0.55; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>). This is a <em>different</em> bar than the final win threshold below.</p>
       </div>
-      <div class="labels"><span>0.0</span><span>Interim implausibility (@ 60 events) · Final win 0.636 (@ 80 events)</span><span>1.0 (no effect)</span></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:3px"><b>Black marker</b> = Pike HR @ m58 (~72 events, interim-era). <b>Blue marker</b> (when shown) = projected readout HR at analysis cutoff. <b>Red hatch</b> = interim implausibility zone — HRs that would have crossed the O'Brien-Fleming efficacy boundary (Z=2.34, HR≲0.55; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>) at the <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60-death interim</a>; REGAL did NOT stop. <b>Red line 0.636</b> = <em>final</em> win threshold @ 80 events (Z=2.01). <span class="tag m">Model output</span></div>
-      <div id="hrGaugeNote" style="font-size:11.5px;margin-top:6px;padding:8px 10px;border-radius:8px;background:#fff4e0;border:1px solid #f0d090;color:#6b4e00"></div>
+
+      <div class="hr-metric hr-metric-final">
+        <div class="hr-metric-head">
+          <span class="hr-metric-title">Projected readout HR</span>
+          <span class="hr-metric-sub" id="oHRreadoutCtx">–</span>
+        </div>
+        <div class="hr-metric-summary" id="oHRnum">–</div>
+        <div class="gauge">
+          <div class="track track-final" id="hrtrack">
+            <div class="thresh" id="hrThresh" title="Final win threshold 0.636 @ 80 events"></div>
+            <div class="hrmark hrmark-readout" id="hrReadoutMark" title="Projected readout HR"></div>
+          </div>
+          <div class="labels"><span>0.0</span><span>Final win 0.636 (@ 80 events, Z=2.01)</span><span>1.0 (no effect)</span></div>
+        </div>
+        <p class="hr-metric-note" id="oHRfootnote">–</p>
+      </div>
+    </div>
+    <div id="hrGaugeNote" style="font-size:11.5px;margin-top:6px;padding:8px 10px;border-radius:8px;background:#fff4e0;border:1px solid #f0d090;color:#6b4e00"></div>
       <div id="oPower" style="font-size:12.5px;margin-top:8px;padding:8px 10px;border-radius:8px;background:#fafbfc;border:1px solid var(--line)"></div>
       <button type="button" class="link-val-btn no-print no-embed" id="btnUsePwin" title="Uses binding-interim MC P(win) if you ran Monte Carlo; otherwise point-estimate P(win) from current sliders">Use P(win) in Valuation →</button>
     </div>
