@@ -201,9 +201,22 @@
   }
   .print-only{display:none}
   .print-summary{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:#f8fafc;font-size:12px}
+  /* loading overlay */
+  .load-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;background:rgba(238,241,245,.72);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:opacity .15s,visibility .15s;pointer-events:none}
+  .load-overlay.visible{opacity:1;visibility:visible;pointer-events:auto}
+  .load-card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:24px 32px;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 32px rgba(20,27,38,.12)}
+  .load-spinner{width:36px;height:36px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:loadSpin .75s linear infinite}
+  .load-msg{font-size:13px;font-weight:600;color:var(--muted)}
+  @keyframes loadSpin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
+<div id="loadOverlay" class="load-overlay visible" aria-live="polite" aria-busy="true">
+  <div class="load-card">
+    <div class="load-spinner" role="status" aria-label="Loading"></div>
+    <div class="load-msg" id="loadMsg">Loading…</div>
+  </div>
+</div>
 <header>
   <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
   <div class="sub" style="margin-bottom:2px">Three primary-sourced models. <b>Every adjustable input is an undisclosed assumption</b> (its true value isn't public); verified facts are 🔒 locked. Hover bands for reasoning + sources; click <b>Methodology</b> on any tab for the exact math. Educational, not investment advice. &nbsp;<a href="https://sls-model.vercel.app" target="_blank">Live ↗</a> · <a href="https://github.com/sterno874/SLS-Model" target="_blank">Source (AGPL-3.0) ↗</a></div>
@@ -971,6 +984,30 @@
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
+
+// ---------- loading overlay ----------
+let loadCount = 1;
+function showLoading(msg){
+  loadCount++;
+  const ov=$("loadOverlay"),msgEl=$("loadMsg");
+  if(msgEl&&msg)msgEl.textContent=msg;
+  if(ov){ov.classList.add("visible");ov.setAttribute("aria-busy","true");}
+}
+function hideLoading(){
+  loadCount=Math.max(0,loadCount-1);
+  if(loadCount===0){
+    const ov=$("loadOverlay");
+    if(ov){ov.classList.remove("visible");ov.setAttribute("aria-busy","false");}
+  }
+}
+function deferWithLoading(fn,msg){
+  showLoading(msg||"Computing…");
+  requestAnimationFrame(()=>{
+    setTimeout(()=>{
+      try{fn();}finally{hideLoading();}
+    },0);
+  });
+}
 const LN2 = Math.log(2);
 const N_ARM = 63, LMAX = 38;
 const T1=46,T2=58,T3=63,T4=65, E1=60,E2=72,E3=78, THRESH=0.636;
@@ -1429,7 +1466,10 @@ document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyR
 document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInversePreset(b.dataset.inv));
 
 ["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",update)});
-$("mcRun").addEventListener("click",function(){$("mcRun").disabled=true;$("mcStatus").textContent="running…";setTimeout(function(){try{runMC();}finally{$("mcRun").disabled=false;}},30);});
+$("mcRun").addEventListener("click",function(){
+  $("mcRun").disabled=true;$("mcStatus").textContent="running…";
+  deferWithLoading(function(){try{runMC();}finally{$("mcRun").disabled=false;}},"Running Monte Carlo…");
+});
 $("mcNeutral").addEventListener("click",function(){applyRegalPreset("best");$("mcStatus").textContent="Best Available Guess priors set — click Run";});
 
 // ================= SHAREABLE URL STATE (#1) =================
@@ -1463,7 +1503,7 @@ function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document
 function updateHashQuiet(){if(restoringState)return;const nh=encodeStateToHash();if(location.hash!==nh)history.replaceState(null,"",location.pathname+location.search+nh);}
 $("btnShare").onclick=()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();};
 $("btnPrint").onclick=()=>{updatePrintSummary();window.print();};
-$("showUncertainty").onchange=function(){showUncertainty=this.checked;update();};
+$("showUncertainty").onchange=function(){showUncertainty=this.checked;deferWithLoading(update,"Computing uncertainty bands…");};
 
 // ================= FAST P(WIN) APPROX =================
 function poisLogLThrough(p,throughMonth){
@@ -1498,7 +1538,7 @@ function paramsFromPreset(name,q,mode){
 // ================= TORNADO (#2) =================
 function runTornado(){
   $("tornadoStatus").textContent="computing…";$("tornadoRun").disabled=true;
-  setTimeout(()=>{
+  deferWithLoading(function(){
     const base=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value;
     const basePw=fastPwin(base,binding,cutoff,5000);
     const baseHr=hazardRatio(T2,base);
@@ -1535,7 +1575,7 @@ function runTornado(){
       h+='</div><div class="tornado-val">'+(r.lo*100).toFixed(0)+' / +'+(r.hi*100).toFixed(0)+'pp</div></div>';
     });
     $("tornadoChart").innerHTML=h;$("tornadoStatus").textContent="done";$("tornadoRun").disabled=false;
-  },30);
+  },"Computing tornado…");
 }
 $("tornadoRun").onclick=runTornado;
 
@@ -1589,7 +1629,7 @@ $("irm_lead").addEventListener("input",renderIRM);
 // ================= T80 SIMULATOR (#5) =================
 function runT80Sim(){
   $("t80Status").textContent="simulating…";$("t80Run").disabled=true;
-  setTimeout(()=>{
+  deferWithLoading(function(){
     const p=readParams(),N=10000,times=[];
     for(let i=0;i<N;i++){
       const q=Object.assign({},p);q.bat+=rn()*0.5;q.gpsc=Math.max(0,Math.min(0.75,q.gpsc+rn()*0.03));
@@ -1604,7 +1644,7 @@ function runT80Sim(){
     const mx=Math.max(...bins.map(x=>x[1]),1);
     $("t80Hist").innerHTML=bins.map(bp=>'<div title="m'+bp[0]+': '+bp[1].toFixed(1)+'%" style="height:'+(bp[1]/mx*100).toFixed(1)+'%"></div>').join("");
     $("t80Status").textContent="10k paths";$("t80Run").disabled=false;
-  },30);
+  },"Simulating paths…");
 }
 $("t80Run").onclick=runT80Sim;
 
@@ -1612,7 +1652,7 @@ $("t80Run").onclick=runT80Sim;
 const PRESET_NAMES={best:"Best Available Guess",bear:"Bear (near-miss)",bull:"Bull / DD cure",critique:"Critique (~⅔)",bind:"Binding interim",nonbind:"Non-binding",cw:"Optimistic cure (~85%)",noeffect:"No effect",fail:"What failure needs",delay:"Vaccine delay 4m",backload:"Backloaded enroll",cw42:"Default (~42%)",cw35:"Moderate cure (35%)",cw50:"High cure (50%)",cwbind:"Binding interim (inv)"};
 function runPresetCmp(){
   $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
-  setTimeout(()=>{
+  deferWithLoading(function(){
     const rows=[];
     for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
       const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
@@ -1624,7 +1664,7 @@ function runPresetCmp(){
       return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
     }).join("");
     $("presetCmpStatus").textContent=rows.length+" presets";$("presetCmpRun").disabled=false;
-  },30);
+  },"Computing all presets…");
 }
 $("presetCmpRun").onclick=runPresetCmp;
 
@@ -1667,7 +1707,23 @@ update=function(){
   if(!restoringState){renderIRM();renderBacktest();updateBayes();updatePrintSummary();updateHashQuiet();}
 };
 
-buildBands();restoreFromHash()||null;refreshRegalPresetHighlight();update();initMobileCollapse();renderBacktest();updateBayes();
+function initApp(){
+  buildBands();
+  restoreFromHash()||null;
+  refreshRegalPresetHighlight();
+  update();
+  initMobileCollapse();
+  renderBacktest();
+  updateBayes();
+  buildBands2();
+  renderSLS();
+  renderVal();
+}
+requestAnimationFrame(()=>{
+  setTimeout(()=>{
+    try{initApp();}finally{hideLoading();}
+  },0);
+});
 
 // ================= TABS & METHODOLOGY =================
 function toggleMethod(id){const e=$(id);e.hidden=!e.hidden;}
@@ -1818,7 +1874,10 @@ function mcSLS(){
   $("mcSlsStats").innerHTML="r/r: median OS fold <b>"+qtl(folds,.5).toFixed(1)+"×</b> (90% CrI "+qtl(folds,.05).toFixed(1)+"–"+qtl(folds,.95).toFixed(1)+"×), P(≥2× vs benchmark) <b>"+(100*big/N).toFixed(0)+"%</b> &nbsp;·&nbsp; frontline: median HR-equiv <b>"+qtl(flhrs,.5).toFixed(2)+"</b>, <b style='color:"+(pFL>50?'var(--good)':'var(--bad)')+"'>P(Phase-3 significant) "+pFL.toFixed(0)+"%</b>";
   drawHist("mcSlsHist",flhrs,0.4,1.0,0.05,0.75,true);
 }
-$("mcSlsRun").addEventListener("click",function(){$("mcSlsStatus").textContent="running…";setTimeout(mcSLS,20);});
+$("mcSlsRun").addEventListener("click",function(){
+  $("mcSlsStatus").textContent="running…";
+  deferWithLoading(mcSLS,"Running Monte Carlo…");
+});
 $("sls_flev").addEventListener("input",function(){$("v_slsflev").textContent=$("sls_flev").value;});
 
 function mcVal(){
@@ -1838,7 +1897,10 @@ function mcVal(){
   const hi=Math.max(10,Math.min(70,Math.ceil(qtl(evs,.97)/5)*5));
   drawHist("mcValHist",evs,0,hi,hi/24,null,true);
 }
-$("mcValRun").addEventListener("click",function(){$("mcValStatus").textContent="running…";setTimeout(mcVal,20);});
+$("mcValRun").addEventListener("click",function(){
+  $("mcValStatus").textContent="running…";
+  deferWithLoading(mcVal,"Running Monte Carlo…");
+});
 ["v_pgps","v_psls"].forEach(id=>$(id).addEventListener("input",function(){$("v_vpgps").textContent=$("v_pgps").value+"%";$("v_vpsls").textContent=$("v_psls").value+"%";}));
 
 // ================= TAB 4 : EXPLAIN =================
@@ -1893,8 +1955,6 @@ const EXPL={
 function showLevel(l){curLvl=l;document.querySelectorAll(".lvlb").forEach(b=>b.classList.toggle("active",b.dataset.lvl===l));$("explbody").innerHTML=EXPL[l]||"";}
 document.querySelectorAll(".lvlb").forEach(b=>b.onclick=()=>showLevel(b.dataset.lvl));
 showLevel("eli5");
-
-buildBands2();renderSLS();renderVal();
 </script>
 <script>
   (function(){
