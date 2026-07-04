@@ -513,7 +513,7 @@
   .bio-modality.mod-gps{border-left:4px solid var(--gps)}
   .bio-modality.mod-sls{border-left:4px solid var(--good)}
   .bio-modality p{font-size:12.5px;margin:0}
-  .bio-figure{margin:var(--space-md) 0;border:1px solid var(--line);border-radius:10px;background:var(--bio-bg);padding:var(--space-md);position:relative}
+  .bio-figure{margin:var(--space-md) 0;border:1px solid var(--line);border-radius:10px;background:var(--bio-bg);padding:var(--space-md);position:relative;overflow:hidden;min-width:0}
   .bio-figure svg{display:block;width:100%;height:auto;max-width:100%}
   .sim-caption{font-size:11px;font-weight:600;color:var(--bio-label);fill:var(--bio-label)}
   .sim-legend{display:flex;flex-wrap:wrap;gap:var(--space-sm) var(--space-md);align-items:center;font-size:11px;color:var(--muted);margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px dashed var(--line)}
@@ -552,3 +552,10 @@
   .bio-honesty b{color:#6b4e00}
   .bio-course-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);margin:var(--space-md) 0}
   @media(max-width:720px){.bio-course-grid{grid-template-columns:1fr}}
+  @media(max-width:640px){
+    .bio-figure{padding:var(--space-sm)}
+    .bio-svg .dg-t{font-size:11px}
+    .bio-svg .dg-t-b{font-size:12px}
+    .bio-svg .dg-t-sm{font-size:9px}
+    .bio-diagram-controls .p{font-size:10px;padding:4px 8px}
+  }
