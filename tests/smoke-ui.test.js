@@ -27,7 +27,7 @@ test("main.js uses guarded UI binding helpers", () => {
 
 test("tab and explain handlers are wired in main.js", () => {
   assert.match(js, /document\.querySelectorAll\("\.tabbtn"\)/);
-  assert.match(js, /document\.querySelectorAll\("#bottomNav button"\)/);
+  assert.match(js, /document\.querySelectorAll\("\.mobile-nav-item"\)|initMobileNav/);
   assert.match(js, /document\.querySelectorAll\("\.lvlb"\)/);
   assert.match(js, /function switchTab\(/);
   assert.match(js, /function showLevel\(/);

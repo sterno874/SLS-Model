@@ -1465,6 +1465,7 @@ function initApp(){
   }
   updateReadoutTracker();
   initMobileCollapse();
+  initMobileNav();
   buildBands2();
   tabsRendered.gps=true;
   if(activeTab!=="gps")renderTab(activeTab,true);
@@ -1486,6 +1487,46 @@ requestAnimationFrame(()=>{
 });
 
 // ================= TABS & METHODOLOGY =================
+const TAB_SHORT_LABELS={gps:"REGAL / GPS",sls009:"SLS-009",value:"Valuation",explain:"Explain",biology:"Biology"};
+function closeMobileNav(){
+  const panel=$("mobileNavPanel"),toggle=$("navToggle"),backdrop=$("mobileNavBackdrop");
+  if(!panel)return;
+  panel.classList.remove("is-open");
+  panel.hidden=true;
+  if(toggle){toggle.setAttribute("aria-expanded","false");toggle.setAttribute("aria-label","Open navigation menu");}
+  if(backdrop){backdrop.classList.remove("is-open");backdrop.hidden=true;}
+  document.body.classList.remove("nav-open");
+}
+function openMobileNav(){
+  const panel=$("mobileNavPanel"),toggle=$("navToggle"),backdrop=$("mobileNavBackdrop");
+  if(!panel||!toggle)return;
+  panel.hidden=false;
+  requestAnimationFrame(()=>panel.classList.add("is-open"));
+  toggle.setAttribute("aria-expanded","true");
+  toggle.setAttribute("aria-label","Close navigation menu");
+  if(backdrop){backdrop.hidden=false;backdrop.classList.add("is-open");}
+  document.body.classList.add("nav-open");
+}
+function syncMobileNav(t){
+  document.querySelectorAll(".mobile-nav-item").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-current",on?"page":"false");});
+  const lbl=$("hdrActiveTab");
+  if(lbl&&TAB_SHORT_LABELS[t])lbl.textContent=TAB_SHORT_LABELS[t];
+}
+function initMobileNav(){
+  const panel=$("mobileNavPanel"),toggle=$("navToggle"),backdrop=$("mobileNavBackdrop");
+  if(!panel||!toggle)return;
+  toggle.onclick=()=>{panel.classList.contains("is-open")?closeMobileNav():openMobileNav();};
+  if(backdrop)backdrop.onclick=closeMobileNav;
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMobileNav();});
+  document.addEventListener("click",e=>{
+    if(!panel.classList.contains("is-open"))return;
+    const t=e.target;
+    if(!panel.contains(t)&&!toggle.contains(t))closeMobileNav();
+  });
+  panel.querySelectorAll(".mobile-nav-item").forEach(btn=>{
+    btn.onclick=()=>{switchTab(btn.dataset.tab);closeMobileNav();if(!restoringState)window.scrollTo(0,0);};
+  });
+}
 function toggleMethod(id){const e=$(id);e.hidden=!e.hidden;}
 window.toggleMethod=toggleMethod;
 function renderTab(t,force){
@@ -1497,14 +1538,14 @@ function renderTab(t,force){
 function switchTab(t){
   activeTab=t;
   document.querySelectorAll(".tabbtn").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-selected",on?"true":"false");});
-  document.querySelectorAll("#bottomNav button").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-current",on?"page":"false");});
+  syncMobileNav(t);
+  closeMobileNav();
   ["gps","sls009","value","explain","biology"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
   updateReadoutVisibility();
   renderTab(t);
   if(!restoringState)updateHashQuiet();
 }
 document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{switchTab(b.dataset.tab);if(!restoringState)window.scrollTo(0,0);});
-document.querySelectorAll("#bottomNav button").forEach(b=>b.onclick=()=>{switchTab(b.dataset.tab);if(!restoringState)window.scrollTo(0,0);});
 function drawExp(id,arms,tmax){
   const cv=$(id),dpr=window.devicePixelRatio||1,W=920,H=360;cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
   const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);

@@ -65,19 +65,19 @@ test("top tab buttons exist with expected data-tab values", () => {
   assert.deepEqual(tabs, VALID_TABS);
 });
 
-test("bottom nav exposes all five tabs", () => {
+test("mobile nav panel exposes all five tabs", () => {
   const navTabs = matchAll(
-    /<nav id="bottomNav"[\s\S]*?<\/nav>/g,
+    /<div id="mobileNavPanel"[\s\S]*?<\/div>/g,
     html
   )[0][0].match(/data-tab="([^"]+)"/g).map((s) => s.slice(10, -1));
   assert.equal(navTabs.length, 5);
   assert.deepEqual(navTabs, VALID_TABS);
 });
 
-test("The Biology tab is fully wired (page, header tab, bottom nav)", () => {
+test("The Biology tab is fully wired (page, header tab, mobile nav)", () => {
   assert.match(html, /id="tab-biology"/);
   assert.match(html, /class="tabbtn"[^>]*data-tab="biology"/);
-  const nav = matchAll(/<nav id="bottomNav"[\s\S]*?<\/nav>/g, html)[0][0];
+  const nav = matchAll(/<div id="mobileNavPanel"[\s\S]*?<\/div>/g, html)[0][0];
   assert.match(nav, /data-tab="biology"/);
   assert.match(js, /tabsRendered=\{[^}]*biology/);
   assert.match(
@@ -180,6 +180,15 @@ test("applyState restores all tab slider blocks before switching tabs", () => {
   assert.match(js, /if\(s\.tab\)switchTab\(s\.tab\);[\s\S]*updateNow\(\)/);
   assert.match(js, /if\(s\.sls\)tabsDirty\.sls009=true/);
   assert.match(js, /if\(s\.val\)tabsDirty\.value=true/);
+});
+
+test("hamburger nav toggle is accessible", () => {
+  assert.match(html, /id="navToggle"/);
+  assert.match(html, /aria-expanded="false"/);
+  assert.match(html, /aria-controls="mobileNavPanel"/);
+  assert.match(html, /aria-label="Open navigation menu"/);
+  assert.match(js, /function initMobileNav\(/);
+  assert.match(js, /function closeMobileNav\(/);
 });
 
 test("embed-hide chrome is present for embed mode styling", () => {

@@ -69,12 +69,28 @@
       <label><input type="checkbox" id="showUncertainty"/> Show uncertainty bands</label>
     </div>
   </div>
-  <div class="tabnav">
-    <button class="tabbtn active" data-tab="gps">1 · REGAL / GPS (Phase 3)</button>
-    <button class="tabbtn" data-tab="sls009">2 · SLS-009 (Phase 2)</button>
-    <button class="tabbtn" data-tab="value">3 · Valuation &amp; WT1 platform</button>
-    <button class="tabbtn" data-tab="explain">4 · Explain (ELI5 → PhD)</button>
-    <button class="tabbtn" data-tab="biology">5 · The Biology</button>
+  <div class="hdr-nav-mobile embed-hide no-print">
+    <button type="button" id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="mobileNavPanel" aria-label="Open navigation menu">
+      <span class="nav-toggle-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+    <span class="hdr-active-tab" id="hdrActiveTab">REGAL / GPS</span>
+  </div>
+  <div id="mobileNavBackdrop" class="mobile-nav-backdrop embed-hide no-print" hidden aria-hidden="true"></div>
+  <div id="mobileNavPanel" class="mobile-nav-panel embed-hide no-print" hidden>
+    <nav aria-label="Tab navigation">
+      <button type="button" class="mobile-nav-item active" data-tab="gps" aria-current="page">1 · REGAL / GPS (Phase 3)</button>
+      <button type="button" class="mobile-nav-item" data-tab="sls009">2 · SLS-009 (Phase 2)</button>
+      <button type="button" class="mobile-nav-item" data-tab="value">3 · Valuation &amp; WT1 platform</button>
+      <button type="button" class="mobile-nav-item" data-tab="explain">4 · Explain (ELI5 → PhD)</button>
+      <button type="button" class="mobile-nav-item" data-tab="biology">5 · The Biology</button>
+    </nav>
+  </div>
+  <div class="tabnav" role="tablist" aria-label="Tab navigation">
+    <button class="tabbtn active" data-tab="gps" role="tab" aria-selected="true">1 · REGAL / GPS (Phase 3)</button>
+    <button class="tabbtn" data-tab="sls009" role="tab" aria-selected="false">2 · SLS-009 (Phase 2)</button>
+    <button class="tabbtn" data-tab="value" role="tab" aria-selected="false">3 · Valuation &amp; WT1 platform</button>
+    <button class="tabbtn" data-tab="explain" role="tab" aria-selected="false">4 · Explain (ELI5 → PhD)</button>
+    <button class="tabbtn" data-tab="biology" role="tab" aria-selected="false">5 · The Biology</button>
   </div>
 </header>
 
@@ -1520,14 +1536,6 @@
 </div><!-- /tab-biology -->
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-<nav id="bottomNav" class="bottom-nav no-print embed-hide" aria-label="Tab navigation">
-  <button type="button" data-tab="gps" class="active" aria-label="REGAL / GPS tab" aria-current="page"><span class="bn-ico" aria-hidden="true">📊</span>REGAL</button>
-  <button type="button" data-tab="sls009" aria-label="SLS-009 tab"><span class="bn-ico" aria-hidden="true">💊</span>SLS-009</button>
-  <button type="button" data-tab="value" aria-label="Valuation tab"><span class="bn-ico" aria-hidden="true">💰</span>Value</button>
-  <button type="button" data-tab="explain" aria-label="Explain tab"><span class="bn-ico" aria-hidden="true">📖</span>Explain</button>
-  <button type="button" data-tab="biology" aria-label="The Biology tab"><span class="bn-ico" aria-hidden="true">🧬</span>Biology</button>
-</nav>
 
 <footer class="embed-hide">
   <div class="footer-inner">
