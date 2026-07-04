@@ -241,7 +241,8 @@ test("inverseSolve cw42 preset yields finite BAT and GPS uncured medians", () =>
 
 test("computeFrozenBestEst: biology-first risk-adj equity $/sh (default P(approval))", () => {
   const f = computeFrozenBestEst();
-  assert.ok(Math.abs(f.gpsHr - 0.254) < 0.02);
+  // Readout HR (hrForFinal @ cutoff 72), not m58 snapshot (~0.254)
+  assert.ok(Math.abs(f.gpsHr - 0.246) < 0.01);
   assert.ok(Math.abs(f.slsOsRatio - FROZEN_BEST_EST.slsPreset.sls_bench / FROZEN_BEST_EST.slsPreset.sls_os) < 1e-9);
   assert.match(f.label, /Biology-first/);
   assert.match(f.label, /risk-adj/i);
@@ -252,8 +253,9 @@ test("computeFrozenBestEst: biology-first risk-adj equity $/sh (default P(approv
   assert.ok(Math.abs(f.ps - riskAdj.ps) < 0.01);
   assert.ok(Math.abs(f.psGross - gross.ps) < 0.01);
   assert.ok(f.ps < f.psGross);
-  // Base risk-adj equity $/sh ≈ $45.88 (EV + $107.1M cash) / 222M
+  // Base risk-adj equity $/sh ≈ $45.88 (EV + $107.1M cash) / 222M; gross ≈ $67.61
   assert.ok(Math.abs(f.ps - 45.88) < 0.1);
+  assert.ok(Math.abs(f.psGross - 67.61) < 0.1);
 });
 
 test("computeFrozenBestEst: live P(approval) overrides update risk-adj $/sh", () => {

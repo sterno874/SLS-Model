@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { computeValuationMetrics } from "../js/ui/state.js";
+import { computeValuationMetrics, computeFrozenBestEst } from "../js/ui/state.js";
 
 const DEFAULTS = {
   cr2: 2800,
@@ -43,6 +43,14 @@ test("equity $/sh includes cash; EV/sh does not", () => {
   const noCash = computeValuationMetrics({ ...DEFAULTS, cash: 0 });
   assert.ok(Math.abs(withCash.EV - noCash.EV) < 0.01);
   assert.ok(Math.abs(withCash.ps - noCash.ps - 107.1 / 222) < 0.01);
+});
+
+test("header strip equity $/sh matches valuation panel at defaults", () => {
+  const panel = computeValuationMetrics(DEFAULTS);
+  const header = computeFrozenBestEst();
+  assert.ok(Math.abs(header.ps - panel.ps) < 1e-9);
+  assert.ok(Math.abs(header.EV - panel.EV) < 1e-9);
+  assert.ok(Math.abs(header.psGross - computeValuationMetrics({ ...DEFAULTS, riskadj: false }).ps) < 1e-9);
 });
 
 test("gross EV when risk adjustment disabled", () => {
