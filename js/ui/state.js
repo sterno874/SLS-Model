@@ -375,7 +375,7 @@ export function computeValuationMetrics(v) {
 /** Biology-first header scenario — GPS/SLS clinical presets stay fixed; valuation may be live.
  *  Keep in sync with P / SLSP / VALP preset tables in js/main.js. */
 export const FROZEN_BEST_EST = {
-  label: "Biology-first (bullish) · risk-adj",
+  label: "Biology-first (bullish) · risk-adj @ P(GPS)=65%",
   gpsPreset: SHARE_P.best,
   slsPreset: SHARE_SLSP.best,
   valPreset: SHARE_VALP.best,
@@ -414,13 +414,16 @@ export function computeFrozenBestEst(valOverrides) {
   const sls = FROZEN_BEST_EST.slsPreset;
   const slsOsRatio = sls.sls_bench / sls.sls_os;
   const v = FROZEN_BEST_EST.valPreset;
-  const live = computeValuationMetrics(valInputsFromPreset(v, valOverrides));
+  const inputs = valInputsFromPreset(v, valOverrides);
+  const live = computeValuationMetrics(inputs);
   const gross = computeValuationMetrics(
     valInputsFromPreset(v, Object.assign({}, valOverrides, { riskadj: false, pgps: 100, psls: 100 }))
   );
   const ra = live.riskAdjusted;
   return {
-    label: ra ? FROZEN_BEST_EST.label : "Biology-first (bullish) · gross",
+    label: ra
+      ? "Biology-first (bullish) · risk-adj @ P(GPS)="+inputs.pgps+"%"
+      : "Biology-first (bullish) · gross",
     gpsHr,
     slsOsRatio,
     EV: live.EV,
@@ -429,6 +432,7 @@ export function computeFrozenBestEst(valOverrides) {
     psGross: gross.ps,
     EVGross: gross.EV,
     neutralRidgeHrNote: FROZEN_BEST_EST.neutralRidgeHrNote,
-    riskAdjusted: ra
+    riskAdjusted: ra,
+    pgps: inputs.pgps
   };
 }

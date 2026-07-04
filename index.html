@@ -29,11 +29,11 @@
 </div>
 <header>
   <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Biology-first risk-adjusted equity per share">
-    <div class="best-est-item best-est-item--scenario" title="Biology-first (bullish) scenario: 42% GPS cure, cw42 inverse. Risk-adj equity $/sh updates live with valuation P(approval) and presets.">
+    <div class="best-est-item best-est-item--scenario" title="Biology-first (bullish) clinical scenario: 42% GPS cure, cw42 inverse. Risk-adj equity $/sh uses valuation P(GPS)/P(SLS-009) — user priors (default P(GPS)=65%), not Tab 1 neutral-prior MC P(win) (~50–78%) and not biology-first point P(win) (~100%).">
       <span class="best-est-label">Scenario</span>
-      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Biology-first (bullish) · risk-adj</span>
+      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Biology-first (bullish) · risk-adj @ P(GPS)=65%</span>
     </div>
-    <div class="best-est-item" title="Projected readout HR from biology-first Best Available Guess (42% cure, cw42 inverse) @ ~80 events — matches the final HR gauge. Neutral-ridge HR ~0.45–0.64 remains plausible under identifiability.">
+    <div class="best-est-item" title="Projected readout HR from biology-first Best Available Guess (42% cure, cw42 inverse) @ ~80 events — matches the final HR gauge. Neutral-ridge HR ~0.45–0.64 remains plausible under identifiability. Separate from valuation P(GPS).">
       <span class="best-est-label">GPS readout HR <span class="tag m">model</span></span>
       <span class="best-est-val" id="beGpsHr">—</span>
       <span class="best-est-sub" id="beRidgeNote">Neutral-ridge HR ~0.45–0.64</span>
@@ -44,7 +44,7 @@
       <span class="best-est-val" id="beSlsHr">—</span>
     </div>
     <span class="best-est-sep" aria-hidden="true">·</span>
-    <div class="best-est-item" title="Live risk-adj equity $/sh = (EV + cash) / FD shares, using valuation P(GPS)/P(SLS-009). Hover for gross @100% success.">
+    <div class="best-est-item" title="Live risk-adj equity $/sh = (EV + cash) / FD shares, using valuation P(GPS)/P(SLS-009) user priors (default 65%/55%). P(GPS) is not Tab 1 clinical P(win). Hover for gross @100% success.">
       <span class="best-est-label" id="beBuyoutLabel">Risk-adj equity $/sh <span class="tag m">model</span></span>
       <span class="best-est-val" id="beBuyout">—</span>
       <span class="best-est-sub" id="beGrossPs">gross @100% —</span>
@@ -129,8 +129,9 @@
     <div class="preset-start" id="presetStart" data-regal-mode="forward">
       <div class="pgrp">Start here</div>
       <div class="presets presets-best">
-        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 42% GPS cure — chosen as the biology-informed point on the cure sweep (cw42 inverse), not an arbitrary pick; all fits must reproduce 60/72/78 event anchors. Kurosawa BAT 3-yr OS cap (~14%), 3-mo GPS onset delay. Forward sliders = inverseSolve(cw42) output. BAT long-survivor plateau 0% — 3-yr OS ~15% comes from Weibull tail at 13-mo median. Binding interim (registrational default).">Best Available Guess ★<span class="p-sub">42% cure (biology sweep point) · BAT 3yr ~15% · binding IA</span></button>
+        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 42% GPS cure — chosen as the biology-informed point on the cure sweep (cw42 inverse), not an arbitrary pick; all fits must reproduce 60/72/78 event anchors. Kurosawa BAT 3-yr OS cap (~14%), 3-mo GPS onset delay. Forward sliders = inverseSolve(cw42) output. BAT long-survivor plateau 0% — 3-yr OS ~15% comes from Weibull tail at 13-mo median. Binding interim (registrational default). Point P(win) is high under these survival params — not the neutral-prior MC band (~50–78%). Model-implied interim HR is below the OBF early-stop floor (~0.547) but the trial continued.">Best Available Guess ★<span class="p-sub">42% cure · binding IA · model IA HR below stop bar; trial continued</span></button>
       </div>
+      <div class="pgrp-hint callout-note" data-regal-mode="forward" id="bestIaCallout">Model-implied interim HR is below the early-stop floor (≈0.547) but IDMC continued — so either the IA was non-binding, the model overstates effect at IA, or both. Point P(win) under biology-first is high (~100%); neutral-prior MC is a separate ~50–78% band.</div>
     </div>
 
     <div class="modenav">
@@ -164,10 +165,10 @@
       <button class="p" data-preset="cw" data-regal-mode="forward" title="CW Part 1 published forward parameters: BAT 9m, GPS cure ~41%, uncured ~36m, non-binding interim — P(win) ~85%. Source: u/Confident-Web-7118.">CW published point (~85%)<span class="p-sub">CW Part 1 params · 41% cure · non-binding IA</span></button>
     </div>
     <div class="pgrp" data-regal-mode="forward">Interim assumption stress tests</div>
-    <div class="pgrp-hint" data-regal-mode="forward">Same survival as Best Available Guess — only the binding-interim toggle changes P(win) (~50% vs ~78%).</div>
+    <div class="pgrp-hint" data-regal-mode="forward">Same survival as Best Available Guess (gpsc 42%, etc.) — only the binding-interim toggle differs. Point P(win) is high under biology-first; the neutral-prior MC band (~50% binding / ~78% non-binding) is a different prior, not these presets.</div>
     <div class="presets" id="presetInterim" data-regal-mode="forward">
-      <button class="p" data-preset="bind" data-regal-mode="forward" title="Registrational binding IA: HR must have cleared ~0.547 floor @ m46 to continue — conditions posterior on no early stop. P(win) ~50%.">Binding IA (~50%)<span class="p-sub">Registrational IA · HR capped @ interim</span></button>
-      <button class="p" data-preset="nonbind" data-regal-mode="forward" title="Informational IA only: no efficacy stop rule enforced — upper bound on P(win) ~78% under identical survival priors.">Non-binding IA (~78%)<span class="p-sub">Informational IA · P(win) upper bound</span></button>
+      <button class="p" data-preset="bind" data-regal-mode="forward" title="Same survival as Best Available Guess with binding IA toggle on (registrational default). Soft-conditions MC on no early stop. Point P(win) high under biology-first — not the neutral-prior ~50% band.">Binding IA (biology-first)<span class="p-sub">Same as Best Available Guess + binding IA toggle</span></button>
+      <button class="p" data-preset="nonbind" data-regal-mode="forward" title="Same survival as Best Available Guess with binding IA toggle off (informational IA only). Point P(win) high under biology-first — not the neutral-prior ~78% band.">Non-binding IA (biology-first)<span class="p-sub">Same survival · non-binding IA assumption only</span></button>
     </div>
     <div class="pgrp" id="presetInvGrp" data-regal-mode="inverse" hidden>Inverse anchor-locked</div>
     <div class="pgrp-hint" id="presetInvHint" data-regal-mode="inverse" hidden>Mandatory: fit 60/72/78. Sweep GPS cure fraction (cw35/cw42/cw50); implied medians and HR are derived — CW inverse methodology.</div>
@@ -982,7 +983,7 @@
     <div id="mcValStats" class="stats-line"></div>
     <div class="hist-hint">Enterprise-value distribution ($B):</div>
     <div id="mcValHist"></div>
-    <p class="cw-note callout-note">P(GPS) default 65% — informed by Tab 1 posterior (~50–78% P(win) depending on IA binding); not a company forecast. P(SLS-009) default 55% — single-arm Ph2 + FDA frontline guidance; confirmatory Ph3 not started. Risk-adjusted EV = Σ(peak × P(approval)) × multiple + platform. <span class="tag m">model</span></p>
+    <p class="cw-note callout-note">P(GPS) is a <b>user prior</b> (default 65%) for risk-adjusting valuation — not a company forecast and not equal to Tab 1 clinical P(win). Neutral-prior MC on Tab 1 is a separate ~50–78% band (binding vs non-binding IA); biology-first Best Available Guess is a separate clinical scenario with high point P(win). P(SLS-009) default 55% — single-arm Ph2 + FDA frontline guidance; confirmatory Ph3 not started. Risk-adjusted EV = Σ(peak × P(approval)) × multiple + platform. <span class="tag m">model</span></p>
   </div></div>
 
   <!-- WT1 PLATFORM -->
