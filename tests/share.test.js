@@ -130,6 +130,23 @@ test("arbitrary full state round-trips (all fields, tabs, modes, explain levels)
   assert.deepEqual(decodeShareHash(buildShareHash(s)), s);
 });
 
+test("share hash round-trips irm_lead at 0 and 6 (edge of slider)", () => {
+  for (const lead of [0, 6]) {
+    const s = freshLoadState();
+    s.ui.irm_lead = lead;
+    const decoded = decodeShareHash(buildShareHash(s));
+    assert.equal(decoded.ui.irm_lead, lead, `irm_lead=${lead} must survive share encode/decode`);
+  }
+});
+
+test("default irm_lead=3 is omitted from delta payload", () => {
+  const s = freshLoadState();
+  assert.equal(s.ui.irm_lead, 3);
+  const hash = buildShareHash(s);
+  const payload = JSON.parse(b64urlDecode(hash.slice(4)));
+  assert.equal(payload.il, undefined, "default lead-time should not bloat share hash");
+});
+
 test("rounds float noise instead of emitting 12-decimal values", () => {
   const s = freshLoadState();
   s.gps.k = 0.1 + 0.2; // 0.30000000000000004

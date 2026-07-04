@@ -38,6 +38,17 @@ function sBAT(t,p){if(t<=0)return 1;return txMix(t,p,sBATbase(t,p));}
 function sGPS(t,p){if(t<=0)return 1;return txMix(t,p,sGPSbase(t,p));}
 function poolS(t,p){return 0.5*sBAT(t,p)+0.5*sGPS(t,p);}
 
+/** Default CR2→randomization lead-time (months) for IRM ↔ CR2-onset display.
+ *  Sensitivity only — does not enter eventsAt / passesVerdict / chart fit. */
+const DEFAULT_IRM_LEAD = 3;
+/** Map from-randomization IRM median to implied CR2-onset median: max(0, IRM − lead). */
+function cr2OnsetFromIrm(irmMedian, leadMonths){
+  if(irmMedian==null||!Number.isFinite(irmMedian))return null;
+  const lead=Number(leadMonths);
+  if(!Number.isFinite(lead))return irmMedian;
+  return Math.max(0, irmMedian-lead);
+}
+
 // ---------- events (with transplant handling + dropout censoring) ----------
 function armDeaths(T,p,baseFn,bins){bins=bins||180;let d=0;for(let i=0;i<bins;i++){const e0=LMAX*i/bins,e1=LMAX*(i+1)/bins,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);if(em>=T)continue;const f=T-em;let pd;
     if(p.xtx>0 && p.osmode==='censor'){ // transplanted pts censored ~month 6 post-enrollment
@@ -141,5 +152,6 @@ export {
   sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored,
   T80PrPace, T80, t80Analysis, mcPathToT80,
   hazardRatio, analyzeLR, hrGaugeState, condPow, Tfor, medianOf, consistent, passesVerdict, BAT_MED_CAP, isBiologicallyPlausible, autofitCure,
-  eventErr, bisectField, batcFor3yrCap, inverseSolve
+  eventErr, bisectField, batcFor3yrCap, inverseSolve,
+  DEFAULT_IRM_LEAD, cr2OnsetFromIrm
 };

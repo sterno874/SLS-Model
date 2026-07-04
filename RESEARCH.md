@@ -71,6 +71,17 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 
 **Control-arm priors:** Kurosawa *Haematologica* 2010 whole-cohort no-HCT 3-yr OS ~14% (not pure CR2; CR2 subgroups higher) — **verified**. Ven-era salvage mOS ~8–12 mo (Stahl 2021) — **verified**.
 
+### Lead-time / left-truncation sensitivity (display only)
+
+REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life expectancy — a positively selected (left-truncated) cohort relative to from-CR2 literature clocks ([Suissa 2008](https://academic.oup.com/aje/article/167/4/492/233064); [CW IRM post](https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/)).
+
+| Clock | Role in app | Tag |
+|-------|-------------|-----|
+| **From randomization (IRM)** | Primary: `eventsAt`, `passesVerdict`, chart fit, HR gauges | model — locked to PR anchors |
+| **Implied CR2-onset** | Display: ≈ max(0, IRM − lead), lead slider 0–6 mo (default **3**) | assumption — sensitivity |
+
+**Does not change:** event engine, biology caps, IA non-stop interpretation, or valuation. Under proportional hazards a common lead-time shift leaves HR unchanged; it only reconciles absolute medians with Stahl/Kurosawa-style from-CR2 benchmarks. Event fit remains a **post-selection cohort** readout.
+
 ---
 
 ## SLS-009 (tambiciclib / CDK9)

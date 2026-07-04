@@ -215,6 +215,12 @@
       <div class="bands" id="band-batc"></div>
       <small class="source-line">Mixture-model cure <strong>plateau</strong> (batc) — flat long-term survivors added on top of the Weibull decline. <em>Not</em> the same as 3-yr OS (see readout): at 13-mo BAT median, batc=0 still yields ~15% at 3yr from the tail alone. Kurosawa ~14% is a <em>3-yr OS</em> biology cap, not a plateau prior (<a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Haematologica 2010</a>). <span id="batcCapHint"></span></small>
     </div>
+
+    <div class="ctrl" id="leadTimeWrap">
+      <label for="irm_lead">CR2→rand lead-time (sensitivity) <span id="irmLead">3.0 m</span></label>
+      <input type="range" id="irm_lead" min="0" max="6" step="0.5" value="3"/>
+      <small class="source-line"><b>From-randomization clock is primary</b> (event fit, chart, verdict). This slider only maps IRM medians → implied CR2-onset mOS ≈ max(0, IRM − lead). REGAL ≤6 mo CR2→rand + &gt;6 mo life expectancy; <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank" rel="noopener">Suissa 2008</a> left-truncation; <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">CW IRM panel</a>. Does <b>not</b> change eventsAt / passesVerdict / chart fit, and does <b>not</b> relax IA non-stop.</small>
+    </div>
     </div>
 
     <div class="ctrl-group" id="grpGps">
@@ -316,13 +322,15 @@
     <div class="chart-pin-panel" id="chartPinPanel"></div>
 
     <div class="grid2">
-      <div class="stat bat"><div class="k">BAT arm median OS (incl. survivors)</div><div class="v" id="oBatMed">–</div></div>
-      <div class="stat gps"><div class="k">GPS arm median OS</div><div class="v" id="oGpsMed">–</div></div>
-      <div class="stat bat"><div class="k">BAT 3-year OS</div><div class="v" id="oBat3">–</div></div>
-      <div class="stat gps"><div class="k">GPS 3-year OS</div><div class="v" id="oGps3">–</div></div>
+      <div class="stat bat"><div class="k">BAT median OS (from rand / IRM)</div><div class="v" id="oBatMed">–</div><div class="stat-sub" id="oBatCr2">CR2-onset: –</div></div>
+      <div class="stat gps"><div class="k">GPS median OS (from rand / IRM)</div><div class="v" id="oGpsMed">–</div><div class="stat-sub" id="oGpsCr2">CR2-onset: –</div></div>
+      <div class="stat bat"><div class="k">BAT 3-year OS (from-rand clock)</div><div class="v" id="oBat3">–</div></div>
+      <div class="stat gps"><div class="k">GPS 3-year OS (from-rand clock)</div><div class="v" id="oGps3">–</div></div>
+      <div class="stat"><div class="k">Pooled median OS (from rand / IRM)</div><div class="v" id="oPoolMed">–</div><div class="stat-sub" id="oPoolCr2">CR2-onset: –</div></div>
       <div class="stat"><div class="k">RMST gain, GPS−BAT (48-mo horizon)</div><div class="v" id="oRmst">–</div></div>
       <div class="stat"><div class="k">Projected 80th event</div><div class="v" id="o80">–</div></div>
     </div>
+    <p class="cw-note" id="leadTimeNote" style="margin-top:0">Lead-time sensitivity: event fit is a post-selection cohort; lead-time does not relax IA non-stop.</p>
 
     <div class="hr-metrics">
       <div class="hr-metric hr-metric-interim">
@@ -427,10 +435,9 @@
 <details class="feat-panel" id="panelIRM">
   <summary>Interactive IRM table — REGAL-report ↔ TRUE CR2 conversion <span class="tag a">assumption</span></summary>
   <div class="panel-body">
-    <p class="cw-note">Adjust the lead-time / randomization-window lift to convert between <b>IRM</b> (from randomization, what REGAL reports) and <b>TRUE CR2-onset</b> medians. Uses current model survival curves for implied HR and alive counts. CW reference values shown as anchors. Source: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM post</a> · <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank" rel="noopener">Suissa 2008</a></p>
-    <div class="ctrl"><label for="irm_lead">Avg lead time (CR2 → randomization) <span id="irmLead">3.0 m</span></label><input type="range" id="irm_lead" min="1" max="5" step="0.5" value="3"/></div>
+    <p class="cw-note">Uses the <b>CR2→rand lead-time</b> slider (BAT controls, 0–6 mo). <b>IRM</b> = from-randomization medians (primary clock: event fit / chart / verdict). <b>Implied CR2-onset</b> ≈ max(0, IRM − lead). Lead-time does <b>not</b> change eventsAt / passesVerdict / chart fit and does <b>not</b> relax IA non-stop — event fit is a post-selection cohort. Sources: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">CW IRM post</a> · <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank" rel="noopener">Suissa 2008</a> · REGAL ≤6 mo CR2→rand + &gt;6 mo life expectancy.</p>
     <div class="table-wrap"><table class="cw-table" id="irmTable">
-      <thead><tr><th>Parameter</th><th>Model (current)</th><th>CW reference</th><th>Δ from CW</th></tr></thead>
+      <thead><tr><th>Parameter</th><th>Model (current)</th><th>CW / literature</th><th>Δ / note</th></tr></thead>
       <tbody id="irmBody"></tbody>
     </table></div>
   </div>

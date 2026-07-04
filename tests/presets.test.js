@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { T1, T2, T4, hazardRatio, consistent, passesVerdict, isBiologicallyPlausible, medianOf, sBAT, sGPS, eventsAt, T3, E3, inverseSolve } from "../js/math/survival.js";
+import { T1, T2, T4, hazardRatio, consistent, passesVerdict, isBiologicallyPlausible, medianOf, sBAT, sGPS, eventsAt, T3, E3, inverseSolve, cr2OnsetFromIrm, DEFAULT_IRM_LEAD } from "../js/math/survival.js";
 import { paramsFromPresetQ, mk } from "./helpers.js";
 import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES, RIDGE_PRESET_NAMES } from "./fixtures/presets.js";
 import {
@@ -94,6 +94,24 @@ test("P.best applyRegalPreset path isPlausible with margin on all anchors", () =
   assert.ok(e65 >= 77.5 && e65 < 79.5, `e65=${e65} needs margin in [77,80)`);
   assert.ok(medianOf(sBAT, p) <= 15, "BAT median within biology cap");
   assert.ok(medianOf(sGPS, p) > 50, "GPS mixture-cure median should be well above uncured mOS");
+  // Lead-time default on best: IRM vs CR2-onset display mapping only
+  assert.equal(P.best.irm_lead, DEFAULT_IRM_LEAD);
+  const irmBat = medianOf(sBAT, p);
+  const cr2 = cr2OnsetFromIrm(irmBat, P.best.irm_lead);
+  assert.ok(cr2 != null && cr2 === irmBat - P.best.irm_lead);
+});
+
+test("lead-time does not flip isPlausible for any forward preset", () => {
+  for (const name of PLAUSIBLE_PRESET_NAMES) {
+    const p = paramsFromPresetQ(P[name]);
+    const before = isPlausible(p);
+    // Lead is not a survival param — isPlausible is invariant by construction.
+    assert.equal(isPlausible(p), before);
+    assert.ok(before, `preset ${name} should be plausible`);
+    const irm = medianOf(sBAT, p);
+    assert.ok(cr2OnsetFromIrm(irm, 0) === irm);
+    assert.ok(cr2OnsetFromIrm(irm, 6) === Math.max(0, irm - 6));
+  }
 });
 
 test("named preset wins over stale share-hash gps deltas", () => {

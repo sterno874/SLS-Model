@@ -50,7 +50,9 @@ import {
   BAT_MED_CAP,
   autofitCure,
   batcFor3yrCap,
-  inverseSolve
+  inverseSolve,
+  DEFAULT_IRM_LEAD,
+  cr2OnsetFromIrm
 } from './math/survival.js';
 import {
   parseEmbedMode,
@@ -634,14 +636,16 @@ function update(){
     $("oHRreadoutCtx").textContent="";$("oHRfootnote").textContent="";
     $("verdict").className="verdict v-none";
     $("verdict").textContent="NO SOLUTION: "+noSol+". (Same dead-end the DD hit with a 4-month delay — the assumed shape can't fit the data.)";
-    ["oBatMed","oGpsMed","oBat3","oGps3","oRmst","o80","e1","e2","e3","e4","pm"].forEach(i=>$(i).textContent="—");$("oPower").textContent="";
+    ["oBatMed","oGpsMed","oPoolMed","oBatCr2","oGpsCr2","oPoolCr2","oBat3","oGps3","oRmst","o80","e1","e2","e3","e4","pm"].forEach(i=>{const el=$(i);if(el)el.textContent="—";});$("oPower").textContent="";
     $("note").innerHTML=noteText();return;
   }
 
   const bm=medianOf(sBAT,p),gm=medianOf(sGPS,p),pmv=medianOf(poolS,p);
   $("oBatMed").innerHTML=fmtM(bm);$("oGpsMed").innerHTML=fmtM(gm);
+  if($("oPoolMed"))$("oPoolMed").innerHTML=fmtM(pmv);
   $("oBat3").innerHTML=(sBAT(36,p)*100).toFixed(0)+' <small>%</small>';
   $("oGps3").innerHTML=(sGPS(36,p)*100).toFixed(0)+' <small>%</small>';
+  renderLeadTimeSensitivity(bm,gm,pmv);
 
   // RMST (48-mo horizon) + projected 80th event + significance/power check
   const dR=rmst(sGPS,p,48)-rmst(sBAT,p,48);
@@ -817,15 +821,15 @@ function renderMC(acc,tried){
 // Best Available Guess: biology-first (42% GPS cure, cw42) → inverseSolve(batcap 14%) → forward verify.
 // gpsu is step-aligned (0.5); joint-grid solve centers e65 in [77,80) so default load stays green.
 const P={
- best:    {bat:13,batc:0,gpsc:42,gpsu:47.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true},
- bind:    {bat:13,batc:0,gpsc:42,gpsu:47.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true},
- nonbind: {bat:13,batc:0,gpsc:42,gpsu:47.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:false},
- critique:{bat:10.5,batc:12,gpsc:18,gpsu:30.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true},
- bull:    {bat:10, batc:1, gpsc:40,gpsu:38,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
- bear:    {bat:10, batc:16,gpsc:14,gpsu:29,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true},
- cw:      {bat:10.5,batc:1, gpsc:41,gpsu:35.5,delay:0, mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false},
- noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true},
- capbreach:{bat:10.5,batc:21,gpsc:12,gpsu:25.5,delay:2,mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true}
+ best:    {bat:13,batc:0,gpsc:42,gpsu:47.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true,irm_lead:3},
+ bind:    {bat:13,batc:0,gpsc:42,gpsu:47.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true,irm_lead:3},
+ nonbind: {bat:13,batc:0,gpsc:42,gpsu:47.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:false,irm_lead:3},
+ critique:{bat:10.5,batc:12,gpsc:18,gpsu:30.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true,irm_lead:3},
+ bull:    {bat:10, batc:1, gpsc:40,gpsu:38,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false,irm_lead:3},
+ bear:    {bat:10, batc:16,gpsc:14,gpsu:29,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true,irm_lead:3},
+ cw:      {bat:10.5,batc:1, gpsc:41,gpsu:35.5,delay:0, mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false,irm_lead:3},
+ noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true,irm_lead:3},
+ capbreach:{bat:10.5,batc:21,gpsc:12,gpsu:25.5,delay:2,mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true,irm_lead:3}
 };
 const INV={
  cw42:   {gpsc:42,batcap:14,delay:3,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
@@ -884,6 +888,8 @@ function applyRegalPreset(name,q){
   if(got.delay!==expect.delay)$("delay").value=String(expect.delay);
   if(got.mid!==expect.mid)$("mid").value=String(expect.mid);
   if(Math.abs(got.k-expect.k)>1e-9)$("k").value=String(expect.k);
+  // Lead-time is display-only sensitivity; presets reset to a sensible default (does not affect event fit).
+  if($("irm_lead"))$("irm_lead").value=String(q.irm_lead!=null?q.irm_lead:DEFAULT_IRM_LEAD);
   if(regalMode==="inverse")setRegalMode("forward");
   else{refreshRegalPresetHighlight();update();}
 }
@@ -894,6 +900,7 @@ function applyInversePreset(name,q){
   $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;
   $("xtx").value=q.xtx!=null?q.xtx:0;$("cens").value=q.cens!=null?q.cens:0;
   if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
+  if($("irm_lead"))$("irm_lead").value=String(q.irm_lead!=null?q.irm_lead:DEFAULT_IRM_LEAD);
   setRegalMode("inverse");
 }
 document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyRegalPreset(b.dataset.preset));
@@ -1072,28 +1079,59 @@ function updateBayes(){
 }
 ["bf_e58","bf_cure"].forEach(id=>on(id,"input",updateBayes));
 
-// ================= INTERACTIVE IRM (#4) =================
+// ================= LEAD-TIME / IRM SENSITIVITY (display-only) =================
 const CW_REF={irm:12.61,hr:0.37,bat3:19.6,batAlive:11.3,gpsAlive:34.7,pool:18.7};
 function armAlive(T,p,fn){let a=0;for(let i=0;i<180;i++){const e0=LMAX*i/180,e1=LMAX*(i+1)/180,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);if(em>=T)continue;a+=N_ARM*w*fn(T-em,p);}return a*(1-p.cens*0.5);}
+function readLeadTime(){const el=$("irm_lead");return el?+$("irm_lead").value:DEFAULT_IRM_LEAD;}
+function fmtCr2Onset(irm,lead){
+  const cr2=cr2OnsetFromIrm(irm,lead);
+  return cr2==null?"—":cr2.toFixed(1)+" m";
+}
+/** Update IRM / CR2-onset readouts. Does not touch eventsAt, verdict, or chart. */
+function renderLeadTimeSensitivity(bm,gm,pmv){
+  const lead=readLeadTime();
+  const leadEl=$("irmLead");if(leadEl)leadEl.textContent=lead.toFixed(1)+" m";
+  const setCr2=(id,irm)=>{const el=$(id);if(!el)return;el.textContent=irm==null?"CR2-onset: —":("Implied CR2-onset ≈ "+fmtCr2Onset(irm,lead)+" (lead "+lead.toFixed(1)+" m)");};
+  setCr2("oBatCr2",bm);setCr2("oGpsCr2",gm);setCr2("oPoolCr2",pmv);
+  const note=$("leadTimeNote");
+  if(note){
+    const batIrm=bm==null?"—":bm.toFixed(1)+" m";
+    const batCr2=fmtCr2Onset(bm,lead);
+    note.innerHTML="Lead-time sensitivity (display only): BAT IRM <b>"+batIrm+"</b> → implied CR2-onset <b>"+batCr2+"</b> at lead "+lead.toFixed(1)+" m. "
+      +"Event fit is a <b>post-selection cohort</b> (≤6 mo CR2→rand + &gt;6 mo life expectancy); lead-time does <b>not</b> relax IA non-stop. "
+      +"3-yr OS stays on the from-rand clock. <span class=\"cite\"><a href=\"https://academic.oup.com/aje/article/167/4/492/233064\" target=\"_blank\" rel=\"noopener\">Suissa 2008</a> · <a href=\"https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/\" target=\"_blank\" rel=\"noopener\">CW IRM</a></span>";
+  }
+  if(panelOpen("panelIRM"))renderIRM();
+}
 function renderIRM(){
-  const lead=+$("irm_lead").value;$("irmLead").textContent=lead.toFixed(1)+" m";
+  const lead=readLeadTime();
+  const leadEl=$("irmLead");if(leadEl)leadEl.textContent=lead.toFixed(1)+" m";
   const p=readParams();const irmBat=medianOf(sBAT,p),irmGps=medianOf(sGPS,p),irmPool=medianOf(poolS,p);
   const hr=hazardRatio(T2,p),bat3=sBAT(36,p)*100;
   const batA=armAlive(63,p,sBAT),gpsA=armAlive(63,p,sGPS);
-  const trueBat=irmBat!=null?Math.max(1,irmBat-lead):null;
+  const cr2Bat=cr2OnsetFromIrm(irmBat,lead),cr2Gps=cr2OnsetFromIrm(irmGps,lead),cr2Pool=cr2OnsetFromIrm(irmPool,lead);
   const rows=[
     ["BAT IRM (from rand)",irmBat!=null?irmBat.toFixed(1)+" m":"—",'10 mo (<a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">CW anchor</a>)',irmBat!=null?(irmBat-10).toFixed(1)+" m":""],
-    ["TRUE CR2-onset BAT mOS",trueBat!=null?trueBat.toFixed(1)+" m":"—",'~8–11 mo (<a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">Stahl 2021</a> · <a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Kurosawa 2010</a>)',""],
+    ["Implied CR2-onset BAT mOS",cr2Bat!=null?cr2Bat.toFixed(1)+" m":"—",'~8–11 mo (<a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">Stahl 2021</a> · <a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">Kurosawa 2010</a>)',"IRM − "+lead.toFixed(1)+" m"],
+    ["GPS IRM (from rand)",irmGps!=null?irmGps.toFixed(1)+" m":"—","—",""],
+    ["Implied CR2-onset GPS mOS",cr2Gps!=null?cr2Gps.toFixed(1)+" m":"—","—","IRM − "+lead.toFixed(1)+" m"],
     ["Pooled IRM",irmPool!=null?irmPool.toFixed(1)+" m":"—",CW_REF.pool+" mo",irmPool!=null?(irmPool-CW_REF.pool).toFixed(1)+" m":""],
+    ["Implied CR2-onset pooled mOS",cr2Pool!=null?cr2Pool.toFixed(1)+" m":"—","—","IRM − "+lead.toFixed(1)+" m"],
     ["HR @ m58",isNaN(hr)?"—":hr.toFixed(2),CW_REF.hr.toFixed(2),isNaN(hr)?"":(hr-CW_REF.hr).toFixed(2)],
-    ["BAT 3-yr OS",bat3.toFixed(0)+"%",CW_REF.bat3+"%",(bat3-CW_REF.bat3).toFixed(0)+"pp"],
+    ["BAT 3-yr OS (from-rand clock)",bat3.toFixed(0)+"%",CW_REF.bat3+"% · literature clock not remapped",(bat3-CW_REF.bat3).toFixed(0)+"pp"],
     ["BAT alive @ m63",batA.toFixed(1),CW_REF.batAlive,(batA-CW_REF.batAlive).toFixed(1)],
     ["GPS alive @ m63",gpsA.toFixed(1),CW_REF.gpsAlive,(gpsA-CW_REF.gpsAlive).toFixed(1)]
   ];
-  $("irmBody").innerHTML=rows.map(r=>{const d=r[3];const cls=d&&parseFloat(d)>0?"pos":(d&&parseFloat(d)<0?"neg":"");
+  const body=$("irmBody");if(!body)return;
+  body.innerHTML=rows.map(r=>{const d=r[3];const cls=d&&parseFloat(d)>0?"pos":(d&&parseFloat(d)<0?"neg":"");
     return "<tr><td>"+r[0]+"</td><td><b>"+r[1]+"</b></td><td>"+r[2]+"</td><td class='irm-delta "+cls+"'>"+(d||"—")+"</td></tr>";}).join("");
 }
-on("irm_lead","input",()=>{if(panelOpen("panelIRM"))renderIRM();});
+on("irm_lead","input",()=>{
+  // Display-only: refresh IRM/CR2-onset labels without re-solving events.
+  const p=readParams();
+  renderLeadTimeSensitivity(medianOf(sBAT,p),medianOf(sGPS,p),medianOf(poolS,p));
+  if(!restoringState)updateHashQuiet();
+});
 
 // ================= T80 SIMULATOR (#5) =================
 function runT80Sim(){
@@ -1705,7 +1743,8 @@ const EXPL={
   "<p><b>REGAL design &amp; estimand.</b> Phase 3, open-label, 1:1 randomized, event-driven OS trial (N=127 actual; ~63/arm), AML CR2/CRp2, transplant-ineligible at entry (<a href='https://clinicaltrials.gov/study/NCT04229979' target='_blank'>NCT04229979</a>). Primary: ITT OS, stratified unweighted Cox/log-rank at 80 deaths; win if HR &lt; 0.636 (one-sided α=0.025). One interim at 60 deaths under Lan-DeMets O'Brien-Fleming α-spending (<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/' target='_blank'>Jamy &amp; Cicic 2025</a>). BAT options: observation, HMA, venetoclax, LDAC — physician's choice. GPS: up to 15 injections over ~18 months.</p>"+
   "<p><b>Non-identifiability from blinded pooled counts.</b> Public data: N_D(t) at t ∈ {m46, m58, m63, m65} plus interim continuation. N_D = f(½(S_GPS + S_BAT)) — the map (S_GPS, S_BAT) ↦ N_D is many-to-one. Arm-level HR is not identifiable without the split or strong structural assumptions. Ridge pathology: mixture-cure GPS (Boag 1949) vs heterogeneous BAT long-tail (Weibull + plateau) can fit identical pooled event trajectories — Bayes factors collapse toward 1 because the data lack discriminating power along that ridge. Any point HR estimate imports priors; we report an approximate-Bayesian posterior (ABC: Beaumont et al. 2002). Tab 1 offers two directions: <b>direct parameterization</b> (set curves → check events) and <b>anchor-constrained inversion</b> (anchor events + GPS cure fraction → derive implied mOS/HR).</p>"+
   "<p><b>Monte Carlo / likelihood.</b> Sample survival priors (GPS: delayed mixture-cure; BAT: Weibull + long-survivor fraction; ITT transplant crossover ~6% per arm; censoring ~12%), simulate enrollment (back-loaded S-curve: 105 pts by Nov 2023, N=127 by Apr 2024), weight each draw by Poisson likelihood on event increments (60, +12, +6, P(Δ≤1 at m65)). Soft-weight interim continuation: P(continue) = Φ(z_eff − θ_IA) − Φ(z_fut − θ_IA); score win via conditional power with Brownian correlation ρ = √(60/80) (Jennison &amp; Turnbull 2000).</p>"+
-  "<p><b>Interim inference &amp; power arithmetic.</b> OBF interim Z ≈ 2.34 ⇒ early-stop HR ≲ 0.55; IDMC continued (Jan 2025, <a href='https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html' target='_blank'>PR</a>). Schoenfeld: D = (z_α + z_β)² / [r(1−r)(ln HR)²] — 90% power at HR 0.636 needs ~205 events; at 80 events, 0.636 is the ~50%-power MDE, not the design alternative (~HR 0.48 for 90%). Lead-time bias: ≤6-mo CR2→randomization + &gt;6-mo life-expectancy entry inflates from-randomization medians ~1–3 mo vs from-CR2 literature (Suissa 2008, immortal time) — shifts absolute medians, not HR under proportional hazards.</p>"+
+  "<p><b>Interim inference &amp; power arithmetic.</b> OBF interim Z ≈ 2.34 ⇒ early-stop HR ≲ 0.55; IDMC continued (Jan 2025, <a href='https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html' target='_blank'>PR</a>). Schoenfeld: D = (z_α + z_β)² / [r(1−r)(ln HR)²] — 90% power at HR 0.636 needs ~205 events; at 80 events, 0.636 is the ~50%-power MDE, not the design alternative (~HR 0.48 for 90%).</p>"+
+  "<p><b>Lead-time / left-truncation sensitivity (display only).</b> REGAL requires CR2→randomization ≤6 mo and &gt;6 mo life expectancy — a positively selected cohort. The model’s primary clock is <b>from randomization</b> (IRM): event anchors, chart, and verdict use that clock only. The CR2→rand lead-time slider (0–6 mo, default 3) maps IRM medians to implied CR2-onset mOS ≈ max(0, IRM − lead) for comparison with Stahl/Kurosawa literature; it does <b>not</b> change eventsAt, passesVerdict, chart fit, or relax IA non-stop (<a href='https://academic.oup.com/aje/article/167/4/492/233064' target='_blank'>Suissa 2008</a>; <a href='https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/' target='_blank' rel='noopener'>CW IRM</a>). Under PH, HR is invariant to a common lead-time shift.</p>"+
   "<p><b>Control-arm priors &amp; tension.</b> Kurosawa (<a href='https://haematologica.org/article/view/5781' target='_blank'>Haematologica 2010</a>): 158 relapsed / no-HCT / survived ≥2 mo (not pure CR2), whole-cohort 3-yr OS 14% — CR2/no-HCT subgroups higher (intermediate ~19%, unfavorable ~35%, favorable ~50–78%). QUAZAR placebo mOS 14.8 mo (<a href='https://www.onuregpro.com/efficacy' target='_blank'>CR1, healthier population</a>) caps implausible BAT medians. Fitting 60/72/78 while respecting no early stop tends to push BAT long-tail fraction upward — tension with biology unless interim was non-binding or enrolled cohort is favorable. Nov 2022 blinded update: pooled mOS ~2× design assumption (<a href='https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html' target='_blank'>PR</a>) — corroborates high pooled survival, not GPS efficacy.</p>"+
   "<p><b>SLS-009.</b> Tambiciclib (GFH009), selective CDK9i licensed from GenFleet. Single-arm Ph2 + Aza/Ven, post-Ven r/r AML-MR (<a href='https://www.sec.gov/Archives/edgar/data/1390478/000139047826000004/sls-202603198xkexhibit991.htm' target='_blank'>SEC 8-K</a>): n=35 evaluable, ORR 46% (CR/CRi/MLFS), 29% CR/CRi; 1-prior-line ORR 58%, mOS NR; least-pretreated mOS 8.9 vs ~2.6 expected. ASXL1/TP53 responses 48%/57%. Frontline expansion dosed (80-pt trial). Model includes hypothetical Ph3 vs Aza/Ven (VIALE-A: mOS 14.7 mo, HR 0.66). Single-arm historical comparison lacks randomization — selection bias and temporal confounding are real limits.</p>"+
   "<p><b>Valuation framework.</b> Steady-state treated prevalence = annual starts × penetration × mean duration on therapy; peak revenue = prevalence × net price. EV = Σ(peak × multiple) + risk-adjusted WT1 platform (GPS follow-ons in ovarian/mesothelioma per <a href='https://s203.q4cdn.com/139585304/files/doc_presentations/2026/Feb/03/Sellas-Corporate-Overview-February-2026.pdf' target='_blank'>corp deck</a>); multiples 4–8× peak (oncology convention). Risk-adjust by P(approval) user priors (default P(GPS)≈65%, P(SLS)≈55%) — separate from Tab 1 neutral-prior MC P(win) (~50–78%) and from biology-first point P(win). Comps: Venclexta ~$2.6B ('24); Gilead–Forty Seven ~$4.9B for magrolimab pre-approval (<a href='https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm' target='_blank'>SEC</a>, Ph3 discontinued 2023); Onureg modest uptake despite QUAZAR win (sales bundled in BMS SEC). TAM pools (CR2 ~3K, CR1 ~6K/yr) are CW community estimates. SELLAS: $107.1M cash Mar 2026; basic outstanding ~181.3M vs FD modeled ~222M; ATM $150M unused. Equity $/sh = (EV + cash) / FD shares. Buyout EV ≠ realized peak.</p>"+
@@ -1714,6 +1753,7 @@ const EXPL={
   "<p><b>REGAL — trial architecture.</b> Event-driven ITT OS, N=127, 1:1, 80-death final (78 as of 11 May 2026 per <a href='https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html' target='_blank'>Q1 2026 PR</a>), one IA at 60 deaths under Lan-DeMets OBF (<a href='https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/' target='_blank'>Jamy &amp; Cicic 2025</a>: <i>'A Lan-DeMets alpha spending function of O'Brien-Fleming type will be used…'</i>). Primary: stratified unweighted Cox/log-rank, α=0.025 one-sided, HR&lt;0.636 to win (final Z≈2.01). Schoenfeld check: 0.636 is ~50%-power MDE at 80 events; ~90%-power alternative ≈ HR 0.48. Open-label BAT (observation/HMA/Ven/LDAC) — physician's choice confounds cross-arm BAT homogeneity but is ITT-consistent.</p>"+
   "<p><b>Why posterior, not point estimate.</b> 60/72/78 are blinded pooled events ⇒ arm split non-identifiable. <b>Best Available Guess ★</b> is biology-first (42% GPS cure, cw42 inverse) → readout HR ~0.26, not a neutral anchor fit (~0.47). ABC posterior: sample priors on GPS (delayed mixture-cure, Phase 2 CR2 mOS 16.3 mo [<a href='https://pubmed.ncbi.nlm.nih.gov/?term=Brayer+WT1+vaccination+AML+MDS+pilot+synthetic+analog+peptides' target='_blank'>Brayer 2015</a>, n=10, no plateau] vs CR1 ~47% 3-yr plateau), BAT (Weibull k + long-tail; Kurosawa whole-cohort no-HCT 3-yr OS 14%, CR2 subgroups higher [<a href='https://haematologica.org/article/view/5781' target='_blank'>Haematologica 2010</a>]; ven-era salvage 8–12m [<a href='https://pubmed.ncbi.nlm.nih.gov/33661271/' target='_blank'>Stahl 2021</a>]), ITT transplant tail (~6%/arm), censoring (~12%). Weight by Poisson likelihood on increments (60, +12, +6, P(Δ≤1)). Interim: soft-weight P(continue); score via conditional power with ρ=√(t_IA/t_F) — power-neutral, banks early wins vs crude hard cliff. Significance: stratified log-rank U/√V with optional FH(0,1) late-effect weighting (penalizes delayed GPS separation under NPH).</p>"+
   "<p><b>Posterior &amp; sensitivity.</b> <b>Neutral-prior MC</b> → median HR ~0.57, P(win) ~50% (binding interim) to ~78% (non-binding) — that band is <em>not</em> the biology-first Best Available Guess point (same survival params as bind/nonbind presets; point P(win) high / ~100%). Biological BAT-tail ceiling (Kurosawa) nudges toward win, but event-fit + lead-time selection push BAT tail up — strong-favorite coin under neutral priors, not lock. Independent pooled-survival corroboration: Nov 2022 PR (<i>'approximately two-fold longer than originally anticipated'</i>). Critique thread (uhdisj41): BF inflated vs no-cure null; along GPS-cure ↔ BAT-heterogeneity ridge, BF→1 — honest. Interim non-crossing (OBF Z_eff≈2.34) truncates ultra-low-HR mass; biology-first implies interim HR below the stop bar while the trial continued (non-binding IA, model overstatement at IA, or both). 66 treatment discontinuations (Mar 2024) are relapse-driven, not OS censoring (<a href='https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html' target='_blank'>enrollment PR</a>).</p>"+
+  "<p><b>Lead-time / IRM layer.</b> Primary estimand remains ITT OS from randomization. The lead-time slider (0–6 mo, default 3) is a <b>sensitivity display</b>: IRM = model from-rand medians (BAT/GPS/pooled); implied CR2-onset ≈ max(0, IRM − lead). It does not re-fit events, change isBiologicallyPlausible, or reinterpret the IA non-stop. Use it to reconcile REGAL-report medians with from-CR2 literature clocks (Suissa left-truncation; CW IRM tables).</p>"+
   "<p><b>SLS-009 — clinical &amp; commercial.</b> Selective CDK9i (tambiciclib/GFH009, GenFleet license). Single-arm Ph2 + Aza/Ven, post-Ven r/r AML-MR (<a href='https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx' target='_blank'>ASH 2025</a>; <a href='https://www.sec.gov/Archives/edgar/data/1390478/000139047826000004/sls-202603198xkexhibit991.htm' target='_blank'>SEC 8-K</a>): ORR 46–58% by line, mOS 8.9 vs ~2.6 historical (least pretreated), ASXL1/TP53 activity. Frontline 80-pt Ph2 initiated. Value driver: hypothetical Ph3 vs Aza/Ven (VIALE-A mOS 14.7, HR 0.66 [<a href='https://pubmed.ncbi.nlm.nih.gov/32023337/' target='_blank'>DiNardo, NEJM 2020</a>]). r/r signal ≠ randomized win — model it separately. P(approval) and peak-sales assumptions are user-adjustable priors.</p>"+
   "<p><b>Valuation — comps &amp; caveats.</b> Prevalence model: starts × penetration × duration → peak × price. EV = Σ peak × multiple (4–8× onc convention) + risk-adjusted WT1 platform (Cheever 2009 [<a href='https://pubmed.ncbi.nlm.nih.gov/19723653/' target='_blank'>PubMed</a>]; GPS ovarian/meso follow-ons per <a href='https://s203.q4cdn.com/139585304/files/doc_presentations/2026/Feb/03/Sellas-Corporate-Overview-February-2026.pdf' target='_blank'>corp deck</a>). Comps: Venclexta ~$2.6B '24; Gilead–Forty Seven ~$4.9B magrolimab (<a href='https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm' target='_blank'>SEC</a>, Ph3 discontinued 2023); Onureg QUAZAR-positive but BMS bundles revenue (~$1.6B Other Growth group, no Onureg breakout). Regor ~$850M CDK deal cited in community as early M&amp;A anchor. P(GPS)/P(SLS) defaults are user priors (not Tab 1 neutral-prior MC band, not biology-first point P(win)). Cash $107M Mar 2026; basic outstanding ~181.3M (Q1 2026) vs FD modeled ~222M; dilution 90M→181M+ YoY. Equity $/sh = (EV + cash) / FD shares. TAM splits are DD estimates — stress-test in Tab 3 panels.</p>"+
   "<p><b>Positioning summary.</b> REGAL: real benefit more likely than not on event pace, but magnitude unidentifiable pre-unblind. Biology-first Best Available Guess (42% cure, cw42 inverse): readout HR ~0.26 — clear win if structural assumptions hold. Neutral-anchor ridge fits ~0.45–0.64 remain plausible under identifiability. SLS-009: compelling single-arm signal, needs Ph3. Valuation: wide CrI by design — not a price target.</p>",

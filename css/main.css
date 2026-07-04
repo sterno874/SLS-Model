@@ -275,6 +275,7 @@
   .irm-inp{width:56px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums}
   .irm-delta{font-size:10px;color:var(--muted)}
   .irm-delta.pos{color:var(--good)}.irm-delta.neg{color:var(--bad)}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35}
   .preset-cmp{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0;font-variant-numeric:tabular-nums}
   .preset-cmp th,.preset-cmp td{border:1px solid var(--line);padding:var(--space-sm) var(--space-md);text-align:right}
   .preset-cmp th{text-align:left;background:#f4f6f8;font-weight:600;position:sticky;top:0}

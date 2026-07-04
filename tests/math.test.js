@@ -26,7 +26,13 @@ import {
   batcFor3yrCap,
   Tfor,
   fmtCalMonth,
-  monthToDate
+  monthToDate,
+  DEFAULT_IRM_LEAD,
+  cr2OnsetFromIrm,
+  medianOf,
+  sGPS,
+  poolS,
+  isBiologicallyPlausible
 } from "../js/math/survival.js";
 import { computeFrozenBestEst } from "../js/ui/state.js";
 import { mk, T1, poisLL, poisLogLThrough } from "./helpers.js";
@@ -238,4 +244,40 @@ test("hazardRatio returns NaN for degenerate exposure", () => {
   const tiny = mk({ bat: 0.01, batc: 0.99, gpsc: 0.99, gpsu: 0.01, delay: 99, xtx: 0, cens: 0 });
   const hr = hazardRatio(T1, tiny);
   assert.ok(Number.isNaN(hr) || hr > 0);
+});
+
+test("cr2OnsetFromIrm: max(0, IRM − lead); default lead is 3", () => {
+  assert.equal(DEFAULT_IRM_LEAD, 3);
+  assert.equal(cr2OnsetFromIrm(13, 3), 10);
+  assert.equal(cr2OnsetFromIrm(13, 0), 13);
+  assert.equal(cr2OnsetFromIrm(13, 6), 7);
+  assert.equal(cr2OnsetFromIrm(2, 6), 0);
+  assert.equal(cr2OnsetFromIrm(null, 3), null);
+});
+
+test("lead-time is display-only: does not change eventsAt / passesVerdict / biology", () => {
+  const p = mk({});
+  const e46 = eventsAt(T1, p);
+  const e58 = eventsAt(T2, p);
+  const e63 = eventsAt(T3, p);
+  const verdict = passesVerdict(p);
+  const bio = isBiologicallyPlausible(p);
+  const irmBat = medianOf(sBAT, p);
+  const irmGps = medianOf(sGPS, p);
+  const irmPool = medianOf(poolS, p);
+  // Lead-time mapping is pure display math — survival params unchanged.
+  for (const lead of [0, 0.5, 3, 6]) {
+    assert.equal(eventsAt(T1, p), e46);
+    assert.equal(eventsAt(T2, p), e58);
+    assert.equal(eventsAt(T3, p), e63);
+    assert.equal(passesVerdict(p), verdict);
+    assert.equal(isBiologicallyPlausible(p), bio);
+    assert.equal(cr2OnsetFromIrm(irmBat, lead), Math.max(0, irmBat - lead));
+    assert.equal(cr2OnsetFromIrm(irmGps, lead), Math.max(0, irmGps - lead));
+    assert.equal(cr2OnsetFromIrm(irmPool, lead), Math.max(0, irmPool - lead));
+  }
+  assert.ok(verdict && bio, "best-like defaults should fit events and biology");
+  // Example for best: IRM BAT ~13-ish component median; CR2-onset at lead=3 is IRM−3
+  assert.ok(irmBat != null && irmBat > 10 && irmBat <= 15);
+  assert.ok(Math.abs(cr2OnsetFromIrm(irmBat, 3) - (irmBat - 3)) < 1e-9);
 });
