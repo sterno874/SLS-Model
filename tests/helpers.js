@@ -22,7 +22,7 @@ export function mk(p = {}) {
       batc: 0,
       batk: 1,
       gpsc: 0.42,
-      gpsu: 54.1,
+      gpsu: 47.5,
       delay: 3,
       xtx: 0,
       cens: 0,

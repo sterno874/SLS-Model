@@ -158,7 +158,7 @@ test("milestone LL truncated @ m46 excludes later increments", () => {
 });
 
 test("CW forward preset HR < 0.636", () => {
-  const cwPreset = mk({ bat: 9, batc: 0.06, gpsc: 0.41, gpsu: 35.5, delay: 0, xtx: 0, cens: 0 });
+  const cwPreset = mk({ bat: 10.5, batc: 0.01, gpsc: 0.41, gpsu: 35.5, delay: 0, xtx: 0, cens: 0 });
   assert.ok(hazardRatio(T2, cwPreset) < 0.636);
 });
 
@@ -219,14 +219,14 @@ test("hrGaugeState: final row uses readout HR, not m58 when cutoff differs", () 
 });
 
 test("bear preset fits anchors and HR near threshold", () => {
-  const bearPreset = mk({ bat: 10.5, batc: 0.16, gpsc: 0.14, gpsu: 30, delay: 2, xtx: 0.08, cens: 0.10 });
+  const bearPreset = mk({ bat: 10, batc: 0.16, gpsc: 0.14, gpsu: 29, delay: 2, xtx: 0.08, cens: 0.10 });
   const hr = hazardRatio(T2, bearPreset);
   assert.ok(passesVerdict(bearPreset));
   assert.ok(hr >= 0.54 && hr < 0.636);
 });
 
-test("header best-est defaults: GPS readout HR ~0.246 (cw42 biology-first preset)", () => {
-  assert.ok(Math.abs(computeFrozenBestEst().gpsHr - 0.246) < 0.02);
+test("header best-est defaults: GPS readout HR ~0.262 (cw42 biology-first preset)", () => {
+  assert.ok(Math.abs(computeFrozenBestEst().gpsHr - 0.262) < 0.02);
 });
 
 test("fmtCalMonth and monthToDate agree", () => {

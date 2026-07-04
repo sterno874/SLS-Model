@@ -60,8 +60,12 @@ test("cw preset HR below win threshold", () => {
 test("default best preset passes verdict (full trajectory match)", () => {
   const p = paramsFromPresetQ(P.best);
   assert.ok(passesVerdict(p), "best preset should pass verdict at m46/m58/m63");
+  assert.ok(isBiologicallyPlausible(p), "best preset should pass biological BAT caps");
   const e3 = eventsAt(T3, p);
   assert.ok(Math.abs(e3 - E3) <= 3, `e63 ${e3} should be within ±3 of 78`);
+  // e65 must sit comfortably inside [77,80) — old gpsu=54.1 landed at 77.11 and froze the chart
+  const e65 = eventsAt(65, p);
+  assert.ok(e65 >= 77.5 && e65 < 79.5, `e65 ${e65} should have margin inside [77,80)`);
 });
 
 for (const name of INVERSE_PRESET_NAMES) {

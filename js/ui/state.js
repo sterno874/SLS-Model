@@ -47,7 +47,7 @@ export const DEFAULT_STATE = {
   activeValPreset: "best",
   embed: false,
   gps: {
-    bat: 13, batc: 0, batk: 1, gpsc: 42, gpsu: 54.1, delay: 3, xtx: 0,
+    bat: 13, batc: 0, batk: 1, gpsc: 42, gpsu: 47.5, delay: 3, xtx: 0,
     cens: 0, mid: 25, k: 0.15, batcap: 14, autofit: false, fhTest: false,
     stratF: 0.9, zfut: 0.4, mcFloor: true, cutoff: 72
   },
@@ -68,14 +68,14 @@ export const DEFAULT_STATE = {
 // build the encode/decode baseline; drift only lengthens links, never corrupts
 // them (both sides use these same tables).
 export const SHARE_P = {
-  best:    { bat: 13, batc: 0, gpsc: 42, gpsu: 54.1, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  bind:    { bat: 13, batc: 0, gpsc: 42, gpsu: 54.1, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  nonbind: { bat: 13, batc: 0, gpsc: 42, gpsu: 54.1, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false },
-  critique:{ bat: 9,   batc: 16, gpsc: 18, gpsu: 33,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 6, cens: 12, mcFloor: true },
-  bull:    { bat: 8,   batc: 6,  gpsc: 40, gpsu: 36,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
-  bear:    { bat: 10.5,batc: 16, gpsc: 14, gpsu: 30,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
-  cw:      { bat: 9,   batc: 6,  gpsc: 41, gpsu: 35.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
-  capbreach:{ bat: 11, batc: 20, gpsc: 12, gpsu: 28,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
+  best:    { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
+  bind:    { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
+  nonbind: { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false },
+  critique:{ bat: 10.5, batc: 12, gpsc: 18, gpsu: 30.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 6, cens: 12, mcFloor: true },
+  bull:    { bat: 10,  batc: 1,  gpsc: 40, gpsu: 38,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
+  bear:    { bat: 10,  batc: 16, gpsc: 14, gpsu: 29,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
+  cw:      { bat: 10.5,batc: 1,  gpsc: 41, gpsu: 35.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
+  capbreach:{ bat: 10.5, batc: 21, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
   noeffect:{ bat: 14,  batc: 28, gpsc: 28, gpsu: 14,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: true }
 };
 export const SHARE_INV = {

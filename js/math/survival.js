@@ -93,7 +93,9 @@ function autofitCure(p){const test=c=>eventsAt(T2,Object.assign({},p,{gpsc:c}));
 function eventErr(p){
   const e1=eventsAt(T1,p,110),e2=eventsAt(T2,p,110),e3=eventsAt(T3,p,110),e4=eventsAt(T4,p,110);
   const pm=medianOf(poolS,p);
-  let err=Math.pow(e1-E1,2)+Math.pow(e2-E2,2)+Math.pow(e3-E3,2)+Math.max(0,e4-79.5)*400;
+  // Penalize both sides of the e65 window [77,80) — old solver only punished e4>79.5 and
+  // could land on e65≈77.1 (razor-thin margin that breaks under slider step snap).
+  let err=Math.pow(e1-E1,2)+Math.pow(e2-E2,2)+Math.pow(e3-E3,2)+Math.max(0,e4-79.5)*400+Math.max(0,77-e4)*400;
   if(pm!==null&&pm<13.5)err+=Math.pow(13.5-pm,2)*8;
   return err;
 }
@@ -111,18 +113,21 @@ function batcFor3yrCap(p,bat,target3yr){
   for(let i=0;i<28;i++){const m=(lo+hi)/2,c=Object.assign({},p,{bat,batc:m});if(sBAT(36,c)*100>target3yr)hi=m;else lo=m;}
   return (lo+hi)/2;
 }
+// Joint (BAT mOS, GPS uncured) grid — do NOT pin e58 exactly via gpsu bisect; that forced
+// e63/e65 onto the tolerance floor (e65≈77.1) so default/best failed under tiny perturbations.
 function inverseSolve(base, cap3){
   const p=Object.assign({},base);
-  const batcMax=batcFor3yrCap(p,p.bat||8,cap3);
   let best=null,bestErr=1e9;
   for(let bat=6;bat<=14.01;bat+=0.25){
-    const batc=Math.min(batcMax,batcFor3yrCap(p,bat,cap3));
-    const trial=Object.assign({},p,{bat,batc});
-    const gpsu=bisectField(trial,"gpsu",q=>eventsAt(T2,q,100),E2,8,55);
-    if(gpsu===null)continue;
-    trial.gpsu=gpsu;
-    const err=eventErr(trial);
-    if(err<bestErr){bestErr=err;best=Object.assign({},trial);}
+    const zeroTail=Object.assign({},p,{bat,batc:0});
+    // ~1pp slack: bat=13 / batc=0 yields ~14.7% 3-yr OS under a nominal 14% cap
+    if(sBAT(36,zeroTail)*100>cap3+1)continue;
+    const batc=batcFor3yrCap(p,bat,cap3);
+    for(let gpsu=8;gpsu<=60.01;gpsu+=0.25){
+      const trial=Object.assign({},p,{bat,batc,gpsu});
+      const err=eventErr(trial);
+      if(err<bestErr){bestErr=err;best=Object.assign({},trial);}
+    }
   }
   if(!best)return{sol:null,err:bestErr,reason:"No (BAT, GPS uncured) pair fits the anchored events with BAT 3-yr OS ≤ "+cap3+"%. Try raising the cap or lowering cure fraction."};
   return{sol:best,err:bestErr};

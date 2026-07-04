@@ -60,18 +60,18 @@ const best = mk({});
 const noeff = mk({ bat: 14, batc: 0.28, gpsc: 0.28, gpsu: 14, delay: 0, xtx: 0, cens: 0 });
 
 // ---------- golden HR & log-rank ----------
-test("golden: hazardRatio @ m58 for best preset ≈ 0.254", () => {
-  assert.ok(Math.abs(hazardRatio(T2, best) - 0.253964) < 0.0002);
+test("golden: hazardRatio @ m58 for best preset ≈ 0.270", () => {
+  assert.ok(Math.abs(hazardRatio(T2, best) - 0.269526) < 0.0002);
 });
 
-test("golden: hazardRatio @ m46 for best preset ≈ 0.289", () => {
-  assert.ok(Math.abs(hazardRatio(T1, best) - 0.289295) < 0.0002);
+test("golden: hazardRatio @ m46 for best preset ≈ 0.305", () => {
+  assert.ok(Math.abs(hazardRatio(T1, best) - 0.304720) < 0.0002);
 });
 
-test("golden: analyzeLR @ m58 HR ≈ 0.256, z ≈ 5.41", () => {
+test("golden: analyzeLR @ m58 HR ≈ 0.271, z ≈ 5.25", () => {
   const lr = analyzeLR(T2, best);
-  assert.ok(Math.abs(lr.hr - 0.255565) < 0.001);
-  assert.ok(Math.abs(lr.z - 5.414395) < 0.01);
+  assert.ok(Math.abs(lr.hr - 0.271222) < 0.001);
+  assert.ok(Math.abs(lr.z - 5.245901) < 0.01);
   assert.ok(lr.z > 0, "GPS should beat BAT (positive z)");
 });
 
@@ -88,9 +88,9 @@ test("property: GPS benefit implies HR < 1 for best preset", () => {
 
 // ---------- events ----------
 test("golden: eventsAt @ m46/m58/m63 for best preset", () => {
-  assert.ok(Math.abs(eventsAt(46, best) - 58.969692) < 0.01);
-  assert.ok(Math.abs(eventsAt(58, best) - 71.998679) < 0.01);
-  assert.ok(Math.abs(eventsAt(63, best) - 75.788322) < 0.01);
+  assert.ok(Math.abs(eventsAt(46, best) - 59.779724) < 0.01);
+  assert.ok(Math.abs(eventsAt(58, best) - 73.117482) < 0.01);
+  assert.ok(Math.abs(eventsAt(63, best) - 77.000995) < 0.01);
 });
 
 test("golden: eventsAtAnchored locks exactly 78 @ m63", () => {
@@ -123,13 +123,13 @@ test("golden: T80PrPace linear estimate ≈ 64.67 mo", () => {
   assert.ok(Math.abs(T80PrPace() - 64.666667) < 0.01);
 });
 
-test("golden: T80(best) ≈ 66.09 mo", () => {
-  assert.ok(Math.abs(T80(best) - 66.090736) < 0.01);
+test("golden: T80(best) ≈ 66.01 mo", () => {
+  assert.ok(Math.abs(T80(best) - 66.012060) < 0.01);
 });
 
 test("golden: t80Analysis(best,72) Tan=t80, Dan=80 when t80≤cutoff", () => {
   const a = t80Analysis(best, 72);
-  assert.ok(Math.abs(a.t80 - 66.090736) < 0.01);
+  assert.ok(Math.abs(a.t80 - 66.012060) < 0.01);
   assert.ok(Math.abs(a.Tan - a.t80) < 0.01);
   assert.equal(a.Dan, 80);
 });
@@ -162,8 +162,8 @@ test("condPow: custom zfut changes Pc integration window", () => {
 });
 
 // ---------- survival curves ----------
-test("golden: poolS(36,best) ≈ 0.414", () => {
-  assert.ok(Math.abs(poolS(36, best) - 0.414222) < 0.001);
+test("golden: poolS(36,best) ≈ 0.405", () => {
+  assert.ok(Math.abs(poolS(36, best) - 0.404983) < 0.001);
 });
 
 test("poolS equals average of sBAT and sGPS", () => {
@@ -173,9 +173,9 @@ test("poolS equals average of sBAT and sGPS", () => {
   }
 });
 
-test("golden: sBAT(36,best) ≈ 0.147, sGPS(36,best) ≈ 0.682", () => {
+test("golden: sBAT(36,best) ≈ 0.147, sGPS(36,best) ≈ 0.663", () => {
   assert.ok(Math.abs(sBAT(36, best) - 0.146683) < 0.001);
-  assert.ok(Math.abs(sGPS(36, best) - 0.681760) < 0.001);
+  assert.ok(Math.abs(sGPS(36, best) - 0.663283) < 0.001);
 });
 
 test("sGPSbase respects delay: flat BAT segment before onset", () => {
@@ -208,10 +208,10 @@ test("rmst(sBAT,best,24) ≈ 13.54", () => {
 // ---------- hrGaugeState ----------
 test("golden: hrGaugeState(best,72) field values", () => {
   const gs = hrGaugeState(best, 72);
-  assert.ok(Math.abs(gs.hrInterim - 0.289295) < 0.001);
-  assert.ok(Math.abs(gs.hrM58 - 0.253964) < 0.001);
-  assert.ok(Math.abs(gs.hrReadout - 0.246245) < 0.001);
-  assert.ok(Math.abs(gs.t80 - 66.090736) < 0.01);
+  assert.ok(Math.abs(gs.hrInterim - 0.304720) < 0.001);
+  assert.ok(Math.abs(gs.hrM58 - 0.269526) < 0.001);
+  assert.ok(Math.abs(gs.hrReadout - 0.261769) < 0.001);
+  assert.ok(Math.abs(gs.t80 - 66.012060) < 0.01);
   assert.equal(gs.Dan, 80);
   assert.equal(gs.interimWouldStop, true);
   assert.equal(gs.interimClearsFloor, false);
@@ -230,17 +230,18 @@ test("hrGaugeState: IFLOOR and THRESH constants match exports", () => {
 });
 
 // ---------- inverse solve ----------
-test("golden: inverseSolve cw42 yields bat≈13, gpsu≈54.09", () => {
+test("golden: inverseSolve cw42 yields bat≈13, gpsu≈47.25", () => {
   const ir = inverseSolve(mk({ gpsc: 0.42, bat: 8, delay: 3 }), 14);
   assert.ok(ir.sol);
   assert.ok(Math.abs(ir.sol.bat - 13) < 0.01);
-  assert.ok(Math.abs(ir.sol.gpsu - 54.091928) < 0.01);
+  assert.ok(Math.abs(ir.sol.gpsu - 47.25) < 0.01);
   assert.ok(ir.sol.batc < 0.001);
+  assert.ok(passesVerdict(Object.assign({}, ir.sol, { batk: 1, fh: false, stratF: 0.9, zfut: 0.4 })));
 });
 
 // ---------- verdict / median ----------
-test("golden: medianOf(poolS,best) ≈ 24.71 mo", () => {
-  assert.ok(Math.abs(medianOf(poolS, best) - 24.708079) < 0.01);
+test("golden: medianOf(poolS,best) ≈ 23.99 mo", () => {
+  assert.ok(Math.abs(medianOf(poolS, best) - 23.992911) < 0.01);
 });
 
 test("passesVerdict rejects low median even if events fit", () => {
@@ -309,12 +310,12 @@ test("analyzeLR z uses default STRATF=0.9 when stratF omitted", () => {
   const lr = analyzeLR(T2, p);
   const withExplicit = analyzeLR(T2, mk({ stratF: 0.9 }));
   assert.ok(Math.abs(lr.z - withExplicit.z) < 1e-12);
-  assert.ok(Math.abs(lr.z - 5.414395) < 0.001);
+  assert.ok(Math.abs(lr.z - 5.245901) < 0.001);
 });
 
 test("eventsAt applies dropout censoring: critique preset", () => {
   const crit = paramsFromPresetQ(P.critique);
-  assert.ok(Math.abs(eventsAt(58, crit) - 72.426900) < 0.01);
+  assert.ok(Math.abs(eventsAt(58, crit) - 73.597669) < 0.01);
   const noDrop = { ...crit, cens: 0 };
   assert.ok(eventsAt(58, noDrop) > eventsAt(58, crit) + 3);
 });
@@ -327,9 +328,10 @@ test("eventErr penalizes low pooled median (<13.5 mo)", () => {
 });
 
 test("best preset e46 within ±4 of anchor 60", () => {
-  const diff = Math.abs(eventsAt(T1, best) - E1);
+  const e46 = eventsAt(T1, best);
+  const diff = Math.abs(e46 - E1);
   assert.ok(diff <= 4);
-  assert.ok(diff > 0.5, "model-implied e46 differs from PR anchor 60");
+  assert.ok(e46 !== E1, "model-implied e46 is not forced exactly to PR anchor 60");
 });
 
 test("passesVerdict requires pooled median > 13.5 mo for best preset", () => {

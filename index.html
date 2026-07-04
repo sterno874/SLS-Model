@@ -172,7 +172,7 @@
     <div class="pgrp" id="presetInvGrp" data-regal-mode="inverse" hidden>Inverse anchor-locked</div>
     <div class="pgrp-hint" id="presetInvHint" data-regal-mode="inverse" hidden>Mandatory: fit 60/72/78. Sweep GPS cure fraction (cw35/cw42/cw50); implied medians and HR are derived — CW inverse methodology.</div>
     <div class="presets" id="presetInv" data-regal-mode="inverse" hidden>
-      <button class="p p-def" data-inv="cw42" data-regal-mode="inverse" title="CW bullish GPS cure anchor: 42% cure, BAT 3-yr OS capped at Kurosawa ~14%, 3-mo onset delay. Derives BAT mOS ~13m, HR ~0.25.">GPS 42% cure (CW inverse)<span class="p-sub">42% cure · Kurosawa cap · derive mOS</span></button>
+      <button class="p p-def" data-inv="cw42" data-regal-mode="inverse" title="CW bullish GPS cure anchor: 42% cure, BAT 3-yr OS capped at Kurosawa ~14%, 3-mo onset delay. Derives BAT mOS ~13m, HR ~0.26.">GPS 42% cure (CW inverse)<span class="p-sub">42% cure · Kurosawa cap · derive mOS</span></button>
       <button class="p" data-inv="cw35" data-regal-mode="inverse" title="Conservative cure sweep: 35% GPS cure — implied mOS closer to Phase 2 CR2, HR ~0.23.">GPS 35% cure (conservative)<span class="p-sub">35% cure · lower cure stress</span></button>
       <button class="p" data-inv="cw50" data-regal-mode="inverse" title="High cure sweep: 50% GPS cure — pushes implied BAT lower / GPS uncured higher, HR ~0.29.">GPS 50% cure (high sweep)<span class="p-sub">50% cure · upper cure stress</span></button>
       <button class="p" data-inv="cwbind" data-regal-mode="inverse" title="Same 42% cure inverse fit with binding interim — lower P(win) vs non-binding cw42.">42% cure + binding IA<span class="p-sub">42% cure · binding IA stress</span></button>
@@ -226,8 +226,8 @@
     </div>
 
     <div class="ctrl" id="gpsuWrap" data-regal-mode="forward">
-      <label for="gpsu">GPS uncured median OS <span id="vGpsu">54.1 m</span><span class="derived-tag" id="gpsuDerivedTag" hidden>implied</span></label>
-      <input type="range" id="gpsu" min="6" max="55" step="0.5" value="54.1"/>
+      <label for="gpsu">GPS uncured median OS <span id="vGpsu">47.5 m</span><span class="derived-tag" id="gpsuDerivedTag" hidden>implied</span></label>
+      <input type="range" id="gpsu" min="6" max="60" step="0.5" value="47.5"/>
       <div class="bands" id="band-gpsu"></div>
       <small class="source-line">Survival of non-cured GPS patients. Phase 2 CR2 whole-arm mOS 16.3 mo (<a href="https://pubmed.ncbi.nlm.nih.gov/?term=Brayer+WT1+vaccination+AML+MDS+pilot+synthetic+analog+peptides" target="_blank" rel="noopener">Brayer 2015</a>). m63 events pull fits high (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78-event update</a>).</small>
     </div>
@@ -310,7 +310,7 @@
   <div class="card" id="outputCard">
     <h2>Survival curves (from randomization)</h2>
     <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: GPS (mixture-cure), BAT (Weibull + tail), pooled 50/50 average. Vertical dashed line = 36 months. Medians and HR below are derived from these curves — not unblinded trial data. <b>Hover/tap curve for survival values.</b></div>
-    <div id="plausibilityWarn" class="plausibility-warn" role="alert" hidden>Current parameters do not fit blinded event counts (e60/e58/e63). Adjust sliders or enable auto-fit.</div>
+    <div id="plausibilityWarn" class="plausibility-warn" role="alert" hidden>Current parameters do not fit blinded event counts (e46/e58/e63). Adjust sliders or enable auto-fit.</div>
     <div class="chart-wrap" id="chartWrap"><canvas id="chart" width="920" height="430"></canvas><div class="chart-stale-msg" id="chartStaleMsg" hidden>Chart frozen at last scenario that fit 60/72/78 — adjust sliders or enable auto-fit.</div><div class="chart-tooltip" id="chartTip"></div></div>
     <div class="chart-pin-panel" id="chartPinPanel"></div>
 

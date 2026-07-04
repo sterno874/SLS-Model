@@ -123,7 +123,7 @@ function auditPresetButtons(){
 }
 function updatePlausibilityUI(p,plausible){
   const w=$("plausibilityWarn");
-  if(w){w.hidden=!!plausible;if(!plausible)w.textContent="Current parameters do not fit blinded event counts (e60/e58/e63). Adjust sliders or enable auto-fit.";}
+  if(w){w.hidden=!!plausible;if(!plausible)w.textContent="Current parameters do not fit blinded event counts (e46/e58/e63). Adjust sliders or enable auto-fit.";}
   const wrap=$("chartWrap"),msg=$("chartStaleMsg"),out=$("outputCard");
   if(wrap)wrap.classList.toggle("chart-stale",!plausible);
   if(msg)msg.hidden=!!plausible||!lastConsistentP;
