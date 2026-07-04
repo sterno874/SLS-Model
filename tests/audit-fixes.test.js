@@ -114,7 +114,7 @@ test("state.js valuation + preset helpers produce stable fixture output (parity 
   const m = computeValuationMetrics({
     cr2: 2800, cr1: 5500, gpen: 45, gprice: 145, gyears: 2.8,
     flpool: 9000, rrpool: 3500, spen: 38, sprice: 145, syears: 1.4,
-    platform: 2.5, mult: 5, shares: 222, riskadj: false
+    platform: 2.5, mult: 5, shares: 222, cash: 107.1, riskadj: false
   });
   // gross (no risk adj): gpsPeak = (2800+5500)*0.45*2.8*145/1000
   const expGps = ((2800 + 5500) * 0.45 * 2.8 * 145) / 1000;
@@ -122,6 +122,7 @@ test("state.js valuation + preset helpers produce stable fixture output (parity 
   assert.ok(Math.abs(m.gpsPeak - expGps) < 1e-6);
   assert.ok(Math.abs(m.slsPeak - expSls) < 1e-6);
   assert.ok(Math.abs(m.EV - ((expGps + expSls) * 5 + 2.5 * 1000)) < 1e-6);
+  assert.ok(Math.abs(m.ps - (m.EV + 107.1) / 222) < 1e-6);
   // preset helper resolves a forward preset to full params
   const fp = paramsFromPreset("best", null, "forward", P, INV);
   assert.ok(fp && typeof fp.bat === "number" && typeof fp.gpsc === "number");

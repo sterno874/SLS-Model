@@ -63,6 +63,7 @@ const VAL_DEFAULTS = {
   platform: 2.5,
   mult: 5,
   shares: 222,
+  cash: 107.1,
   riskadj: true,
   pgps: 65,
   psls: 55
@@ -238,33 +239,28 @@ test("inverseSolve cw42 preset yields finite BAT and GPS uncured medians", () =>
   assert.ok(Number.isFinite(ir.sol.gpsu));
 });
 
-test("computeFrozenBestEst: frozen header @ 100% success (Best Available Guess presets)", () => {
+test("computeFrozenBestEst: biology-first risk-adj equity $/sh (default P(approval))", () => {
   const f = computeFrozenBestEst();
   assert.ok(Math.abs(f.gpsHr - 0.254) < 0.02);
   assert.ok(Math.abs(f.slsOsRatio - FROZEN_BEST_EST.slsPreset.sls_bench / FROZEN_BEST_EST.slsPreset.sls_os) < 1e-9);
-  assert.match(f.label, /Best Available Guess/);
-  assert.match(f.label, /100% success/);
-  const gross = computeValuationMetrics({
-    cr2: FROZEN_BEST_EST.valPreset.v_cr2,
-    cr1: FROZEN_BEST_EST.valPreset.v_cr1,
-    gpen: FROZEN_BEST_EST.valPreset.v_gpen,
-    gprice: FROZEN_BEST_EST.valPreset.v_gprice,
-    gyears: FROZEN_BEST_EST.valPreset.v_gyears,
-    flpool: FROZEN_BEST_EST.valPreset.v_flpool,
-    rrpool: FROZEN_BEST_EST.valPreset.v_rrpool,
-    spen: FROZEN_BEST_EST.valPreset.v_spen,
-    sprice: FROZEN_BEST_EST.valPreset.v_sprice,
-    syears: FROZEN_BEST_EST.valPreset.v_syears,
-    platform: FROZEN_BEST_EST.valPreset.v_platform,
-    mult: FROZEN_BEST_EST.valPreset.v_mult,
-    shares: FROZEN_BEST_EST.valPreset.v_shares,
-    riskadj: false,
-    pgps: 100,
-    psls: 100
-  });
-  assert.ok(Math.abs(f.EV - gross.EV) < 0.01);
-  assert.ok(Math.abs(f.ps - gross.ps) < 0.01);
-  assert.ok(f.ps > computeValuationMetrics({ ...VAL_DEFAULTS, riskadj: true }).ps);
+  assert.match(f.label, /Biology-first/);
+  assert.match(f.label, /risk-adj/i);
+  assert.match(f.neutralRidgeHrNote, /0\.45/);
+  const riskAdj = computeValuationMetrics(VAL_DEFAULTS);
+  const gross = computeValuationMetrics({ ...VAL_DEFAULTS, riskadj: false });
+  assert.ok(Math.abs(f.EV - riskAdj.EV) < 0.01);
+  assert.ok(Math.abs(f.ps - riskAdj.ps) < 0.01);
+  assert.ok(Math.abs(f.psGross - gross.ps) < 0.01);
+  assert.ok(f.ps < f.psGross);
+  // Base risk-adj equity $/sh ≈ $45.88 (EV + $107.1M cash) / 222M
+  assert.ok(Math.abs(f.ps - 45.88) < 0.1);
+});
+
+test("computeFrozenBestEst: live P(approval) overrides update risk-adj $/sh", () => {
+  const base = computeFrozenBestEst();
+  const lower = computeFrozenBestEst({ pgps: 40, psls: 30 });
+  assert.ok(lower.ps < base.ps);
+  assert.ok(Math.abs(lower.gpsHr - base.gpsHr) < 1e-9);
 });
 
 test("computeValuationMetrics risk-adjusted lowers peak vs gross", () => {

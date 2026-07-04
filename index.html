@@ -28,24 +28,26 @@
   </div>
 </div>
 <header>
-  <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Best Available Guess prediction at 100% success">
-    <div class="best-est-item best-est-item--scenario" title="Frozen best-case prediction from Best Available Guess presets — does not change when sliders move">
-      <span class="best-est-label">Prediction</span>
-      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Best Available Guess ★ · 100% success</span>
+  <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Biology-first risk-adjusted equity per share">
+    <div class="best-est-item best-est-item--scenario" title="Biology-first (bullish) scenario: 42% GPS cure, cw42 inverse. Risk-adj equity $/sh updates live with valuation P(approval) and presets.">
+      <span class="best-est-label">Scenario</span>
+      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Biology-first (bullish) · risk-adj</span>
     </div>
-    <div class="best-est-item" title="Projected readout HR from frozen Best Available Guess (42% cure, cw42 inverse) @ ~80 events — matches the final HR gauge, not the m58 snapshot">
+    <div class="best-est-item" title="Projected readout HR from biology-first Best Available Guess (42% cure, cw42 inverse) @ ~80 events — matches the final HR gauge. Neutral-ridge HR ~0.45–0.64 remains plausible under identifiability.">
       <span class="best-est-label">GPS readout HR <span class="tag m">model</span></span>
       <span class="best-est-val" id="beGpsHr">—</span>
+      <span class="best-est-sub" id="beRidgeNote">Neutral-ridge HR ~0.45–0.64</span>
     </div>
     <span class="best-est-sep" aria-hidden="true">·</span>
-    <div class="best-est-item" title="SLS-009 median OS ratio from frozen best preset (benchmark mOS ÷ treatment mOS) — assumes 100% achievement">
+    <div class="best-est-item" title="SLS-009 median OS ratio from biology-first best preset (benchmark mOS ÷ treatment mOS)">
       <span class="best-est-label">SLS OS ratio <span class="tag m">model</span></span>
       <span class="best-est-val" id="beSlsHr">—</span>
     </div>
     <span class="best-est-sep" aria-hidden="true">·</span>
-    <div class="best-est-item" title="Gross enterprise value per share if both GPS and SLS-009 succeed (P=100%, no risk adjustment)">
-      <span class="best-est-label">Target $/sh <span class="tag m">model</span></span>
+    <div class="best-est-item" title="Live risk-adj equity $/sh = (EV + cash) / FD shares, using valuation P(GPS)/P(SLS-009). Hover for gross @100% success.">
+      <span class="best-est-label" id="beBuyoutLabel">Risk-adj equity $/sh <span class="tag m">model</span></span>
       <span class="best-est-val" id="beBuyout">—</span>
+      <span class="best-est-sub" id="beGrossPs">gross @100% —</span>
     </div>
   </div>
   <div class="hdr-top">
@@ -901,7 +903,7 @@
         <div class="math-detail-body">
           <div class="formula">Peak<sub>GPS</sub> = (CR2 + CR1 starts/yr) × pen × years × price</div>
           <div class="formula">Peak<sub>SLS</sub> = (frontline + r/r pool) × pen × years × price</div>
-          <div class="formula">EV = (Peak<sub>GPS</sub> + Peak<sub>SLS</sub>) × multiple + platform &nbsp;·&nbsp; $/sh = EV / shares</div>
+          <div class="formula">EV = (Peak<sub>GPS</sub> + Peak<sub>SLS</sub>) × multiple + platform &nbsp;·&nbsp; equity $/sh = (EV + cash) / FD shares</div>
         </div>
       </details>
     </div>
@@ -912,7 +914,7 @@
   <div class="methodpanel" id="m-val" hidden>
     <b>Peak-sales × multiple, with a survival-driven prevalence pool.</b>
     <h4>The key dynamic (population grows if patients survive)</h4>At steady state, patients <em>on therapy</em> = annual new starts × penetration × <b>average years on therapy</b>. Longer survival ⇒ more years on drug ⇒ a larger prevalent pool. <code>Peak annual revenue = new-starts/yr × penetration × avg-years × annual price</code>.
-    <h4>Valuation</h4><code>Enterprise value = total peak sales × multiple + risk-adjusted platform value</code>. Oncology assets historically trade at ~4–8× peak sales (market convention, not a fixed fact). <code>Per share = EV ÷ fully-diluted shares</code>.
+    <h4>Valuation</h4><code>Enterprise value = total peak sales × multiple + risk-adjusted platform value</code>. Oncology assets historically trade at ~4–8× peak sales (market convention, not a fixed fact). <code>Equity per share = (EV + cash) ÷ fully-diluted shares</code> (basic outstanding ~181.3M; model FD default 222M).
     <h4>WT1 platform</h4>WT1 was ranked the #1 cancer antigen by an NCI working group (<a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank" rel="noopener">Cheever 2009</a>) and is over-expressed across 20+ tumor types including AML, MDS, ovarian, and mesothelioma (<a href="https://s203.q4cdn.com/139585304/files/doc_presentations/2026/Feb/03/Sellas-Corporate-Overview-February-2026.pdf" target="_blank" rel="noopener">SELLAS corp deck</a>). GPS is the lead WT1 immunotherapy (MSK license, patent to ≥2033); SLS-009 is a separate CDK9 program — not WT1-targeted. The <code>platform</code> slider is a single risk-adjusted lump for GPS follow-on indications (CR1 label expansion, solid tumors, GPS-Plus) and manufacturing/IP — deliberately crude.
     <h4>P(approval) risk adjustment</h4>Monte Carlo optionally multiplies each engine's peak by P(GPS) and P(SLS-009) — user-set priors from Tabs 1–2, not regulatory forecasts. Defaults (65% / 55%) reflect REGAL event pace + SLS-009 single-arm stage; stress-test freely.
     <div class="callout-note">Poke holes: penetration, price, duration and the multiple are all assumptions; the addressable pools are estimates; this ignores time-value/discounting, competition, and dilution beyond the share count; it is a back-of-envelope, not a DCF.</div>
@@ -945,7 +947,8 @@
       <h2 class="mt-lg">Platform &amp; valuation</h2>
       <div class="ctrl"><label for="v_platform">Risk-adjusted WT1 platform value <span id="vv_platform">$2.5 B</span></label><input type="range" id="v_platform" min="0" max="15" step="0.5" value="2.5"><div class="bands" id="band2-v_platform"></div><small class="source-line">WT1 breadth — <a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank" rel="noopener">Cheever 2009</a> (NCI #1 antigen); early-stage <span class="tag a">assumption</span>.</small></div>
       <div class="ctrl"><label for="v_mult">Multiple (× peak sales) <span id="vv_mult">5.0×</span></label><input type="range" id="v_mult" min="2" max="10" step="0.5" value="5"><div class="bands" id="band2-v_mult"></div><small class="source-line"><span class="tag a">Convention</span> Oncology M&amp;A ~4–8× peak. Comp: <a href="https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm" target="_blank" rel="noopener">Gilead–Forty Seven ~$4.9B</a>.</small></div>
-      <div class="ctrl"><label for="v_shares">Fully-diluted shares <span id="vv_shares">222 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="222"><div class="bands" id="band2-v_shares"></div><small class="source-line"><span class="tag f">Verified</span> 181.3M basic (Mar 31) + ~30M warrants + options/RSUs ≈ 217–225M FD. <a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">Q1 2026 10-Q</a></small></div>
+      <div class="ctrl"><label for="v_shares">Fully-diluted shares <span id="vv_shares">222 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="222"><div class="bands" id="band2-v_shares"></div><small class="source-line"><span class="tag f">Verified</span> Basic outstanding <b>~181.3M</b> (Mar 31, 2026) + warrants/options/RSUs → FD modeled <b>~222M</b>. <a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">Q1 2026 10-Q</a> · <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a></small></div>
+      <div class="ctrl"><label for="v_cash">Cash ($M) <span id="vv_cash">$107.1 M</span></label><input type="range" id="v_cash" min="50" max="200" step="0.1" value="107.1"><div class="bands" id="band2-v_cash"></div><small class="source-line"><span class="tag f">Verified</span> $107.1M cash Mar 31, 2026. Equity $/sh = (EV + cash) / FD shares. <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a></small></div>
     </div>
     <div class="card">
       <h2>Result</h2>
@@ -958,7 +961,9 @@
       <div class="ev-result">
         <div class="ev-result-label" id="oEvHead">Enterprise value <span class="tag m">model output</span></div>
         <div class="bignum" style="color:var(--accent)" id="oEV">–</div>
-        <div class="ev-result-sub">≈ <b id="oPS">–</b> / share &nbsp;·&nbsp; buyout range <b id="oBuy">–</b></div>
+        <div class="ev-result-label" id="oEquityHead" style="margin-top:8px">Equity value <span class="tag m">EV + cash</span></div>
+        <div class="bignum" style="color:var(--ink);font-size:1.35em" id="oEquity">–</div>
+        <div class="ev-result-sub">≈ <b id="oPS">–</b> equity/sh &nbsp;·&nbsp; <span id="oEvPs">–</span> &nbsp;·&nbsp; buyout range <b id="oBuy">–</b></div>
       </div>
       <div class="note" id="oValNote"></div>
     </div>
@@ -1018,7 +1023,7 @@
           <tr><td>GPS peak sales</td><td>10,458 × $145K/yr</td><td>= <b>~$1.52B</b> <span class="tag m">model</span></td></tr>
           <tr><td>SLS-009 pool</td><td>(9,000 + 3,500) × 38% × 1.4 yr × $145K</td><td>= <b>~$0.96B</b> <span class="tag m">model</span></td></tr>
           <tr class="hl"><td>Total peak</td><td>~$2.48B</td><td>GPS + SLS-009 engines (unadjusted)</td></tr>
-          <tr><td>EV @ 5× + $2.5B platform</td><td>$2.48B × 5 + $2.5B</td><td>= <b>~$14.9B</b> → ~$67/sh @ 222M shares</td></tr>
+          <tr><td>EV @ 5× + $2.5B platform</td><td>$2.48B × 5 + $2.5B</td><td>= <b>~$14.9B EV</b> → ~$68 equity/sh @ 222M FD + $107.1M cash</td></tr>
           <tr><td>Onureg ceiling check</td><td>QUAZAR CR1 mOS 24.7 vs 14.8 mo</td><td>Clinical win but BMS bundles Onureg in ~$1.6B "Other Growth" bucket — <b>no standalone peak disclosed</b> (<a href="https://www.sec.gov/Archives/edgar/data/14272/000001427225000039/R34.htm" target="_blank" rel="noopener">BMS SEC</a>)</td></tr>
           <tr><td>Venclexta ceiling</td><td>~$2.58B global 2024</td><td>AML combo upside comp (<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K" target="_blank" rel="noopener">AbbVie 10-K</a>)</td></tr>
         </tbody>
@@ -1054,7 +1059,7 @@
         <li><b>Onureg commercial disappointment</b> — QUAZAR statistically positive but maintenance AML uptake limited; GPS penetration assumptions &gt;40% may be optimistic (<a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2001094" target="_blank" rel="noopener">QUAZAR</a> · <a href="https://www.sec.gov/Archives/edgar/data/14272/000001427225000039/R34.htm" target="_blank" rel="noopener">BMS SEC</a>).</li>
         <li><b>Magrolimab M&amp;A failure</b> — $4.9B pre-approval deal did not predict clinical success (<a href="https://investors.gilead.com/news/news-details/2023/Gilead-To-Discontinue-Phase-3-ENHANCE-Study-of-Magrolimab-Plus-Azacitidine-in-Higher-Risk-MDS/default.aspx" target="_blank" rel="noopener">Gilead 2023</a>).</li>
         <li><b>Single-asset dependency</b> — REGAL outcome drives near-term EV; SLS-009 is earlier and single-arm in r/r (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>).</li>
-        <li><b>Dilution</b> — 181M shares Mar 2026 vs ~90M a year prior; ATM up to $150M authorized, unused (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a>). Model uses fully-diluted ~222M — future raises not modeled.</li>
+        <li><b>Dilution</b> — basic outstanding ~181.3M Mar 2026 vs ~90M a year prior; ATM up to $150M authorized, unused (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a>). Model uses fully-diluted ~222M — future raises not modeled.</li>
         <li><b>Cash runway ≠ valuation floor</b> — ~$107M + $7.5M warrant proceeds; 10-Q going-concern: ≥12 months from filing date (~$9M/qtr opex) — not the same as commercialization funding (<a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">Q1 2026 10-Q</a>).</li>
         <li><b>Platform risk</b> — WT1 is validated antigenically (Cheever) but GPS has mixed Ph2 (CR2 n=10, no plateau); solid-tumor programs early/completed without registrational path disclosed.</li>
         <li><b>Community overclaims excluded</b> — "$5–20B guaranteed buyout" (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1kq581k/bull_case_a_quite_evident_one/" target="_blank" rel="noopener">bull case</a>); "SLS worth $50+/sh on REGAL alone" — <span class="val-model">🔬</span> opinion, not primary data.</li>
@@ -1093,8 +1098,8 @@
     <div class="fgrid">
       <div><b>Cash (Mar 31, 2026):</b> $107.1M + $7.5M warrant proceeds in Q2 to date <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[Q1 2026]</a></span></div>
       <div><b>Runway:</b> ≥12 months from Q1 2026 filing (going concern); ~$9M/qtr opex <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">[10-Q]</a></span></div>
-      <div><b>Shares outstanding:</b> 181.3M (Mar 31, 2026); 196.6M (Jun 2, 2026 per 8-K) <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001390478&amp;type=10-Q" target="_blank" rel="noopener">[10-Q]</a></span></div>
-      <div><b>Fully diluted (model default):</b> ~217–225M incl. warrants/options <span class="tag f">estimate</span> <span class="cite"><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001390478&amp;type=10-K" target="_blank" rel="noopener">[SEC]</a></span></div>
+      <div><b>Basic shares outstanding:</b> ~181.3M (Mar 31, 2026) <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">[10-Q]</a> · <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[Q1 2026 PR]</a></span></div>
+      <div><b>Fully diluted (model default):</b> ~222M incl. warrants/options/RSUs (basic ~181.3M + ~30–40M dilutives) <span class="tag f">estimate</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">[10-Q]</a></span></div>
       <div><b>ATM facility:</b> up to $150M authorized; no shares sold to date <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[Q1 2026]</a></span></div>
       <div><b>Q1 2026 net loss:</b> $8.4M (~$9.3M/qtr opex) <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[Q1 2026]</a></span></div>
       <div><b>Pipeline:</b> GPS REGAL Ph3 (AML CR2); SLS-009 Ph2 r/r (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>) + Ph2 frontline enrolling Mar 2026 (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>) <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[REGAL]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Announces-Enrollment-of-First-Patient-in-Newly-Diagnosed-First-Line-AML-Trial-of-SLS009/default.aspx" target="_blank" rel="noopener">[Mar 2026]</a></span></div>
@@ -1122,7 +1127,8 @@
     <table class="valtbl mt-md"><thead><tr><th>Claim</th><th>Primary source</th><th>Status</th></tr></thead><tbody>
       <tr><td>WT1 #1-ranked cancer antigen (NCI)</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank">Cheever 2009</a></td><td><span class="val-ok">✅</span></td></tr>
       <tr><td>Cash $107.1M (Mar 31, 2026)</td><td><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank">Q1 2026 PR</a></td><td><span class="val-ok">✅</span></td></tr>
-      <tr><td>196.6M shares (Jun 2, 2026)</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001390478&amp;type=8-K" target="_blank">SELLAS 8-K</a></td><td><span class="val-ok">✅</span></td></tr>
+      <tr><td>Basic outstanding ~181.3M (Mar 31, 2026)</td><td><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank">Q1 2026 10-Q</a></td><td><span class="val-ok">✅</span></td></tr>
+      <tr><td>FD modeled ~222M (warrants/options)</td><td>Tab 3 default</td><td><span class="val-model">🔬</span></td></tr>
       <tr><td>Venclexta ~$2.58B 2024 sales</td><td><a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K" target="_blank">AbbVie 10-K</a></td><td><span class="val-ok">✅</span></td></tr>
       <tr><td>Gilead–Forty Seven ~$4.9B</td><td><a href="https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm" target="_blank">SEC EX-99.1</a></td><td><span class="val-ok">✅</span></td></tr>
       <tr><td>Magrolimab Ph3 discontinued</td><td><a href="https://investors.gilead.com/news/news-details/2023/Gilead-To-Discontinue-Phase-3-ENHANCE-Study-of-Magrolimab-Plus-Azacitidine-in-Higher-Risk-MDS/default.aspx" target="_blank">Gilead 2023</a></td><td><span class="val-ok">✅</span></td></tr>

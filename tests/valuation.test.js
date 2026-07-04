@@ -16,20 +16,33 @@ const DEFAULTS = {
   platform: 2.5,
   mult: 5,
   shares: 222,
+  cash: 107.1,
   riskadj: true,
   pgps: 65,
   psls: 55
 };
 
 test("valuation peak/EV arithmetic matches header defaults (risk-adjusted)", () => {
-  const { gpool, totPeak, EV, ps } = computeValuationMetrics(DEFAULTS);
+  const { gpool, totPeak, EV, equity, ps, evPerShare } = computeValuationMetrics(DEFAULTS);
   assert.ok(Math.abs(gpool - 10458) < 0.1);
   const gpsGross = (10458 * 145) / 1000;
   const slsGross = ((9000 + 3500) * 0.38 * 1.4 * 145) / 1000;
   const expectedTot = gpsGross * 0.65 + slsGross * 0.55;
   assert.ok(Math.abs(totPeak - expectedTot) < 0.1);
   assert.ok(Math.abs(EV - (expectedTot * 5 + 2500)) < 0.1);
-  assert.ok(Math.abs(ps - 45.3) < 1);
+  assert.ok(Math.abs(equity - (EV + 107.1)) < 0.01);
+  // Equity $/sh = (EV + cash) / shares ≈ $45.88 at defaults
+  assert.ok(Math.abs(ps - (EV + 107.1) / 222) < 0.01);
+  assert.ok(Math.abs(ps - 45.88) < 0.1);
+  assert.ok(Math.abs(evPerShare - EV / 222) < 0.01);
+  assert.ok(ps > evPerShare);
+});
+
+test("equity $/sh includes cash; EV/sh does not", () => {
+  const withCash = computeValuationMetrics(DEFAULTS);
+  const noCash = computeValuationMetrics({ ...DEFAULTS, cash: 0 });
+  assert.ok(Math.abs(withCash.EV - noCash.EV) < 0.01);
+  assert.ok(Math.abs(withCash.ps - noCash.ps - 107.1 / 222) < 0.01);
 });
 
 test("gross EV when risk adjustment disabled", () => {

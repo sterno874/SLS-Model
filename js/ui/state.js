@@ -58,8 +58,8 @@ export const DEFAULT_STATE = {
   val: {
     v_cr2: 2800, v_cr1: 5500, v_gpen: 45, v_gprice: 145, v_gyears: 2.8,
     v_flpool: 9000, v_rrpool: 3500, v_spen: 38, v_sprice: 145, v_syears: 1.4,
-    v_platform: 2.5, v_mult: 5, v_shares: 222, v_riskadj: true, v_pgps: 65,
-    v_psls: 55
+    v_platform: 2.5, v_mult: 5, v_shares: 222, v_cash: 107.1, v_riskadj: true,
+    v_pgps: 65, v_psls: 55
   },
   ui: { showUncertainty: false, irm_lead: 3, bf_e58: 72, bf_cure: 42, explainLvl: "eli5" }
 };
@@ -91,11 +91,18 @@ export const SHARE_SLSP = {
   bull: { sls_os: 11,  sls_bench: 2.2, sls_orr: 55, fl_base: 14.7, fl_sls: 24, tp_base: 5.3, tp_sls: 16 }
 };
 export const SHARE_VALP = {
-  best: { v_cr2: 2800, v_cr1: 5500, v_gpen: 45, v_gprice: 145, v_gyears: 2.8, v_flpool: 9000,  v_rrpool: 3500, v_spen: 38, v_sprice: 145, v_syears: 1.4, v_platform: 2.5, v_mult: 5,   v_shares: 222 },
-  cons: { v_cr2: 2000, v_cr1: 4000, v_gpen: 30, v_gprice: 125, v_gyears: 2.0, v_flpool: 7000,  v_rrpool: 2800, v_spen: 22, v_sprice: 125, v_syears: 1.0, v_platform: 0.5, v_mult: 4,   v_shares: 225 },
-  bull: { v_cr2: 3800, v_cr1: 7500, v_gpen: 58, v_gprice: 185, v_gyears: 3.5, v_flpool: 11000, v_rrpool: 4500, v_spen: 50, v_sprice: 175, v_syears: 1.8, v_platform: 4,   v_mult: 6.5, v_shares: 218 },
-  cw:   { v_cr2: 3000, v_cr1: 6000, v_gpen: 58, v_gprice: 165, v_gyears: 3.2, v_flpool: 11000, v_rrpool: 4500, v_spen: 45, v_sprice: 165, v_syears: 1.7, v_platform: 4,   v_mult: 5.5, v_shares: 220 }
+  best: { v_cr2: 2800, v_cr1: 5500, v_gpen: 45, v_gprice: 145, v_gyears: 2.8, v_flpool: 9000,  v_rrpool: 3500, v_spen: 38, v_sprice: 145, v_syears: 1.4, v_platform: 2.5, v_mult: 5,   v_shares: 222, v_cash: 107.1 },
+  cons: { v_cr2: 2000, v_cr1: 4000, v_gpen: 30, v_gprice: 125, v_gyears: 2.0, v_flpool: 7000,  v_rrpool: 2800, v_spen: 22, v_sprice: 125, v_syears: 1.0, v_platform: 0.5, v_mult: 4,   v_shares: 225, v_cash: 107.1 },
+  bull: { v_cr2: 3800, v_cr1: 7500, v_gpen: 58, v_gprice: 185, v_gyears: 3.5, v_flpool: 11000, v_rrpool: 4500, v_spen: 50, v_sprice: 175, v_syears: 1.8, v_platform: 4,   v_mult: 6.5, v_shares: 218, v_cash: 107.1 },
+  cw:   { v_cr2: 3000, v_cr1: 6000, v_gpen: 58, v_gprice: 165, v_gyears: 3.2, v_flpool: 11000, v_rrpool: 4500, v_spen: 45, v_sprice: 165, v_syears: 1.7, v_platform: 4,   v_mult: 5.5, v_shares: 220, v_cash: 107.1 }
 };
+
+/** Q1 2026 cash & equivalents ($M) — Mar 31 2026 PR / 10-Q. */
+export const DEFAULT_CASH_M = 107.1;
+/** Basic shares outstanding (M) — Mar 31 2026 10-Q / Q1 PR. */
+export const BASIC_SHARES_M = 181.3;
+/** Fully-diluted shares modeled (M) — warrants/options on top of basic. */
+export const FD_SHARES_M = 222;
 
 // [shortCode, group("" = top-level marker), fieldName]
 export const SHARE_FIELD_DEFS = [
@@ -112,7 +119,7 @@ export const SHARE_FIELD_DEFS = [
   ["c2", "val", "v_cr2"], ["c1", "val", "v_cr1"], ["vg", "val", "v_gpen"], ["vr", "val", "v_gprice"],
   ["vy", "val", "v_gyears"], ["fp", "val", "v_flpool"], ["rr", "val", "v_rrpool"], ["vs", "val", "v_spen"],
   ["vc", "val", "v_sprice"], ["vv", "val", "v_syears"], ["pf", "val", "v_platform"], ["ml", "val", "v_mult"],
-  ["sh", "val", "v_shares"], ["ra", "val", "v_riskadj"], ["pg", "val", "v_pgps"], ["ps", "val", "v_psls"],
+  ["sh", "val", "v_shares"], ["ca", "val", "v_cash"], ["ra", "val", "v_riskadj"], ["pg", "val", "v_pgps"], ["ps", "val", "v_psls"],
   ["su", "ui", "showUncertainty"], ["il", "ui", "irm_lead"], ["be", "ui", "bf_e58"], ["bu", "ui", "bf_cure"],
   ["el", "ui", "explainLvl"]
 ];
@@ -319,7 +326,8 @@ export function isPlausible(p) {
   return passesVerdict(p) && isBiologicallyPlausible(p);
 }
 
-/** DOM-free valuation metrics (values object mirrors slider fields). */
+/** DOM-free valuation metrics (values object mirrors slider fields).
+ *  EV is enterprise value ($M). Equity = EV + cash; equity $/sh = equity / shares. */
 export function computeValuationMetrics(v) {
   const cr2 = v.cr2;
   const cr1 = v.cr1;
@@ -334,6 +342,7 @@ export function computeValuationMetrics(v) {
   const platform = v.platform;
   const mult = v.mult;
   const shares = v.shares;
+  const cash = v.cash != null ? v.cash : DEFAULT_CASH_M;
   const ra = !!v.riskadj;
   const pG = (v.pgps != null ? v.pgps : 65) / 100;
   const pS = (v.psls != null ? v.psls : 55) / 100;
@@ -346,43 +355,80 @@ export function computeValuationMetrics(v) {
   }
   const totPeak = gpsPeak + slsPeak;
   const EV = totPeak * mult + platform * 1000;
-  const ps = EV / shares;
-  return { gpool, gpsPeak, slsPeak, totPeak, EV, ps, riskAdjusted: ra };
+  const equity = EV + cash;
+  const ps = equity / shares;
+  const evPerShare = EV / shares;
+  return {
+    gpool,
+    gpsPeak,
+    slsPeak,
+    totPeak,
+    EV,
+    equity,
+    cash,
+    ps,
+    evPerShare,
+    riskAdjusted: ra
+  };
 }
 
-/** Frozen header-strip inputs — Best Available Guess @ 100% program success.
+/** Biology-first header scenario — GPS/SLS clinical presets stay fixed; valuation may be live.
  *  Keep in sync with P / SLSP / VALP preset tables in js/main.js. */
 export const FROZEN_BEST_EST = {
-  label: "Best Available Guess ★ · 100% success",
+  label: "Biology-first (bullish) · risk-adj",
   gpsPreset: SHARE_P.best,
   slsPreset: SHARE_SLSP.best,
-  valPreset: SHARE_VALP.best
+  valPreset: SHARE_VALP.best,
+  /** Neutral-anchor ridge HR band (identifiability, not biology-first). */
+  neutralRidgeHrNote: "Neutral-ridge HR ~0.45–0.64"
 };
 
-/** DOM-free frozen header metrics: readout HR (matches final gauge), SLS-009 OS ratio, gross buyout @ P(success)=100%. */
-export function computeFrozenBestEst() {
+function valInputsFromPreset(v, overrides) {
+  const o = overrides || {};
+  return {
+    cr2: o.cr2 != null ? o.cr2 : v.v_cr2,
+    cr1: o.cr1 != null ? o.cr1 : v.v_cr1,
+    gpen: o.gpen != null ? o.gpen : v.v_gpen,
+    gprice: o.gprice != null ? o.gprice : v.v_gprice,
+    gyears: o.gyears != null ? o.gyears : v.v_gyears,
+    flpool: o.flpool != null ? o.flpool : v.v_flpool,
+    rrpool: o.rrpool != null ? o.rrpool : v.v_rrpool,
+    spen: o.spen != null ? o.spen : v.v_spen,
+    sprice: o.sprice != null ? o.sprice : v.v_sprice,
+    syears: o.syears != null ? o.syears : v.v_syears,
+    platform: o.platform != null ? o.platform : v.v_platform,
+    mult: o.mult != null ? o.mult : v.v_mult,
+    shares: o.shares != null ? o.shares : v.v_shares,
+    cash: o.cash != null ? o.cash : v.v_cash != null ? v.v_cash : DEFAULT_CASH_M,
+    riskadj: o.riskadj != null ? o.riskadj : true,
+    pgps: o.pgps != null ? o.pgps : 65,
+    psls: o.psls != null ? o.psls : 55
+  };
+}
+
+/** Header-strip metrics: biology-first GPS/SLS clinicals + risk-adj equity $/sh.
+ *  Pass `valOverrides` (live slider fields) to refresh valuation when P(approval)/presets change. */
+export function computeFrozenBestEst(valOverrides) {
   const p = paramsFromPresetQ(FROZEN_BEST_EST.gpsPreset);
   const gpsHr = hrGaugeState(p, 72).hrForFinal;
   const sls = FROZEN_BEST_EST.slsPreset;
   const slsOsRatio = sls.sls_bench / sls.sls_os;
   const v = FROZEN_BEST_EST.valPreset;
-  const { EV, ps } = computeValuationMetrics({
-    cr2: v.v_cr2,
-    cr1: v.v_cr1,
-    gpen: v.v_gpen,
-    gprice: v.v_gprice,
-    gyears: v.v_gyears,
-    flpool: v.v_flpool,
-    rrpool: v.v_rrpool,
-    spen: v.v_spen,
-    sprice: v.v_sprice,
-    syears: v.v_syears,
-    platform: v.v_platform,
-    mult: v.v_mult,
-    shares: v.v_shares,
-    riskadj: false,
-    pgps: 100,
-    psls: 100
-  });
-  return { label: FROZEN_BEST_EST.label, gpsHr, slsOsRatio, EV, ps };
+  const live = computeValuationMetrics(valInputsFromPreset(v, valOverrides));
+  const gross = computeValuationMetrics(
+    valInputsFromPreset(v, Object.assign({}, valOverrides, { riskadj: false, pgps: 100, psls: 100 }))
+  );
+  const ra = live.riskAdjusted;
+  return {
+    label: ra ? FROZEN_BEST_EST.label : "Biology-first (bullish) · gross",
+    gpsHr,
+    slsOsRatio,
+    EV: live.EV,
+    equity: live.equity,
+    ps: live.ps,
+    psGross: gross.ps,
+    EVGross: gross.EV,
+    neutralRidgeHrNote: FROZEN_BEST_EST.neutralRidgeHrNote,
+    riskAdjusted: ra
+  };
 }

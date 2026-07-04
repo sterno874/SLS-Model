@@ -24,6 +24,10 @@ Click the **📐 Methodology** button on each tab. The statistical toolkit (all 
 - Mixture-cure models (Boag 1949); left-truncation / immortal-time bias (Suissa 2008)
 - Approximate Bayesian Computation likelihood-weighting (Beaumont 2002)
 
+## Research memo
+
+Tagged due-diligence notes (verified / partial / community / rejected) live in **[RESEARCH.md](RESEARCH.md)** — cash, shares (basic ~181.3M vs FD modeled ~222M), REGAL anchors, SLS-009 NCT04588922, valuation comps, and model framing.
+
 ## Key sources
 
 Clinical: REGAL design paper (Jamy & Cicic, *Future Oncol* 2025, PMC11760237); ClinicalTrials.gov NCT04229979; SELLAS PRs (60/72/78-event updates, Nov-2022 "~2× pooled mOS"); QUAZAR AML-001; Kurosawa *Haematologica* 2010; VIALE-A (DiNardo *NEJM* 2020); AVALON (Todisco *Cancer* 2023); Brayer 2015; Maslak 2018; Forman & Rowe *Blood* 2013. Market: SEER/ACS AML incidence; Venclexta sales; Cheever 2009 (WT1 = NCI #1 antigen). Full clickable lists live in each tab's **References**.
@@ -68,10 +72,12 @@ Math regression: `npm test` (or `node verify_math.js`) — loads `js/math/surviv
 ```
 SLS-Model/
 ├── index.html          # HTML shell, meta/OG tags, analytics snippet, AGPL footer
+├── RESEARCH.md         # Tagged DD memo (verified / partial / community / rejected)
 ├── css/
 │   └── main.css        # All styles (~340 lines)
 ├── js/
 │   ├── main.js         # App init, tabs, REGAL/SLS-009/valuation/explain UI, MC, share URL
+│   ├── ui/state.js     # Share encoding, valuation metrics, header-strip helpers
 │   └── math/
 │       └── survival.js # Pure survival/HR/event math (CI-tested via verify_math.js)
 ├── tests/              # Node test runner (math, presets, share URL, valuation)

@@ -220,6 +220,12 @@ export const MUTATION_TARGETS = [
     apply: (s) => s.replace("gpsPeak *= pG;", "gpsPeak *= pG*1.1;")
   },
   {
+    id: "state-equity-no-cash",
+    file: "js/ui/state.js",
+    description: "equity $/sh omits cash (EV only)",
+    apply: (s) => s.replace("const equity = EV + cash;", "const equity = EV;")
+  },
+  {
     id: "state-b64-pad",
     file: "js/ui/state.js",
     description: "b64urlEncode skips -/_ URL-safe substitution",
