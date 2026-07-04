@@ -57,6 +57,7 @@ import {
   buildShareHash,
   decodeShareHash,
   paramsFromPreset as paramsFromPresetPure,
+  paramsFromPresetQ,
   isPlausible,
   computeValuationMetrics as computeValuationMetricsPure,
   computeFrozenBestEst,
@@ -137,7 +138,8 @@ function scheduleDraw(p){
   const bioReject=eventFit&&!plausible;
   const approxFit=!plausible&&!bioReject&&consistent(p);
   if(plausible||approxFit||bioReject)lastConsistentP=Object.assign({},p);
-  const drawP=plausible||bioReject?p:(approxFit?lastConsistentP:null);
+  // Freeze chart on last fitting scenario when current params miss anchors (matches chartStaleMsg).
+  const drawP=plausible||bioReject?p:(lastConsistentP||null);
   pendingDrawP=drawP;
   updatePlausibilityUI(p,plausible,approxFit,bioReject);
   if(pendingDrawRaf)return;
@@ -831,13 +833,57 @@ const INV={
  cw50:   {gpsc:50,batcap:14,delay:4,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
  cwbind: {gpsc:42,batcap:14,delay:3,xtx:0,cens:0,mid:25,k:0.15,mcFloor:true}
 };
+/** Write forward-preset slider fields with step snapping so range inputs cannot drift. */
+function writeRegalPresetSliders(q){
+  const set=(id,val,step)=>{
+    const el=$(id);if(!el)return;
+    const s=step!=null?step:(+el.step||1);
+    const snapped=Math.round(val/s)*s;
+    const decimals=s>0&&s<1?Math.max(0,Math.ceil(-Math.log10(s)-1e-12)):0;
+    el.value=decimals?snapped.toFixed(decimals):String(Math.round(snapped));
+  };
+  set("bat",q.bat,0.5);set("batc",q.batc,1);set("gpsc",q.gpsc,1);set("gpsu",q.gpsu,0.5);
+  set("delay",q.delay,0.5);set("mid",q.mid,1);set("k",q.k,0.01);
+  $("autofit").checked=!!q.auto;
+  set("xtx",q.xtx!=null?q.xtx:0,1);set("cens",q.cens!=null?q.cens:0,1);
+  if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
+  // Method knobs are not in P[] but must not silently differ from the preset path.
+  if($("batk"))$("batk").value="1";
+}
+function regalPresetMatches(name){
+  const q=P[name];if(!q)return false;
+  const p=readParams();
+  const xt=q.xtx!=null?q.xtx:0,ce=q.cens!=null?q.cens:0;
+  return p.bat===q.bat&&Math.round(p.batc*100)===q.batc&&Math.round(p.gpsc*100)===q.gpsc
+    &&p.gpsu===q.gpsu&&p.delay===q.delay&&p.mid===q.mid&&Math.abs(p.k-q.k)<1e-9
+    &&Math.round(p.xtx*100)===xt&&Math.round(p.cens*100)===ce
+    &&!$("autofit").checked===!q.auto
+    &&(q.mcFloor==null||!!$("mcFloor").checked===!!q.mcFloor);
+}
+/** Clear sticky Best/bind/… highlight once the user (or a stale hash) moves off the preset. */
+function syncRegalPresetMarker(){
+  if(regalMode!=="forward"||!activeRegalPreset||!P[activeRegalPreset])return;
+  if(!regalPresetMatches(activeRegalPreset)){
+    activeRegalPreset=null;
+    refreshRegalPresetHighlight();
+  }
+}
 function applyRegalPreset(name,q){
   lastMcPwin=null; // preset changes params → invalidate cached MC P(win)
-  q=q||P[name];activeRegalPreset=name;
-  $("bat").value=q.bat;$("batc").value=q.batc;$("gpsc").value=q.gpsc;$("gpsu").value=q.gpsu;
-  $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;$("autofit").checked=!!q.auto;
-  $("xtx").value=(q.xtx!=null)?q.xtx:0;$("cens").value=(q.cens!=null)?q.cens:0;
-  if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
+  q=q||P[name];
+  if(!q)return;
+  activeRegalPreset=name;
+  writeRegalPresetSliders(q);
+  // Range inputs can coerce; force any field that still disagrees with the preset table.
+  const expect=paramsFromPresetQ(q);
+  const got=readParams();
+  if(got.bat!==expect.bat)$("bat").value=String(expect.bat);
+  if(Math.round(got.batc*100)!==Math.round(expect.batc*100))$("batc").value=String(Math.round(expect.batc*100));
+  if(Math.round(got.gpsc*100)!==Math.round(expect.gpsc*100))$("gpsc").value=String(Math.round(expect.gpsc*100));
+  if(got.gpsu!==expect.gpsu)$("gpsu").value=(Math.round(expect.gpsu*2)/2).toFixed(1);
+  if(got.delay!==expect.delay)$("delay").value=String(expect.delay);
+  if(got.mid!==expect.mid)$("mid").value=String(expect.mid);
+  if(Math.abs(got.k-expect.k)>1e-9)$("k").value=String(expect.k);
   if(regalMode==="inverse")setRegalMode("forward");
   else{refreshRegalPresetHighlight();update();}
 }
@@ -853,7 +899,10 @@ function applyInversePreset(name,q){
 document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyRegalPreset(b.dataset.preset));
 document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInversePreset(b.dataset.inv));
 
-["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",scheduleUpdate)});
+["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{
+  const el=$(id);if(!el)return;
+  el.addEventListener("input",()=>{syncRegalPresetMarker();scheduleUpdate();});
+});
 on("mcRun","click",function(){
   $("mcRun").disabled=true;$("mcStatus").textContent="running…";
   deferWithLoading(function(){try{runMC();}finally{$("mcRun").disabled=false;}},"Running Monte Carlo…");
@@ -862,6 +911,7 @@ on("mcNeutral","click",function(){applyRegalPreset("best");$("mcStatus").textCon
 
 // ================= SHAREABLE URL STATE (#1) =================
 function captureState(){
+  if(regalMode==="forward")syncRegalPresetMarker();
   return{v:1,tab:activeTab,regalMode,activeRegalPreset,activeInvPreset,activeSlsPreset,activeValPreset,
     gps:{bat:+$("bat").value,batc:+$("batc").value,batk:+$("batk").value,gpsc:+$("gpsc").value,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value,cens:+$("cens").value,mid:+$("mid").value,k:+$("k").value,batcap:+$("batcap").value,autofit:$("autofit").checked,fhTest:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value,mcFloor:$("mcFloor").checked,cutoff:+$("cutoff").value},
     sls:{sls_os:+$("sls_os").value,sls_bench:+$("sls_bench").value,sls_orr:+$("sls_orr").value,fl_base:+$("fl_base").value,fl_sls:+$("fl_sls").value,tp_base:+$("tp_base").value,tp_sls:+$("tp_sls").value,sls_flev:+$("sls_flev").value},
@@ -888,15 +938,30 @@ function applyState(s){
     applySliderValues(VAL_SHARE_KEYS,s.val);
     if(s.val&&s.val.v_riskadj!=null&&$("v_riskadj"))$("v_riskadj").checked=!!s.val.v_riskadj;
     if(s.ui){if(s.ui.showUncertainty!=null){showUncertainty=s.ui.showUncertainty;$("showUncertainty").checked=showUncertainty;}if(s.ui.irm_lead!=null)$("irm_lead").value=s.ui.irm_lead;if(s.ui.bf_e58!=null)$("bf_e58").value=s.ui.bf_e58;if(s.ui.bf_cure!=null)$("bf_cure").value=s.ui.bf_cure;if(s.ui.explainLvl)curLvl=s.ui.explainLvl;}
-    if(s.regalMode)setRegalMode(s.regalMode);
-    else refreshRegalPresetHighlight();
+    // Named REGAL presets are source of truth for survival sliders. Stale share-hash
+    // deltas (e.g. old gpsu after P.best recalibration) must not keep ★ selected
+    // while drawing a non-fitting scenario.
+    const mode=s.regalMode||"forward";
+    if(mode==="inverse"){
+      if(s.activeInvPreset&&INV[s.activeInvPreset]){
+        const iq=INV[s.activeInvPreset];
+        $("gpsc").value=iq.gpsc;$("batcap").value=iq.batcap;
+        $("delay").value=iq.delay;$("mid").value=iq.mid;$("k").value=iq.k;
+        $("xtx").value=iq.xtx!=null?iq.xtx:0;$("cens").value=iq.cens!=null?iq.cens:0;
+        if(iq.mcFloor!=null)$("mcFloor").checked=!!iq.mcFloor;
+      }
+      setRegalMode("inverse");
+    }else{
+      if(activeRegalPreset&&P[activeRegalPreset])writeRegalPresetSliders(P[activeRegalPreset]);
+      if(regalMode!=="forward")setRegalMode("forward");
+      else{refreshRegalPresetHighlight();updateNow();}
+    }
     highlightPresets("button[data-sls]","sls",activeSlsPreset);highlightPresets("button[data-val]","val",activeValPreset);
     tabsRendered.gps=true;
     if(s.sls)tabsDirty.sls009=true;
     if(s.val)tabsDirty.value=true;
     if(s.tab)switchTab(s.tab);
     else if(s.ui&&s.ui.explainLvl){curLvl=s.ui.explainLvl;renderTab("explain",true);}
-    updateNow();
   }finally{restoringState=false;}
   return true;
 }
@@ -1327,12 +1392,21 @@ function initApp(){
   initScmpSelects();
   initChartInteraction();
   if(!hasShareHash(location.hash)){
-    setRegalMode("forward");
+    // Force Best Available Guess — do not rely on HTML defaults alone.
+    regalMode="forward";
+    $("modeForward").classList.add("active");$("modeInverse").classList.remove("active");
     applyRegalPreset("best");
   }else{
-    restoreFromHash()||null;
-    if(activeTab==="gps")updateNow();
-    else renderTab(activeTab,true);
+    const ok=restoreFromHash();
+    if(!ok){
+      regalMode="forward";
+      applyRegalPreset("best");
+    }else if(activeTab==="gps"){
+      // applyState already updated; ensure Best path is plausible after restore.
+      if(regalMode==="forward"&&activeRegalPreset==="best"&&!isPlausible(readParams())){
+        applyRegalPreset("best");
+      }
+    }else renderTab(activeTab,true);
   }
   updateReadoutTracker();
   initMobileCollapse();

@@ -1,8 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { T1, T2, hazardRatio, consistent, passesVerdict, isBiologicallyPlausible, medianOf, sBAT, eventsAt, T3, E3, inverseSolve } from "../js/math/survival.js";
+import { T1, T2, T4, hazardRatio, consistent, passesVerdict, isBiologicallyPlausible, medianOf, sBAT, sGPS, eventsAt, T3, E3, inverseSolve } from "../js/math/survival.js";
 import { paramsFromPresetQ, mk } from "./helpers.js";
 import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES, RIDGE_PRESET_NAMES } from "./fixtures/presets.js";
+import {
+  isPlausible,
+  resolveForwardPresetParams,
+  decodeShareHash,
+  buildShareHash,
+  SHARE_P,
+  paramsFromPresetQ as paramsFromPresetQState
+} from "../js/ui/state.js";
 
 for (const name of PLAUSIBLE_PRESET_NAMES) {
   test(`forward preset "${name}" passes consistent()`, () => {
@@ -66,6 +74,105 @@ test("default best preset passes verdict (full trajectory match)", () => {
   // e65 must sit comfortably inside [77,80) — old gpsu=54.1 landed at 77.11 and froze the chart
   const e65 = eventsAt(65, p);
   assert.ok(e65 >= 77.5 && e65 < 79.5, `e65 ${e65} should have margin inside [77,80)`);
+});
+
+test("P.best applyRegalPreset path isPlausible with margin on all anchors", () => {
+  // Mirrors applyRegalPreset("best") → paramsFromPresetQ(P.best) → readParams()
+  const p = paramsFromPresetQState(SHARE_P.best);
+  assert.equal(p.bat, 13);
+  assert.equal(p.gpsu, 47.5);
+  assert.equal(p.gpsc, 0.42);
+  assert.ok(isPlausible(p), "Best Available Guess must be isPlausible after applyRegalPreset path");
+  const e46 = eventsAt(T1, p);
+  const e58 = eventsAt(T2, p);
+  const e63 = eventsAt(T3, p);
+  const e65 = eventsAt(T4, p);
+  // Print exact anchors for the fix report (assert messages include values on failure)
+  assert.ok(Math.abs(e46 - 60) <= 3, `e46=${e46}`);
+  assert.ok(Math.abs(e58 - 72) <= 2.5, `e58=${e58}`);
+  assert.ok(Math.abs(e63 - 78) <= 2.5, `e63=${e63}`);
+  assert.ok(e65 >= 77.5 && e65 < 79.5, `e65=${e65} needs margin in [77,80)`);
+  assert.ok(medianOf(sBAT, p) <= 15, "BAT median within biology cap");
+  assert.ok(medianOf(sGPS, p) > 50, "GPS mixture-cure median should be well above uncured mOS");
+});
+
+test("named preset wins over stale share-hash gps deltas", () => {
+  // Reproduces the live bug: Best ★ selected, BAT mOS 13.0, GPS mOS ~72.7, yellow
+  // e46/e58/e63 warning. That signature is bat=13,gpsc=42,gpsu=60,delay=6 — slider
+  // drift (or a stale hash delta) while activeRegalPreset stayed "best".
+  const staleGps = {
+    bat: 13,
+    batc: 0,
+    batk: 1,
+    gpsc: 42,
+    gpsu: 60,
+    delay: 6,
+    xtx: 0,
+    cens: 0,
+    mid: 25,
+    k: 0.15,
+    batcap: 14,
+    autofit: false,
+    fhTest: false,
+    stratF: 0.9,
+    zfut: 0.4,
+    mcFloor: true,
+    cutoff: 72
+  };
+  const staleParams = paramsFromPresetQ({
+    bat: 13,
+    batc: 0,
+    gpsc: 42,
+    gpsu: 60,
+    delay: 6,
+    mid: 25,
+    k: 0.15,
+    xtx: 0,
+    cens: 0
+  });
+  assert.equal(isPlausible(staleParams), false, "stale gpsu=60/delay=6 must fail fit (reproduces user bug)");
+  assert.ok(
+    Math.abs(medianOf(sGPS, staleParams) - 72.7) < 0.2,
+    `stale GPS median should be ~72.7 (user report), got ${medianOf(sGPS, staleParams)}`
+  );
+  const resolved = resolveForwardPresetParams("best", staleGps);
+  assert.equal(resolved.gpsu, SHARE_P.best.gpsu);
+  assert.equal(resolved.delay, SHARE_P.best.delay);
+  assert.ok(isPlausible(resolved), "resolveForwardPresetParams(best) must be plausible");
+});
+
+test("decodeShareHash with rp=best ignores conflicting survival deltas via resolve path", () => {
+  // Encode a state that claims best but carries non-fitting survival overrides.
+  const hash = buildShareHash({
+    v: 1,
+    tab: "gps",
+    regalMode: "forward",
+    activeRegalPreset: "best",
+    activeInvPreset: "cw42",
+    activeSlsPreset: "best",
+    activeValPreset: "best",
+    gps: {
+      ...SHARE_P.best,
+      batk: 1,
+      batcap: 14,
+      autofit: false,
+      fhTest: false,
+      stratF: 0.9,
+      zfut: 0.4,
+      cutoff: 72,
+      gpsu: 60,
+      delay: 6
+    }
+  });
+  const s = decodeShareHash(hash);
+  assert.ok(s);
+  assert.equal(s.activeRegalPreset, "best");
+  assert.equal(s.gps.gpsu, 60, "raw decode still has delta (encode fidelity)");
+  assert.equal(s.gps.delay, 6);
+  const p = resolveForwardPresetParams(s.activeRegalPreset, s.gps);
+  assert.equal(p.gpsu, 47.5);
+  assert.equal(p.delay, 3);
+  assert.ok(isPlausible(p));
 });
 
 for (const name of INVERSE_PRESET_NAMES) {

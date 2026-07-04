@@ -326,6 +326,20 @@ export function isPlausible(p) {
   return passesVerdict(p) && isBiologicallyPlausible(p);
 }
 
+/**
+ * Resolve forward survival params for a named preset.
+ * Named presets always win over stale share-hash slider deltas (e.g. old gpsu
+ * left in a bookmark after P.best was recalibrated).
+ * `gpsBlock` is accepted for call-site symmetry with applyState but ignored when
+ * a known preset name is active.
+ */
+export function resolveForwardPresetParams(activeRegalPreset, _gpsBlock) {
+  const q =
+    (activeRegalPreset && SHARE_P[activeRegalPreset]) ||
+    SHARE_P.best;
+  return paramsFromPresetQ(q);
+}
+
 /** DOM-free valuation metrics (values object mirrors slider fields).
  *  EV is enterprise value ($M). Equity = EV + cash; equity $/sh = equity / shares. */
 export function computeValuationMetrics(v) {
