@@ -1,6 +1,7 @@
-/** Client-side live quote helpers — pure functions + async fetch via /api/quote proxy. */
+/** Client-side delayed quote helpers — pure functions + async fetch via /api/quote proxy. */
 
 export const DEFAULT_TICKER = "SLS";
+export const QUOTE_LABEL = "Approx · delayed";
 
 export function parseQuotePayload(json) {
   if (!json || typeof json !== "object") return { ok: false, error: "invalid response" };
@@ -14,6 +15,7 @@ export function parseQuotePayload(json) {
     previousClose: json.previousClose,
     changePct: json.changePct,
     marketCapM: json.marketCapM,
+    sharesOutstandingM: json.sharesOutstandingM,
     marketCapEstimated: !!json.marketCapEstimated,
     currency: json.currency || "USD",
     asOf: json.asOf,
@@ -26,10 +28,20 @@ export function formatPrice(price, currency = "USD") {
   return currency === "USD" ? `$${price.toFixed(2)}` : `${price.toFixed(2)} ${currency}`;
 }
 
+export function formatApproxPrice(price, currency = "USD") {
+  const base = formatPrice(price, currency);
+  return base === "—" ? base : `~${base}`;
+}
+
 export function formatMarketCapM(capM) {
   if (!Number.isFinite(capM) || capM <= 0) return "—";
   if (capM >= 1000) return `$${(capM / 1000).toFixed(1)}B`;
   return `$${Math.round(capM)}M`;
+}
+
+export function formatApproxMarketCapM(capM) {
+  const base = formatMarketCapM(capM);
+  return base === "—" ? base : `~${base}`;
 }
 
 export function formatAsOf(iso, tz = "America/New_York") {
@@ -49,16 +61,14 @@ export function formatAsOf(iso, tz = "America/New_York") {
   }
 }
 
-/** One-line meta: mkt cap + as-of + source. */
+/** Sub-line meta: delayed label + approx mkt cap. */
 export function buildQuoteMeta(quote) {
   if (!quote?.ok) return "";
   const parts = [];
   if (quote.marketCapM != null) {
-    const label = quote.marketCapEstimated ? "Implied mkt cap" : "Mkt cap";
-    parts.push(`${label} ${formatMarketCapM(quote.marketCapM)}`);
+    const capLabel = quote.marketCapEstimated ? "implied cap" : "mkt cap";
+    parts.push(`${capLabel} ${formatApproxMarketCapM(quote.marketCapM)}`);
   }
-  const asOf = formatAsOf(quote.asOf);
-  if (asOf) parts.push(`as of ${asOf}`);
   return parts.join(" · ");
 }
 

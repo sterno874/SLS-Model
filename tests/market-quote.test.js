@@ -3,28 +3,32 @@ import assert from "node:assert/strict";
 import {
   parseQuotePayload,
   formatPrice,
+  formatApproxPrice,
   formatMarketCapM,
-  formatAsOf,
+  formatApproxMarketCapM,
   buildQuoteMeta,
   formatChangePct,
   computeVsMarketUpside,
-  fetchLiveQuote
+  fetchLiveQuote,
+  QUOTE_LABEL
 } from "../js/ui/market-quote.js";
 
-test("parseQuotePayload accepts valid quote", () => {
+test("parseQuotePayload accepts valid Yahoo quote", () => {
   const q = parseQuotePayload({
     symbol: "SLS",
     price: 14.98,
     previousClose: 13.27,
     changePct: 12.9,
-    marketCapM: 2710,
+    marketCapM: 2946,
+    sharesOutstandingM: 196.63,
     currency: "USD",
     asOf: "2026-07-02T20:00:00.000Z",
-    source: "finnhub"
+    source: "yahoo"
   });
   assert.equal(q.ok, true);
   assert.equal(q.price, 14.98);
-  assert.equal(q.marketCapM, 2710);
+  assert.equal(q.marketCapM, 2946);
+  assert.equal(q.sharesOutstandingM, 196.63);
 });
 
 test("parseQuotePayload rejects missing price", () => {
@@ -32,26 +36,35 @@ test("parseQuotePayload rejects missing price", () => {
   assert.equal(parseQuotePayload({ error: "nope" }).error, "nope");
 });
 
-test("formatPrice and formatMarketCapM", () => {
+test("formatApproxPrice and formatApproxMarketCapM", () => {
+  assert.equal(formatApproxPrice(14.98), "~$14.98");
+  assert.equal(formatApproxMarketCapM(2946), "~$2.9B");
+  assert.equal(formatApproxMarketCapM(450), "~$450M");
   assert.equal(formatPrice(14.98), "$14.98");
   assert.equal(formatMarketCapM(2710), "$2.7B");
-  assert.equal(formatMarketCapM(450), "$450M");
 });
 
-test("formatAsOf renders ET timestamp", () => {
-  const s = formatAsOf("2026-07-02T20:00:00.000Z");
-  assert.match(s, /Jul/);
-});
-
-test("buildQuoteMeta includes cap and as-of", () => {
+test("buildQuoteMeta shows approx mkt cap", () => {
   const meta = buildQuoteMeta({
     ok: true,
     marketCapM: 1200,
-    marketCapEstimated: false,
-    asOf: "2026-07-02T20:00:00.000Z"
+    marketCapEstimated: false
   });
-  assert.match(meta, /Mkt cap \$1\.2B/);
-  assert.match(meta, /as of/);
+  assert.match(meta, /mkt cap ~\$1\.2B/);
+  assert.doesNotMatch(meta, /as of/);
+});
+
+test("buildQuoteMeta labels implied cap", () => {
+  const meta = buildQuoteMeta({
+    ok: true,
+    marketCapM: 800,
+    marketCapEstimated: true
+  });
+  assert.match(meta, /implied cap ~\$800M/);
+});
+
+test("QUOTE_LABEL is honest delayed wording", () => {
+  assert.equal(QUOTE_LABEL, "Approx · delayed");
 });
 
 test("formatChangePct signs correctly", () => {
@@ -73,9 +86,7 @@ test("fetchLiveQuote mocks fetch", async () => {
       symbol: "SLS",
       price: 10,
       marketCapM: 1000,
-      currency: "USD",
-      asOf: "2026-07-02T20:00:00.000Z",
-      source: "finnhub"
+      source: "yahoo"
     })
   });
   const q = await fetchLiveQuote("SLS", { fetchFn: mockFetch });

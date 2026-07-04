@@ -68,8 +68,7 @@ import {
 } from './ui/state.js';
 import {
   DEFAULT_TICKER,
-  formatPrice,
-  formatChangePct,
+  formatApproxPrice,
   buildQuoteMeta,
   computeVsMarketUpside,
   startLiveQuotePoll
@@ -1644,8 +1643,7 @@ function updateMarketQuoteUI(vo){
   const q=liveQuote;
   if(priceEl){
     priceEl.classList.remove("best-est-val--loading","best-est-val--error");
-    const ch=formatChangePct(q.changePct);
-    priceEl.textContent=formatPrice(q.price,q.currency)+(ch?" ("+ch+")":"");
+    priceEl.textContent=formatApproxPrice(q.price,q.currency);
     priceEl.title=buildQuoteMeta(q);
   }
   if(metaEl)metaEl.textContent=buildQuoteMeta(q)||"—";
