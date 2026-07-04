@@ -73,6 +73,7 @@ import {
   computeVsMarketUpside,
   startLiveQuotePoll
 } from './ui/market-quote.js';
+import { initBioDiagrams } from './ui/bio-diagrams.js';
 
 const $ = id => document.getElementById(id);
 function onClick(id, fn){const el=$(id);if(el)el.onclick=fn;}
@@ -1545,7 +1546,7 @@ function renderTab(t,force){
   if(t==="sls009"&&(force||tabsDirty.sls009||!tabsRendered.sls009)){renderSLS();tabsRendered.sls009=true;tabsDirty.sls009=false;}
   if(t==="value"&&(force||tabsDirty.value||!tabsRendered.value)){renderVal();tabsRendered.value=true;tabsDirty.value=false;}
   if(t==="explain"&&(force||!tabsRendered.explain)){showLevel(curLvl);tabsRendered.explain=true;}
-  if(t==="biology")tabsRendered.biology=true;
+  if(t==="biology"){initBioDiagrams();tabsRendered.biology=true;}
 }
 function switchTab(t){
   activeTab=t;

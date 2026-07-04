@@ -1248,6 +1248,47 @@
         <li><b>Overexpressed, not neo-antigen:</b> WT1 is a normal self-protein overexpressed by the tumor, so the immune response has to overcome tolerance — the design problem GPS tries to solve (next section). <span class="tag f">Established</span></li>
         <li><b>Broad applicability:</b> WT1 is expressed across AML, MDS, and several solid tumors, which is why SELLAS frames it as a platform antigen. <span class="tag f">Established</span></li>
       </ul>
+
+      <figure class="bio-figure">
+        <svg class="bio-svg" viewBox="0 0 760 220" role="img" aria-labelledby="d0title d0desc" preserveAspectRatio="xMidYMid meet">
+          <title id="d0title">WT1 intracellular antigen presentation</title>
+          <desc id="d0desc">WT1 transcription factor inside a blast is processed into peptides displayed on MHC class I and II, making an intracellular protein visible to T cells.</desc>
+          <defs>
+            <marker id="d0ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="var(--muted,#5b6472)"/></marker>
+          </defs>
+          <text class="sim-caption" x="380" y="20" text-anchor="middle">Intracellular WT1 → surface peptide-MHC complexes</text>
+          <rect x="0" y="0" width="760" height="220" fill="var(--bio-bg,#fbfcfe)" opacity="0"/>
+          <g class="sim-grid-line"><line x1="40" y1="50" x2="720" y2="50"/><line x1="40" y1="100" x2="720" y2="100"/><line x1="40" y1="150" x2="720" y2="150"/></g>
+          <ellipse cx="140" cy="120" rx="90" ry="58" class="dg-box-bad" fill="#fdeaea" stroke="#d64545"/>
+          <text class="dg-t-b" x="140" y="108" text-anchor="middle">WT1⁺ blast</text>
+          <text class="dg-t-sm" x="140" y="126" text-anchor="middle">nucleus + cytoplasm</text>
+          <circle cx="140" cy="132" r="22" fill="#fff" stroke="#d64545" stroke-width="1.2"/>
+          <text class="dg-t-sm" x="140" y="136" text-anchor="middle" font-size="9">WT1</text>
+          <path class="dg-flow" d="M230,120 L278,120" marker-end="url(#d0ar)"/>
+          <text class="dg-t-sm" x="254" y="108" text-anchor="middle">proteasome</text>
+          <text class="dg-t-sm" x="254" y="138" text-anchor="middle">peptides</text>
+          <rect class="dg-box" x="282" y="88" width="130" height="64" rx="10"/>
+          <text class="dg-t" x="347" y="112" text-anchor="middle">MHC class I</text>
+          <text class="dg-t-sm" x="347" y="130" text-anchor="middle">CD8⁺ epitope</text>
+          <rect class="dg-box" x="282" y="158" width="130" height="44" rx="10"/>
+          <text class="dg-t-sm" x="347" y="184" text-anchor="middle">MHC class II · CD4⁺ help</text>
+          <path class="dg-flow-gps" d="M412,120 L460,120" marker-end="url(#d0ar)"/>
+          <rect class="dg-box-gps" x="464" y="88" width="150" height="64" rx="10"/>
+          <text class="dg-t-b" x="539" y="112" text-anchor="middle">T cell recognition</text>
+          <text class="dg-t-sm" x="539" y="130" text-anchor="middle">MHC-restricted</text>
+          <text class="dg-t-sm" x="539" y="146" text-anchor="middle">no surface WT1 needed</text>
+          <g class="scale-bar" transform="translate(580,188)">
+            <line x1="0" y1="0" x2="60" y2="0"/><line x1="0" y1="-4" x2="0" y2="4"/><line x1="60" y1="-4" x2="60" y2="4"/>
+            <text x="30" y="14" text-anchor="middle">~15 μm cell</text>
+          </g>
+          <g class="sim-legend" transform="translate(40,196)">
+            <rect class="sim-legend-swatch" x="0" y="-8" width="12" height="12" fill="#fdeaea" stroke="#d64545"/><text class="dg-t-sm" x="18" y="0">Tumor blast</text>
+            <rect class="sim-legend-swatch" x="110" y="-8" width="12" height="12" fill="#eef3fe" stroke="#2f6fed"/><text class="dg-t-sm" x="128" y="0">MHC display</text>
+          </g>
+        </svg>
+        <figcaption class="bio-figcaption"><b>Diagram 0 — WT1 as a usable antigen.</b> WT1 never sits on the cell surface, but proteasomal fragments are loaded onto MHC — the basis for peptide vaccines like GPS. <span class="tag f">Established</span> · Cheever 2009 NCI #1 ranking.</figcaption>
+      </figure>
+
       <ul class="bio-sources">
         <li>Cheever et al. 2009, <em>Clin Cancer Res</em> — NCI antigen prioritization, WT1 ranked #1: <a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank" rel="noopener">PubMed 19723653</a></li>
         <li>SELLAS science overview (WT1 biology / NCI ranking): <a href="https://sellaslifesciences.com/science/" target="_blank" rel="noopener">sellaslifesciences.com/science</a></li>
@@ -1272,7 +1313,7 @@
           </defs>
           <!-- inputs -->
           <text class="dg-t-b" x="88" y="26" text-anchor="middle">GPS components</text>
-          <rect class="dg-box-gps" x="16" y="42" width="144" height="40" rx="8"/>
+          <rect class="dg-box-gps" x="16" y="42" width="144" height="40" rx="8" data-bio-node="peptides" data-bio-tip="4 WT1 peptides (2 heteroclitic) — break tolerance"/>
           <text class="dg-t" x="88" y="60" text-anchor="middle">4 WT1 peptides</text>
           <text class="dg-t-sm" x="88" y="74" text-anchor="middle">2 heteroclitic + 2 native</text>
           <rect class="dg-box" x="16" y="90" width="144" height="34" rx="8"/>
@@ -1284,7 +1325,7 @@
           <path class="dg-flow" d="M160,107 C200,107 205,150 236,150" marker-end="url(#d2ar)"/>
           <path class="dg-flow" d="M160,149 L236,150" marker-end="url(#d2ar)"/>
           <!-- APC -->
-          <rect class="dg-box" x="240" y="118" width="150" height="64" rx="10"/>
+          <rect class="dg-box" x="240" y="118" width="150" height="64" rx="10" data-bio-node="apc" data-bio-tip="Dendritic cell presents WT1 on MHC I + II"/>
           <text class="dg-t-b" x="315" y="144" text-anchor="middle">APC / dendritic cell</text>
           <text class="dg-t-sm" x="315" y="162" text-anchor="middle">presents WT1 on</text>
           <text class="dg-t-sm" x="315" y="176" text-anchor="middle">MHC class I + II</text>
@@ -1293,7 +1334,7 @@
           <rect class="dg-box-gps" x="474" y="96" width="150" height="44" rx="10"/>
           <text class="dg-t" x="549" y="115" text-anchor="middle">CD4⁺ helper T cell</text>
           <text class="dg-t-sm" x="549" y="131" text-anchor="middle">licenses / sustains CTL</text>
-          <rect class="dg-box-gps" x="474" y="160" width="150" height="44" rx="10"/>
+          <rect class="dg-box-gps" x="474" y="160" width="150" height="44" rx="10" data-bio-node="ctl" data-bio-tip="WT1-specific CD8⁺ CTL — patrols and lyses blasts"/>
           <text class="dg-t" x="549" y="179" text-anchor="middle">CD8⁺ CTL</text>
           <text class="dg-t-sm" x="549" y="195" text-anchor="middle">WT1-specific killer</text>
           <path class="dg-flow-gps" d="M549,140 L549,160" marker-end="url(#d2arg)"/>
@@ -1366,6 +1407,7 @@
             <marker id="d3arb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#d64545"/></marker>
           </defs>
           <!-- top row: normal -->
+          <g id="d3-untreated">
           <text class="dg-t-b" x="20" y="24">Untreated blast</text>
           <rect class="dg-box-ink" x="16" y="36" width="120" height="52" rx="9"/>
           <text class="dg-t" x="76" y="58" text-anchor="middle">RNA Pol II</text>
@@ -1386,9 +1428,11 @@
           <path class="dg-flow-good" d="M613,88 L613,120" marker-end="url(#d3arn)"/>
           <rect class="dg-box-ink" x="538" y="124" width="150" height="44" rx="9"/>
           <text class="dg-t-b" x="613" y="151" text-anchor="middle">Blast survival</text>
+          </g>
           <!-- divider -->
-          <line x1="16" y1="196" x2="744" y2="196" stroke="#dde2e8" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <line x1="16" y1="196" x2="744" y2="196" stroke="var(--line,#dde2e8)" stroke-width="1.5" stroke-dasharray="4 4"/>
           <!-- bottom row: inhibited -->
+          <g id="d3-inhibited">
           <text class="dg-t-b" x="20" y="224">With SLS-009 (CDK9 inhibitor)</text>
           <rect class="dg-box-sls" x="16" y="236" width="150" height="52" rx="9"/>
           <text class="dg-t" x="91" y="258" text-anchor="middle">SLS-009</text>
@@ -1406,6 +1450,7 @@
           <rect class="dg-box-bad" x="586" y="236" width="150" height="52" rx="9"/>
           <text class="dg-t-b" x="661" y="258" text-anchor="middle">Apoptosis</text>
           <text class="dg-t-sm" x="661" y="274" text-anchor="middle">of the blast</text>
+          </g>
         </svg>
         <figcaption class="bio-figcaption"><b>Diagram 3 — CDK9/P-TEFb axis.</b> Top: CDK9 phosphorylates Pol II CTD Ser2, driving elongation of short-lived MCL-1/MYC transcripts that keep the blast alive. Bottom: SLS-009 blocks CDK9, Ser2 phosphorylation stops, the labile MCL-1 protein falls within hours, and the cell dies. <span class="tag f">Established</span> mechanism; the CDK9→MCL-1 dependency is the drug's rationale. <span class="tag m">Theoretical MOA</span></figcaption>
       </figure>
@@ -1434,37 +1479,39 @@
             <marker id="d4arb" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#d64545"/></marker>
           </defs>
           <!-- drugs -->
-          <rect class="dg-box-warn" x="16" y="40" width="150" height="48" rx="9"/>
-          <text class="dg-t-b" x="91" y="60" text-anchor="middle">Venetoclax</text>
-          <text class="dg-t-sm" x="91" y="77" text-anchor="middle">BCL-2 inhibitor</text>
-          <rect class="dg-box-sls" x="16" y="212" width="150" height="48" rx="9"/>
-          <text class="dg-t-b" x="91" y="232" text-anchor="middle">SLS-009 → CDK9i</text>
-          <text class="dg-t-sm" x="91" y="249" text-anchor="middle">suppresses MCL-1</text>
-          <!-- guards -->
-          <rect class="dg-box" x="250" y="40" width="160" height="48" rx="9"/>
-          <text class="dg-t-b" x="330" y="60" text-anchor="middle">BCL-2</text>
-          <text class="dg-t-sm" x="330" y="77" text-anchor="middle">anti-apoptotic guard</text>
-          <rect class="dg-box" x="250" y="212" width="160" height="48" rx="9"/>
-          <text class="dg-t-b" x="330" y="232" text-anchor="middle">MCL-1</text>
-          <text class="dg-t-sm" x="330" y="249" text-anchor="middle">anti-apoptotic guard</text>
-          <!-- inhibition bars (blunt/red) -->
-          <path class="dg-flow-block" d="M166,64 L246,64" marker-end="url(#d4arb)"/>
-          <path class="dg-flow-block" d="M166,236 L246,236" marker-end="url(#d4arb)"/>
-          <text class="dg-t-sm" x="206" y="30" text-anchor="middle">inhibits</text>
-          <text class="dg-t-sm" x="206" y="205" text-anchor="middle">lowers</text>
-          <!-- guards normally hold BIM -->
-          <rect class="dg-box-warn" x="446" y="126" width="150" height="48" rx="9"/>
-          <text class="dg-t-b" x="521" y="146" text-anchor="middle">BIM / BAX / BAK</text>
-          <text class="dg-t-sm" x="521" y="163" text-anchor="middle">pro-apoptotic, released</text>
-          <path class="dg-flow" d="M410,64 C430,64 430,132 442,140" marker-end="url(#d4ar)" stroke-dasharray="5 4"/>
-          <path class="dg-flow" d="M410,236 C430,236 430,160 442,152" marker-end="url(#d4ar)" stroke-dasharray="5 4"/>
-          <text class="dg-t-sm" x="430" y="100" text-anchor="middle">both guards</text>
-          <text class="dg-t-sm" x="430" y="114" text-anchor="middle">removed →</text>
-          <!-- to apoptosis -->
-          <path class="dg-flow-bad" d="M596,150 L636,150" marker-end="url(#d4arb)"/>
-          <rect class="dg-box-bad" x="640" y="120" width="112" height="60" rx="10"/>
-          <text class="dg-t-b" x="696" y="146" text-anchor="middle">MOMP →</text>
-          <text class="dg-t-b" x="696" y="164" text-anchor="middle">apoptosis</text>
+          <g id="d4-ven-block">
+            <rect class="dg-box-warn" x="16" y="40" width="150" height="48" rx="9"/>
+            <text class="dg-t-b" x="91" y="60" text-anchor="middle">Venetoclax</text>
+            <text class="dg-t-sm" x="91" y="77" text-anchor="middle">BCL-2 inhibitor</text>
+            <rect class="dg-box" x="250" y="40" width="160" height="48" rx="9"/>
+            <text class="dg-t-b" x="330" y="60" text-anchor="middle">BCL-2</text>
+            <text class="dg-t-sm" x="330" y="77" text-anchor="middle">anti-apoptotic guard</text>
+            <path class="dg-flow-block" d="M166,64 L246,64" marker-end="url(#d4arb)"/>
+            <text class="dg-t-sm" x="206" y="30" text-anchor="middle">inhibits</text>
+          </g>
+          <g id="d4-sls-block">
+            <rect class="dg-box-sls" x="16" y="212" width="150" height="48" rx="9"/>
+            <text class="dg-t-b" x="91" y="232" text-anchor="middle">SLS-009 → CDK9i</text>
+            <text class="dg-t-sm" x="91" y="249" text-anchor="middle">suppresses MCL-1</text>
+            <rect class="dg-box" x="250" y="212" width="160" height="48" rx="9"/>
+            <text class="dg-t-b" x="330" y="232" text-anchor="middle">MCL-1</text>
+            <text class="dg-t-sm" x="330" y="249" text-anchor="middle">anti-apoptotic guard</text>
+            <path class="dg-flow-block" d="M166,236 L246,236" marker-end="url(#d4arb)"/>
+            <text class="dg-t-sm" x="206" y="205" text-anchor="middle">lowers</text>
+          </g>
+          <g id="d4-outcome">
+            <rect class="dg-box-warn" x="446" y="126" width="150" height="48" rx="9"/>
+            <text class="dg-t-b" x="521" y="146" text-anchor="middle">BIM / BAX / BAK</text>
+            <text class="dg-t-sm" x="521" y="163" text-anchor="middle">pro-apoptotic, released</text>
+            <path class="dg-flow" d="M410,64 C430,64 430,132 442,140" marker-end="url(#d4ar)" stroke-dasharray="5 4"/>
+            <path class="dg-flow" d="M410,236 C430,236 430,160 442,152" marker-end="url(#d4ar)" stroke-dasharray="5 4"/>
+            <text class="dg-t-sm" x="430" y="100" text-anchor="middle">both guards</text>
+            <text class="dg-t-sm" x="430" y="114" text-anchor="middle">removed →</text>
+            <path class="dg-flow-bad" d="M596,150 L636,150" marker-end="url(#d4arb)"/>
+            <rect class="dg-box-bad" x="640" y="120" width="112" height="60" rx="10"/>
+            <text class="dg-t-b" x="696" y="146" text-anchor="middle">MOMP →</text>
+            <text class="dg-t-b" x="696" y="164" text-anchor="middle">apoptosis</text>
+          </g>
         </svg>
         <figcaption class="bio-figcaption"><b>Diagram 4 — dual apoptosis blockade.</b> Venetoclax neutralizes BCL-2; SLS-009 (via CDK9 inhibition) strips away MCL-1. With both anti-apoptotic guards gone, pro-apoptotic BAX/BAK drive mitochondrial outer-membrane permeabilization (MOMP) and the blast dies. This is the rationale for adding SLS-009 to AZA/VEN, especially after venetoclax failure. <span class="tag m">Theoretical MOA</span></figcaption>
       </figure>

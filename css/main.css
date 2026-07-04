@@ -9,6 +9,10 @@
     --content-max:1180px; --section-gap:var(--space-xl);
     --page-pad:var(--space-lg); --panel-pad:var(--space-lg);
     --radius:12px; --radius-sm:8px;
+    --bio-bg:#fbfcfe; --bio-accent:#2f6fed; --bio-label:#4f5866;
+    --sim-grid:#e8ecf2; --sim-tissue:#e8f6ee; --sim-tumor:#fdeaea;
+    --sim-alpha:#d64545; --sim-beta:#d98a00; --sim-gamma:#2f6fed;
+    --surface-soft:#fbfcfe; --surface-accent:#eef3fe;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -493,7 +497,7 @@
   .bio-content{padding:var(--space-md) var(--page-pad) var(--space-2xl);max-width:var(--content-max);margin:0 auto;width:100%}
   .bio-section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:var(--panel-pad);box-shadow:var(--shadow);margin-bottom:var(--section-gap)}
   .bio-section h2{font-size:18px;margin:0 0 var(--space-xs);line-height:1.25;letter-spacing:-.01em;display:flex;align-items:baseline;gap:var(--space-sm);flex-wrap:wrap}
-  .bio-section h2 .bio-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:#eef3fe;border-radius:6px;padding:2px 8px;line-height:1.4}
+  .bio-section h2 .bio-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--bio-accent);background:var(--surface-accent);border-radius:6px;padding:2px 8px;line-height:1.4}
   .bio-section h3{font-size:14px;margin:var(--space-lg) 0 var(--space-xs)}
   .bio-section p{font-size:13.5px;line-height:1.65;margin:0 0 var(--space-md);max-width:80ch}
   .bio-section p:last-child{margin-bottom:0}
@@ -504,13 +508,25 @@
   .bio-legend .tag{margin-left:0}
   .bio-modality-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin:var(--space-md) 0 0}
   @media(max-width:640px){.bio-modality-grid{grid-template-columns:1fr}}
-  .bio-modality{border:1px solid var(--line);border-radius:10px;padding:var(--space-md);background:#fafbfc}
+  .bio-modality{border:1px solid var(--line);border-radius:10px;padding:var(--space-md);background:var(--surface-soft)}
   .bio-modality h4{margin:0 0 var(--space-xs);font-size:13px;display:flex;align-items:center;gap:var(--space-sm)}
   .bio-modality.mod-gps{border-left:4px solid var(--gps)}
   .bio-modality.mod-sls{border-left:4px solid var(--good)}
   .bio-modality p{font-size:12.5px;margin:0}
-  .bio-figure{margin:var(--space-md) 0;border:1px solid var(--line);border-radius:10px;background:#fbfcfe;padding:var(--space-md)}
+  .bio-figure{margin:var(--space-md) 0;border:1px solid var(--line);border-radius:10px;background:var(--bio-bg);padding:var(--space-md);position:relative}
   .bio-figure svg{display:block;width:100%;height:auto;max-width:100%}
+  .sim-caption{font-size:11px;font-weight:600;color:var(--bio-label);fill:var(--bio-label)}
+  .sim-legend{display:flex;flex-wrap:wrap;gap:var(--space-sm) var(--space-md);align-items:center;font-size:11px;color:var(--muted);margin:var(--space-sm) 0 0;padding:var(--space-sm) 0 0;border-top:1px dashed var(--line)}
+  .sim-legend-item{display:inline-flex;align-items:center;gap:5px}
+  .sim-legend-swatch{width:12px;height:12px;border-radius:3px;flex-shrink:0;border:1px solid rgba(20,27,38,.08)}
+  .scale-bar line,.bio-svg .scale-bar line{stroke:var(--ink);stroke-width:1.5}
+  .scale-bar text,.bio-svg .scale-bar text{font:600 9px -apple-system,sans-serif;fill:var(--bio-label)}
+  .bio-svg .sim-grid-line{stroke:var(--sim-grid);stroke-width:1}
+  .bio-diagram-controls{display:flex;flex-wrap:wrap;gap:var(--space-sm);margin:var(--space-sm) 0 0}
+  .bio-diagram-controls .p{font-size:11px;min-height:32px;padding:4px 10px}
+  .bio-tooltip{position:absolute;top:var(--space-sm);right:var(--space-sm);max-width:220px;padding:6px 10px;border-radius:8px;background:var(--ink);color:#fff;font-size:11px;line-height:1.4;z-index:2;pointer-events:none;box-shadow:var(--shadow)}
+  .bio-svg [data-bio-node]{transition:opacity .15s,filter .15s}
+  .bio-svg .bio-node-active{filter:drop-shadow(0 0 4px rgba(47,111,237,.35))}
   .bio-figcaption{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px solid var(--line)}
   .bio-figcaption b{color:var(--ink)}
   .bio-svg .dg-box{fill:#fff;stroke:var(--line);stroke-width:1.5}

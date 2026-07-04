@@ -106,6 +106,11 @@ test("The Biology tab cites primary sources for each mechanism", () => {
   assert.ok(links.length >= 15, `expected >=15 source links, found ${links.length}`);
 });
 
+test("The Biology tab has interactive diagram wiring", () => {
+  assert.match(js, /initBioDiagrams/);
+  assert.match(js, /bio-diagrams\.js/);
+});
+
 test("The Biology tab preserves honesty flags (blinded / single-arm / no combo)", () => {
   const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
   assert.match(bio, /blinded/i);
