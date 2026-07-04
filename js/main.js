@@ -63,13 +63,25 @@ import {
   isPlausible,
   computeValuationMetrics as computeValuationMetricsPure,
   computeFrozenBestEst,
-  DEFAULT_CASH_M
+  DEFAULT_CASH_M,
+  FD_SHARES_M
 } from './ui/state.js';
+import {
+  DEFAULT_TICKER,
+  formatPrice,
+  formatChangePct,
+  buildQuoteMeta,
+  computeVsMarketUpside,
+  startLiveQuotePoll
+} from './ui/market-quote.js';
 
 const $ = id => document.getElementById(id);
 function onClick(id, fn){const el=$(id);if(el)el.onclick=fn;}
 function on(id, ev, fn){const el=$(id);if(el)el.addEventListener(ev,fn);}
 function onChange(id, fn){const el=$(id);if(el)el.onchange=fn;}
+
+let liveQuote = null;
+let stopQuotePoll = null;
 
 // ---------- plausibility gating (UI) ----------
 let lastConsistentP=null;
@@ -1478,6 +1490,7 @@ function initApp(){
   ["ev79","ev80"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",updateEventSensitivity);});
   ["panelScmp","panelEvtSens"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open&&id==="panelEvtSens")updateEventSensitivity();});});
   updateBestEstStrip();
+  initLiveQuote();
 }
 ["panelIRM","panelBayes","panelBacktest","panelCommunity","panelSlsCommunity","panelValCommunity"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open){if(id==="panelCommunity")loadCommunityDD();else if(id==="panelSlsCommunity")loadSlsCommunityDD();else if(id==="panelValCommunity")loadValCommunityDD();else refreshOpenPanels();}});});
 requestAnimationFrame(()=>{
@@ -1604,6 +1617,53 @@ function updateBestEstStrip(){
   if(buyLabelEl)buyLabelEl.innerHTML=(label.indexOf("gross")>=0?"Gross equity $/sh":"Risk-adj equity $/sh")+' <span class="tag m">model</span>';
   const grossEl=$("beGrossPs");
   if(grossEl)grossEl.textContent="gross @100% $"+psGross.toFixed(0)+"/sh";
+  updateMarketQuoteUI(vo);
+}
+function sharesMForQuote(vo){
+  const sharesEl=$("v_shares");
+  const s=sharesEl?+sharesEl.value:vo?.shares;
+  return Number.isFinite(s)&&s>0?s:FD_SHARES_M;
+}
+function updateMarketQuoteUI(vo){
+  if(embedMode)return;
+  const priceEl=$("beLivePrice"),metaEl=$("beLiveMeta"),vsEl=$("beVsMkt");
+  if(!priceEl&&!metaEl&&!vsEl)return;
+  const frozen=computeFrozenBestEst(vo||liveValOverrides());
+  if(liveQuote?.loading){
+    if(priceEl){priceEl.textContent="…";priceEl.classList.add("best-est-val--loading");}
+    if(metaEl)metaEl.textContent="fetching…";
+    if(vsEl)vsEl.textContent="—";
+    return;
+  }
+  if(!liveQuote?.ok){
+    if(priceEl){priceEl.textContent="—";priceEl.classList.remove("best-est-val--loading");priceEl.classList.add("best-est-val--error");}
+    if(metaEl)metaEl.textContent=liveQuote?.error?"quote unavailable":"—";
+    if(vsEl)vsEl.textContent="—";
+    return;
+  }
+  const q=liveQuote;
+  if(priceEl){
+    priceEl.classList.remove("best-est-val--loading","best-est-val--error");
+    const ch=formatChangePct(q.changePct);
+    priceEl.textContent=formatPrice(q.price,q.currency)+(ch?" ("+ch+")":"");
+    priceEl.title=buildQuoteMeta(q);
+  }
+  if(metaEl)metaEl.textContent=buildQuoteMeta(q)||"—";
+  if(vsEl){
+    let capM=q.marketCapM;
+    if(!Number.isFinite(capM)||capM<=0){
+      const shares=sharesMForQuote(vo);
+      capM=shares*q.price;
+    }
+    const u=computeVsMarketUpside(frozen.equity,capM);
+    vsEl.textContent=u.upsideLabel;
+    vsEl.title="Model risk-adj equity $"+(frozen.equity/1000).toFixed(1)+"B vs mkt cap "+(capM>=1000?(capM/1000).toFixed(1)+"B":Math.round(capM)+"M");
+  }
+}
+function initLiveQuote(){
+  if(embedMode||typeof fetch==="undefined")return;
+  if(stopQuotePoll)stopQuotePoll();
+  stopQuotePoll=startLiveQuotePoll(DEFAULT_TICKER,(q)=>{liveQuote=q;updateMarketQuoteUI(liveValOverrides());},{sharesM:sharesMForQuote()});
 }
 function renderSLS(){
   const os=+$("sls_os").value,bench=+$("sls_bench").value,orr=+$("sls_orr").value;

@@ -14,7 +14,8 @@ const files = [
   "ui-logic.test.js",
   "dom-smoke.test.js",
   "smoke-ui.test.js",
-  "audit-fixes.test.js"
+  "audit-fixes.test.js",
+  "market-quote.test.js"
 ].map((f) => path.join(dir, f));
 
 const result = spawnSync(process.execPath, ["--test", ...files], {

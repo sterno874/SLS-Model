@@ -23,6 +23,9 @@
   .best-est-val{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
   .best-est-val--scenario{font-size:12px}
   .best-est-sub{font-size:10px;font-weight:500;color:var(--muted);margin-left:2px}
+  .best-est-val--loading{opacity:.45}
+  .best-est-val--error{color:var(--muted)}
+  .market-live .best-est-sub{max-width:22em;overflow:hidden;text-overflow:ellipsis}
   .best-est-sep{color:#c5cad2;font-weight:300;user-select:none;flex-shrink:0}
   @media(max-width:640px){
     .best-est-strip{flex-wrap:wrap;justify-content:flex-start;gap:var(--space-sm) var(--space-md)}

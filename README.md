@@ -78,8 +78,10 @@ SLS-Model/
 ├── js/
 │   ├── main.js         # App init, tabs, REGAL/SLS-009/valuation/explain UI, MC, share URL
 │   ├── ui/state.js     # Share encoding, valuation metrics, header-strip helpers
+│   ├── ui/market-quote.js  # Live quote fetch/format (client)
 │   └── math/
 │       └── survival.js # Pure survival/HR/event math (CI-tested via verify_math.js)
+├── api/quote.js        # Vercel serverless proxy (Finnhub / Yahoo)
 ├── tests/              # Node test runner (math, presets, share URL, valuation)
 ├── verify_math.js      # Back-compat alias → npm test
 ├── package.json        # `"type": "module"`; npm test only (no build)
@@ -107,7 +109,24 @@ https://sls-model.vercel.app/?embed=1#s=eyJ2IjoxLCJ0YWIiOiJncHMi...
 Hides header branding excess, footer, bottom nav, share/print toolbar, methodology/how-it-works panels, and readout tracker. White background, minimal padding. Mobile bottom nav is also hidden in embed mode.
 
 ## Deploy (Vercel)
-This is a zero-config static site. Import the GitHub repo at [vercel.com/new](https://vercel.com/new); Vercel serves `index.html` automatically. Assign the domain `sls-model.vercel.app` in the project's Domains settings. Enable **Web Analytics** in the Vercel project settings → **Analytics** tab (required for visitor counts to flow).
+This is a zero-config static site with one optional serverless function for live quotes. Import the GitHub repo at [vercel.com/new](https://vercel.com/new); Vercel serves `index.html` automatically and deploys `api/quote.js` as `/api/quote`. Assign the domain `sls-model.vercel.app` in the project's Domains settings. Enable **Web Analytics** in the Vercel project settings → **Analytics** tab (required for visitor counts to flow).
+
+### Live stock quote (header strip)
+
+The biology-first header strip shows **live price**, **market cap**, and **model vs mkt** upside. Quotes load asynchronously (does not block page render) and refresh every 5 minutes.
+
+| Source | When used | Price | Market cap | Rate limits |
+|--------|-----------|-------|------------|-------------|
+| **Finnhub** | `FINNHUB_API_KEY` set in Vercel env | ✅ | ✅ (profile) | Free: 60 calls/min |
+| **Yahoo Finance v8 chart** | Fallback (no key) | ✅ | Implied only (`price × model FD shares`) | Undocumented; ~2 req/s; may 429 |
+
+**Setup (recommended):** [Finnhub](https://finnhub.io/register) free API key → Vercel project → **Settings → Environment Variables** → add `FINNHUB_API_KEY` → redeploy. The key stays server-side in `api/quote.js`; it is never exposed to the browser.
+
+Without a key, Yahoo fallback still works on Vercel (server-side fetch avoids browser CORS). Market cap is labeled **Implied mkt cap** when computed from model share count.
+
+**CORS:** Browser calls only `/api/quote` on the same origin. Direct client calls to Yahoo/Finnhub are blocked by CORS — do not remove the proxy for production.
+
+**ToS note:** Yahoo endpoints are unofficial and not licensed for redistribution; Finnhub free tier allows personal/non-commercial use — review [Finnhub terms](https://finnhub.io/terms-of-service) for your AGPL deployment.
 
 ## Contributing
 PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). The whole point is to **poke holes**: challenge an assumption, tighten a prior, fix a method, add a source. Please cite primary sources for any factual change.
