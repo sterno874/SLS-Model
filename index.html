@@ -132,6 +132,10 @@
         <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 42% GPS cure — chosen as the biology-informed point on the cure sweep (cw42 inverse), not an arbitrary pick; all fits must reproduce 60/72/78 event anchors. Kurosawa BAT 3-yr OS cap (~14%), 3-mo GPS onset delay. Forward sliders = inverseSolve(cw42) output. BAT long-survivor plateau 0% — 3-yr OS ~15% comes from Weibull tail at 13-mo median. Binding interim (registrational default). Point P(win) is high under these survival params — not the neutral-prior MC band (~50–78%). Model-implied interim HR is below the OBF early-stop floor (~0.547) but the trial continued.">Best Available Guess ★<span class="p-sub">42% cure · binding IA · model IA HR below stop bar; trial continued</span></button>
       </div>
       <div class="pgrp-hint callout-note" data-regal-mode="forward" id="bestIaCallout">Model-implied interim HR is below the early-stop floor (≈0.547) but IDMC continued — so either the IA was non-binding, the model overstates effect at IA, or both. Point P(win) under biology-first is high (~100%); neutral-prior MC is a separate ~50–78% band.</div>
+      <label class="ia-toggle callout-note" data-regal-mode="forward" for="mcFloor" title="Binding IA soft-conditions Monte Carlo on no early stop (registrational default). Uncheck for informational/non-binding IA only — survival sliders unchanged.">
+        <input type="checkbox" id="mcFloor" checked> <b>Binding interim IA</b>
+        <span class="p-sub">Toggle only — same survival as Best Available Guess. MC weights P(continue) when checked.</span>
+      </label>
     </div>
 
     <div class="modenav">
@@ -163,12 +167,6 @@
       <button class="p" data-preset="bull" data-regal-mode="forward" title="CW bull case: high GPS cure (~40%), low BAT tail, immediate onset — optimistic DD read with readout HR ~0.19.">Bull: strong GPS cure<span class="p-sub">40% cure · low BAT tail · readout HR ~0.19</span></button>
       <button class="p" data-preset="critique" data-regal-mode="forward" title="u/uhdisj41 critique: modest GPS benefit + biological BAT-tail ceiling — P(win) ~⅔, not CW's ~90%. Tests whether moderate efficacy still fits anchors.">Critique: ~⅔ coin flip<span class="p-sub">uhdisj41 moderate GPS · P(win) ~66%</span></button>
       <button class="p" data-preset="cw" data-regal-mode="forward" title="CW Part 1 published forward parameters: BAT 9m, GPS cure ~41%, uncured ~36m, non-binding interim — P(win) ~85%. Source: u/Confident-Web-7118.">CW published point (~85%)<span class="p-sub">CW Part 1 params · 41% cure · non-binding IA</span></button>
-    </div>
-    <div class="pgrp" data-regal-mode="forward">Interim assumption stress tests</div>
-    <div class="pgrp-hint" data-regal-mode="forward">Same survival as Best Available Guess (gpsc 42%, etc.) — only the binding-interim toggle differs. Point P(win) is high under biology-first; the neutral-prior MC band (~50% binding / ~78% non-binding) is a different prior, not these presets.</div>
-    <div class="presets" id="presetInterim" data-regal-mode="forward">
-      <button class="p" data-preset="bind" data-regal-mode="forward" title="Same survival as Best Available Guess with binding IA toggle on (registrational default). Soft-conditions MC on no early stop. Point P(win) high under biology-first — not the neutral-prior ~50% band.">Binding IA (biology-first)<span class="p-sub">Same as Best Available Guess + binding IA toggle</span></button>
-      <button class="p" data-preset="nonbind" data-regal-mode="forward" title="Same survival as Best Available Guess with binding IA toggle off (informational IA only). Point P(win) high under biology-first — not the neutral-prior ~78% band.">Non-binding IA (biology-first)<span class="p-sub">Same survival · non-binding IA assumption only</span></button>
     </div>
     <div class="pgrp" id="presetInvGrp" data-regal-mode="inverse" hidden>Inverse anchor-locked</div>
     <div class="pgrp-hint" id="presetInvHint" data-regal-mode="inverse" hidden>Mandatory: fit 60/72/78. Sweep GPS cure fraction (cw35/cw42/cw50); implied medians and HR are derived — CW inverse methodology.</div>
@@ -392,7 +390,6 @@
     <div class="mc-toolbar">
       <button class="p p-run" id="mcRun">▶ Run 200k draws</button>
       <button class="p" id="mcNeutral" data-regal-mode="forward">Set Best Available Guess priors</button>
-      <label><input type="checkbox" id="mcFloor" checked> binding efficacy interim (soft-condition on no early stop)</label>
       <label>analysis cutoff month <input type="range" id="cutoff" min="66" max="84" step="1" value="72"><b id="vCut">72</b></label>
       <span id="mcStatus" class="run-status">not run yet — click to run</span>
     </div>
@@ -955,7 +952,14 @@
       <h2 class="mt-lg">Platform &amp; valuation</h2>
       <div class="ctrl"><label for="v_platform">Risk-adjusted WT1 platform value <span id="vv_platform">$2.5 B</span></label><input type="range" id="v_platform" min="0" max="15" step="0.5" value="2.5"><div class="bands" id="band2-v_platform"></div><small class="source-line">WT1 breadth — <a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank" rel="noopener">Cheever 2009</a> (NCI #1 antigen); early-stage <span class="tag a">assumption</span>.</small></div>
       <div class="ctrl"><label for="v_mult">Multiple (× peak sales) <span id="vv_mult">5.0×</span></label><input type="range" id="v_mult" min="2" max="10" step="0.5" value="5"><div class="bands" id="band2-v_mult"></div><small class="source-line"><span class="tag a">Convention</span> Oncology M&amp;A ~4–8× peak. Comp: <a href="https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm" target="_blank" rel="noopener">Gilead–Forty Seven ~$4.9B</a>.</small></div>
-      <div class="ctrl"><label for="v_shares">Fully-diluted shares <span id="vv_shares">222 M</span></label><input type="range" id="v_shares" min="200" max="260" step="1" value="222"><div class="bands" id="band2-v_shares"></div><small class="source-line"><span class="tag f">Verified</span> Basic outstanding <b>~181.3M</b> (Mar 31, 2026) + warrants/options/RSUs → FD modeled <b>~222M</b>. <a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">Q1 2026 10-Q</a> · <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a></small></div>
+      <div class="ctrl"><label for="v_shares">Fully-diluted shares <span id="vv_shares">222 M</span></label><input type="range" id="v_shares" min="175" max="260" step="0.1" value="222"><div class="bands" id="band2-v_shares"></div>
+      <div class="presets dilution-presets">
+        <button type="button" class="p" data-dilution-stress="181.3">181M basic<span class="p-sub">Q1 2026 10-Q reported</span></button>
+        <button type="button" class="p p-def" data-dilution-stress="222">222M FD<span class="p-sub">Default · warrants/options/RSUs</span></button>
+        <button type="button" class="p" data-dilution-stress="240">ATM stress 240M<span class="p-sub">$150M ATM capacity scenario</span></button>
+      </div>
+      <p class="field-note"><span class="tag f">Fact</span> ATM up to $150M authorized, unused to date (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a>). Dilution stress bumps the share denominator only; the model does not auto-issue against ATM capacity.</p>
+      <small class="source-line"><span class="tag f">Verified</span> Basic outstanding <b>~181.3M</b> (Mar 31, 2026) + warrants/options/RSUs → FD modeled <b>~222M</b>. <a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">Q1 2026 10-Q</a> · <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a></small></div>
       <div class="ctrl"><label for="v_cash">Cash ($M) <span id="vv_cash">$107.1 M</span></label><input type="range" id="v_cash" min="50" max="200" step="0.1" value="107.1"><div class="bands" id="band2-v_cash"></div><small class="source-line"><span class="tag f">Verified</span> $107.1M cash Mar 31, 2026. Equity $/sh = (EV + cash) / FD shares. <a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm" target="_blank" rel="noopener">Q1 2026 10-Q</a> · <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">Q1 2026 PR</a></small></div>
     </div>
     <div class="card">

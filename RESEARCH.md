@@ -29,6 +29,7 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 | Runway | ≥12 months from Q1 2026 filing (going concern) | verified | [Q1 2026 10-Q](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm) |
 | **Basic shares outstanding** | **~181.3M** (Mar 31, 2026) | verified | [Q1 2026 10-Q](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm) · [Q1 2026 PR](https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html) |
 | **FD modeled (app default)** | **~222M** (basic + warrants/options/RSUs) | partial — model | Tab 3 valuation default |
+| **ATM dilution stress (model)** | **~240M** (~222M FD + full $150M ATM at ~$6.25/sh) | partial — model | Valuation dilution-stress preset |
 | ATM facility | Up to $150M authorized; unused to date | verified | Q1 2026 PR |
 | Dilution | Basic shares rose ~90M → ~181.3M in ~12 mo | verified | Q1 2026 PR |
 

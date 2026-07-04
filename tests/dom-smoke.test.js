@@ -198,3 +198,27 @@ test("SLS-009 tab includes GenFleet PTCL catalyst panel", () => {
   assert.match(sls, /NCT05934513/);
   assert.match(sls, /clinicaltrials\.gov\/study\/NCT05934513/);
 });
+
+test("valuation dilution stress presets mirror DRTS pattern", () => {
+  const value = matchAll(/<div id="tab-value"[\s\S]*?<!-- \/tab-value -->/g, html)[0][0];
+  assert.match(value, /data-dilution-stress="181\.3"/);
+  assert.match(value, /data-dilution-stress="222"/);
+  assert.match(value, /data-dilution-stress="240"/);
+  assert.match(value, /ATM stress 240M/);
+  assert.match(value, /does not auto-issue against ATM capacity/);
+});
+
+test("bind/nonbind are not separate forward preset buttons", () => {
+  const forward = matchAll(/data-preset="([^"]+)"/g, html).map((m) => m[1]);
+  assert.ok(!forward.includes("bind"));
+  assert.ok(!forward.includes("nonbind"));
+  assert.match(html, /id="mcFloor"/);
+  assert.match(html, /Binding interim IA/);
+});
+
+test("Use P(win) bridge requires explicit confirmation", () => {
+  assert.match(js, /PWIN_VALUATION_CONFIRM_MSG/);
+  assert.match(js, /confirm\(PWIN_VALUATION_CONFIRM_MSG\)/);
+  assert.match(js, /FDA approval probability/);
+  assert.match(js, /showToast\('P\(GPS\) set to '/);
+});

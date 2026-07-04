@@ -27,7 +27,10 @@ import {
   VALID_TABS,
   EXPLAIN_LEVELS,
   REQUIRED_PRESET_KEYS,
-  REQUIRED_INV_KEYS
+  REQUIRED_INV_KEYS,
+  BASIC_SHARES_M,
+  FD_SHARES_M,
+  ATM_SHARES_M
 } from "../js/ui/state.js";
 import { mk } from "./helpers.js";
 import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES } from "./fixtures/presets.js";
@@ -278,6 +281,15 @@ test("computeValuationMetrics EV scales with multiple", () => {
   const base = computeValuationMetrics(VAL_DEFAULTS);
   const higher = computeValuationMetrics({ ...VAL_DEFAULTS, mult: 6 });
   assert.ok(higher.EV > base.EV);
+});
+
+test("dilution stress raises share count and lowers equity $/sh", () => {
+  const base = computeValuationMetrics(VAL_DEFAULTS);
+  const stress = computeValuationMetrics({ ...VAL_DEFAULTS, shares: ATM_SHARES_M });
+  assert.equal(BASIC_SHARES_M, 181.3);
+  assert.equal(FD_SHARES_M, 222);
+  assert.equal(ATM_SHARES_M, 240);
+  assert.ok(stress.ps < base.ps);
 });
 
 test("EXPLAIN_LEVELS lists six explain tiers", () => {

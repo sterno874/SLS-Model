@@ -103,6 +103,8 @@ export const DEFAULT_CASH_M = 107.1;
 export const BASIC_SHARES_M = 181.3;
 /** Fully-diluted shares modeled (M) — warrants/options on top of basic. */
 export const FD_SHARES_M = 222;
+/** ATM dilution stress (M) — ~222M FD + full $150M ATM at ~$6.25/sh (capacity, not issuance). */
+export const ATM_SHARES_M = 240;
 
 // [shortCode, group("" = top-level marker), fieldName]
 export const SHARE_FIELD_DEFS = [

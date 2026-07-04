@@ -65,6 +65,11 @@ test("cw preset HR below win threshold", () => {
   assert.ok(hazardRatio(T2, p) < 0.636);
 });
 
+test("bind and nonbind presets removed from forward P table", () => {
+  assert.ok(!("bind" in P));
+  assert.ok(!("nonbind" in P));
+});
+
 test("default best preset passes verdict (full trajectory match)", () => {
   const p = paramsFromPresetQ(P.best);
   assert.ok(passesVerdict(p), "best preset should pass verdict at m46/m58/m63");

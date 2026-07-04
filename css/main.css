@@ -126,6 +126,10 @@
   .preset-start{margin-bottom:var(--space-md);padding:var(--space-md);background:#f5f8fe;border:1px solid #c9daf8;border-radius:10px}
   .preset-start .pgrp{margin:0 0 var(--space-sm)}
   .preset-start .presets{margin-bottom:0}
+  .ia-toggle{display:block;margin:var(--space-sm) 0 0;padding:var(--space-sm) var(--space-md);background:#fff;border:1px dashed #c9daf8;border-radius:8px;font-size:12px;line-height:1.45;cursor:pointer}
+  .ia-toggle input{margin-right:6px;vertical-align:middle}
+  .dilution-presets{margin-top:var(--space-sm)}
+  .field-note{font-size:11px;color:var(--muted);margin:var(--space-xs) 0 var(--space-sm);line-height:1.45}
   .plausibility-warn{margin:0 0 var(--space-md);padding:var(--space-md);border-radius:10px;border:1px solid #f0d090;background:#fff4e0;color:#6b4e00;font-size:12.5px;font-weight:600;line-height:1.5}
   .plausibility-warn[hidden]{display:none!important}
   .regal-limitations{max-width:calc(var(--content-max) - var(--page-pad) * 2);margin:var(--space-md) auto 0;padding:var(--space-md) var(--space-lg);border-radius:var(--radius);border:1px solid var(--line);background:#fafbfc;font-size:12.5px;line-height:1.6;color:var(--ink)}

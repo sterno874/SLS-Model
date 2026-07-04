@@ -113,6 +113,23 @@ test("a custom slider tweak is short and exact", () => {
   assert.deepEqual(decodeShareHash(hash), s);
 });
 
+test("dilution stress shares round-trip", () => {
+  const s = freshLoadState();
+  s.tab = "value";
+  s.val.v_shares = 240;
+  const d = decodeShareHash(buildShareHash(s));
+  assert.equal(d.val.v_shares, 240);
+});
+
+test("legacy bind preset marker restores as best + binding IA", () => {
+  const s = freshLoadState();
+  s.activeRegalPreset = "bind";
+  s.gps.mcFloor = true;
+  const d = decodeShareHash(buildShareHash(s));
+  assert.equal(d.activeRegalPreset, "bind");
+  assert.equal(d.gps.mcFloor, true);
+});
+
 test("arbitrary full state round-trips (all fields, tabs, modes, explain levels)", () => {
   const s = clone(DEFAULT_STATE);
   s.tab = "explain";
