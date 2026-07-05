@@ -47,6 +47,7 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 | NCT | [NCT04229979](https://clinicaltrials.gov/study/NCT04229979) | verified |
 | Design | Event-driven ITT OS, N=127, 1:1, win if HR &lt; 0.636 at 80 deaths (one-sided α=0.025) | verified — [Jamy & Cicic, *Future Oncol* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/) |
 | Interim | IDMC continued at 60 deaths (Jan 2025); OBF early-stop HR ≲ 0.55 | verified — [interim PR](https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html) |
+| IDMC (Aug 2025) | Second "continue without modification" after 60-event interim | verified — [Aug 2025 IR](https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Interim-Analysis-of-REGAL-Phase-3-Study/default.aspx) · [Dec 2025 PR](https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html) |
 | Event anchors | **60** @ ~m46; **72** @ ~m58; **78** @ ~m63 (11 May 2026) | verified — PRs |
 | Final | 80 events — TBD | verified — protocol |
 | Modality | WT1 peptide vaccine (MSK license); WT1 = NCI #1 antigen | verified — [Cheever 2009](https://pubmed.ncbi.nlm.nih.gov/19723653/) |
@@ -70,7 +71,25 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 
 **Identifiability:** Public data are **pooled** death totals only. Arm-level HR is **non-identified** without the split or strong structural assumptions (**verified** as a statistical fact; any point HR imports priors).
 
-**Control-arm priors:** Kurosawa *Haematologica* 2010 whole-cohort no-HCT 3-yr OS ~14% (not pure CR2; CR2 subgroups higher) — **verified**. Ven-era salvage mOS ~8–12 mo (Stahl 2021) — **verified**.
+**Control-arm priors:** Kurosawa *Haematologica* 2010 whole-cohort no-HCT 3-yr OS ~14% (relapsed, survived ≥2 mo, not pure CR2; CR2/no-HCT subgroups ~19–78% by cyto) — **verified**. Ven-era salvage mOS ~8–12 mo (Stahl 2021) — **verified**. QUAZAR placebo **3-yr OS ~27.9%** (CR1, healthier than REGAL BAT) — **verified** — [JONS/ASH 2021 long-term](https://www.jons-online.com/articles/oral-azacitidine-oral-aza-in-patients-with-acute-myeloid-leukemia-aml-in-first-remission-after-intensive-chemotherapy-ic-long-term-overall-survival-os-results-from-the-phase-3-quazar-aml-001-trial). Subsequent allo-HSCT after QUAZAR: **6.3%** (Onureg) / **13.7%** (placebo) — **verified** — [NICE ERG](https://doi.org/10.1007/s40273-023-01272-9). CW **13–19% CR2 BAT 3-yr OS band** (Jul 2026 Fatima post) — **community/model** — model default `batcap` **14%** sits mid-band. **Fatima 2026 / Mayo Ven-era real-world** (claimed n≈356, 5% 3-yr OS, median age 75, 62% refractory, 29% TP53) — **partial / unverified primary** — likely frontline Ven+HMA *failure*, not REGAL CR2 maintenance BAT; no indexed EHA/Mayo abstract found (Jul 2026). Closest published Mayo comparators: Gangat *Haematologica* 2023 n=103 frontline Ven+HMA failure (mOS 5.9 mo); Johnson *Haematologica* 2025 n=86 **r/r** Ven+HMA (mOS 6.1 mo) — different setting. REGAL **N=126** randomized — **verified** — [Apr 2024 PR](https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html). EU CTR planned enrollment **~57% ≥65** (66 elderly / 116 total in Spain protocol) — **verified** — [EU CTR 2019-004134-42](https://www.clinicaltrialsregister.eu/ctr-search/trial/2019-004134-42/ES). REGAL **median age 67** — **partial** — EU CTR gives age *bands*, not median; 67y appears in GPS phase I cohort cited in design paper, not confirmed REGAL ITT.
+
+#### Jul 2026 full-post claim audit (u/Confident-Web-7118 — Fatima post)
+
+| Claim | Verdict | Primary source |
+|-------|---------|----------------|
+| Kurosawa CR2/no-HCT 3-yr OS: inv(16) **78%** n=14, t(8;21) **53%** n=18, intermediate **19%** n=82, unfavorable **35%** n=18 | **verified** | [Kurosawa *Haematologica* 2010 Fig. 4](https://haematologica.org/article/view/5781) |
+| Kurosawa whole-cohort no-HCT **~14%** 3-yr OS | **verified** (not CR2-specific) | Same — Fig. 2F (HCT 44% vs no-HCT 14% among relapsed ≥2 mo) |
+| REGAL **N=126** | **verified** | SELLAS enrollment PR / SEC |
+| REGAL median age **67**, **57% ≥65** | **partial** — N & ≥65 band verified; median 67 not in REGAL disclosure | EU CTR age bands; design paper phase I n=10 |
+| QUAZAR placebo **25%** 3-yr OS | **rejected** — primary **27.9%** | [ASH 2021 long-term QUAZAR](https://www.jons-online.com/articles/oral-azacitidine-oral-aza-in-patients-with-acute-myeloid-leukemia-aml-in-first-remission-after-intensive-chemotherapy-ic-long-term-overall-survival-os-results-from-the-phase-3-quazar-aml-001-trial) |
+| QUAZAR Onureg **40%** 3-yr OS | **partial** — primary **37.4%** | Same |
+| QUAZAR transplant **6.3% / 13.7%** | **verified** | [NICE ERG / CADTH](https://doi.org/10.1007/s40273-023-01272-9) |
+| Fatima 2026: n=**356**, **5%** 3-yr OS, **13/356** (3.7%) SCT, SCT subset mOS **22.5** / **33%** 3-yr, median age **75**, **62%** refractory, **29%** TP53 | **unverified** — no indexed primary; directionally consistent with Mayo Ven-failure literature but wrong population for REGAL BAT | Community post only |
+| VIALE-M **n=112** of **360** planned | **partial** — 112 actual enrollment **verified** ([NCT04102020](https://clinicaltrials.gov/study/NCT04102020)); ~360 was Part 2 randomization target | CT.gov |
+| VIALE-M design **42%** 3-yr OS | **rejected / misattributed** — not in VIALE-M SAP; likely confused with VIALE-A relapse rate **42%** or unrelated assumption | VIALE-M SAP · VIALE-A NEJM |
+| REGAL BAT 3-yr OS band **13–19%** | **community/model** — consistent with Kurosawa + inverse fits; not trial data | CW Jul 2026 post · app `inverseSolve` @ batcap 13–19% |
+| Tsirigotis **Apr 30** email on BAT biology | **unverified** — private correspondence | — |
+| Fit tables: BAT IRM **11–16** × k **0.4–1.3**, P(win) at k=1 | **partial** — app `inverseSolve` at batcap 14% → IRM ~13, BAT 3y ~15%, HR@80 ~0.26 (k=1); CW Scenario C (k=0.85, bridge) → IRM ~12.6, BAT 3y ~19.6%, HR@80 ~0.37. Same anchors, different parameterization | App math · CW IRM post |
 
 ### Lead-time / left-truncation sensitivity (display only)
 
@@ -128,7 +147,7 @@ REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life 
 |------|--------|-----|--------|
 | Venclexta (venetoclax) | ~$2.58B sales 2024 | verified — AbbVie SEC | AML blockbuster ceiling |
 | Gilead–Forty Seven (magrolimab) | ~$4.9B pre-approval | verified — [SEC](https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm) | Buyers pay big pre-Ph3; Ph3 ENHANCE discontinued 2023 |
-| Onureg (QUAZAR) | mOS 24.7 vs 14.8; sales not broken out | verified / partial | Closest GPS analog — clinical win, modest uptake |
+| Onureg (QUAZAR) | mOS 24.7 vs 14.8; placebo 3-yr OS ~27.9%; subsequent HSCT 6.3%/13.7%; sales not broken out | verified / partial | Closest GPS analog — clinical win, modest uptake; CR1 ceiling for BAT 3-yr OS |
 | Regor CDK deal | ~$850M on Ph1 ~28% CR | community | Early M&A ceiling for CDK-class — not clinical equivalence |
 
 **Rejected community claims:** “$5–20B guaranteed buyout”; “SLS worth $50+/sh on REGAL alone” without disclosed talks.
@@ -180,6 +199,7 @@ REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life 
 9. [VIALE-A — DiNardo et al., NEJM 2020](https://pubmed.ncbi.nlm.nih.gov/32023337/)
 10. [Kurosawa et al., *Haematologica* 2010](https://haematologica.org/article/view/5781)
 11. [SELLAS corp deck Feb 2026](https://s203.q4cdn.com/139585304/files/doc_presentations/2026/Feb/03/Sellas-Corporate-Overview-February-2026.pdf)
-12. Community DD framing — [CW Part 1](https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/)
+12. Community DD framing — [CW Part 1](https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/) · [CW Fatima 2026 BAT band](https://www.reddit.com/r/sellaslifesciences/comments/1uoc6ug/what_we_can_learn_from_fatima_2026_the_most/)
+13. [QUAZAR long-term 3-yr OS](https://www.jons-online.com/articles/oral-azacitidine-oral-aza-in-patients-with-acute-myeloid-leukemia-aml-in-first-remission-after-intensive-chemotherapy-ic-long-term-overall-survival-os-results-from-the-phase-3-quazar-aml-001-trial) · [Mayo R/R Ven+HMA n=86 — Gangat *Haematologica* 2025](https://haematologica.org/article/view/11956)
 
 Full clickable lists also live in each app tab’s **References** and the **Explain** tab (ELI5 → PhD).

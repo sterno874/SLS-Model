@@ -143,11 +143,12 @@ function deferWithLoading(fn,msg){
 function debounce(fn,ms){
   let t;return function(){clearTimeout(t);const a=arguments,s=this;t=setTimeout(()=>fn.apply(s,a),ms);};
 }
-let updateTimer=null,updateSpinnerTimer=null,pendingDrawRaf=null,pendingDrawP=null,lastBandsKey="";
+let updateTimer=null,updateSpinnerTimer=null,pendingDrawRaf=null,pendingDrawP=null,pendingDrawLight=false,lastBandsKey="";
+let sliderDragging=false;
 const tabsRendered={gps:false,sls009:false,value:false,explain:false,biology:false};
 const tabsDirty={sls009:true,value:true,explain:true};
 function panelOpen(id){const el=$(id);return!!(el&&el.open);}
-function scheduleDraw(p){
+function scheduleDraw(p,light){
   const plausible=isPlausible(p);
   const eventFit=passesVerdict(p);
   const bioReject=eventFit&&!plausible;
@@ -156,9 +157,23 @@ function scheduleDraw(p){
   // Freeze chart on last fitting scenario when current params miss anchors (matches chartStaleMsg).
   const drawP=plausible||bioReject?p:(lastConsistentP||null);
   pendingDrawP=drawP;
+  pendingDrawLight=!!light;
   updatePlausibilityUI(p,plausible,approxFit,bioReject);
   if(pendingDrawRaf)return;
-  pendingDrawRaf=requestAnimationFrame(()=>{pendingDrawRaf=null;if(pendingDrawP)draw(pendingDrawP);else drawEmptyChart();});
+  pendingDrawRaf=requestAnimationFrame(()=>{const lp=pendingDrawLight;pendingDrawRaf=null;pendingDrawLight=false;if(pendingDrawP)draw(pendingDrawP,lp);else drawEmptyChart();});
+}
+function initSliderDrag(){
+  document.addEventListener("pointerdown",e=>{
+    if(e.target&&e.target.type==="range")sliderDragging=true;
+  },true);
+  function endDrag(){
+    if(!sliderDragging)return;
+    sliderDragging=false;
+    scheduleBandSegments(readParams(),true);
+    updateNow(true);
+  }
+  document.addEventListener("pointerup",endDrag);
+  document.addEventListener("pointercancel",endDrag);
 }
 function drawEmptyChart(){
   const cv=$("chart");if(!cv)return;
@@ -332,12 +347,14 @@ function renderBands(p){renderBandSegments(p);renderBandMarkers();}
 let bandsSegTimer=null;
 // Recompute the (expensive) green windows only after the slider settles; the memo key
 // then skips genuinely-redundant recomputes (e.g. re-applying the same preset).
-function scheduleBandSegments(p){
+function scheduleBandSegments(p,force){
+  if(!force&&sliderDragging)return;
   const bk=JSON.stringify(p)+regalMode;
   if(restoringState){if(bk!==lastBandsKey){lastBandsKey=bk;renderBandSegments(p);}return;}
   clearTimeout(bandsSegTimer);
   bandsSegTimer=setTimeout(()=>{
     bandsSegTimer=null;
+    if(sliderDragging&&!force)return;
     if(bk===lastBandsKey)return;
     lastBandsKey=bk;renderBandSegments(p);
   },160);
@@ -420,7 +437,7 @@ function applyDilutionStress(sharesM){
   else updateBestEstStrip();
   if(!restoringState)updateHashQuiet();
 }
-function scheduleReadoutUpdate(){clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
+function scheduleReadoutUpdate(){if(sliderDragging)return;clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
 function updateReadoutVisibility(){
   const el=$("readoutEstimate");
   if(el)el.hidden=(activeTab!=='gps'||embedMode);
@@ -591,7 +608,7 @@ function mcEnvelope(p,nDraws){
   return pts.map(pt=>({t:pt.t,bLo:qtl(pt.bat,.05),bHi:qtl(pt.bat,.95),gLo:qtl(pt.gps,.05),gHi:qtl(pt.gps,.95),pLo:qtl(pt.pool,.05),pHi:qtl(pt.pool,.95)}));
 }
 function getCSS(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
-function draw(p){
+function draw(p,light){
   chartParams=p;
   const cv=$("chart"),dpr=window.devicePixelRatio||1,W=920,H=430;
   cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+"px";
@@ -608,7 +625,7 @@ function draw(p){
   ctx.beginPath();ctx.moveTo(L,Y(0.5));ctx.lineTo(W-R,Y(0.5));ctx.stroke();
   ctx.beginPath();ctx.moveTo(X(36),Tp);ctx.lineTo(X(36),H-B);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle="#9aa1ac";ctx.textAlign="left";ctx.fillText("36 mo",X(36)+4,Tp+10);
-  if(showUncertainty){
+  if(showUncertainty&&!light){
     const env=mcEnvelope(p,300);
     function fillBand(loFn,hiFn,color){ctx.fillStyle=color;ctx.beginPath();let started=false;
       for(let i=0;i<env.length;i++){const x=X(env[i].t),y=Y(hiFn(env[i]));if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);}
@@ -637,17 +654,20 @@ function hrMarkLeft(hr){return "calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"%
 
 function readParams(){return{bat:+$("bat").value,batc:+$("batc").value/100,batk:+$("batk").value,gpsc:+$("gpsc").value/100,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value/100,cens:+$("cens").value/100,osmode:"itt",mid:+$("mid").value,k:+$("k").value,fh:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value};}
 
-function update(){
+function update(full){
+  const light=!full&&sliderDragging;
   let p=readParams();
   let noSol=null;
   if(regalMode==="inverse"){
     $("vBatCap").textContent=$("batcap").value+"%";
-    const ir=solveInverse(p);
-    if(!applyInverseResult(ir)){noSol=ir.reason||"inverse solve failed";}
-    else p=readParams();
+    if(!light){
+      const ir=solveInverse(p);
+      if(!applyInverseResult(ir)){noSol=ir.reason||"inverse solve failed";}
+      else p=readParams();
+    }
   } else {
     const auto=$("autofit").checked;$("gpscWrap").classList.toggle("disabled",auto);
-    if(auto){const r=autofitCure(p);if(r.sol===null)noSol=r.reason;else{p.gpsc=r.sol;$("gpsc").value=Math.round(r.sol*100);}}
+    if(auto&&!light){const r=autofitCure(p);if(r.sol===null)noSol=r.reason;else{p.gpsc=r.sol;$("gpsc").value=Math.round(r.sol*100);}}
   }
   $("vBat").textContent=p.bat.toFixed(1)+" m";$("vBatc").textContent=(p.batc*100).toFixed(0)+"% plateau · "+(sBAT(36,p)*100).toFixed(0)+"% 3yr OS";
   updateBatcSigmaBand(p);
@@ -656,11 +676,11 @@ function update(){
   $("vXtx").textContent=(p.xtx*100).toFixed(0)+"%";$("vCens").textContent=(p.cens*100).toFixed(0)+"%";
   $("vBatk").textContent=p.batk.toFixed(2);$("vStratF").textContent=p.stratF.toFixed(2);$("vZfut").textContent=p.zfut.toFixed(2);
 
-  scheduleDraw(p);
+  scheduleDraw(p,light);
   renderBandMarkers();
-  scheduleBandSegments(p);
+  if(!light)scheduleBandSegments(p);
 
-  if(noSol){
+  if(noSol&&!light){
     $("oHRnum").textContent="—";$("oIAstatus").textContent="—";
     $("hrInterimMark").style.left="-99px";$("hrReadoutMark").style.left="-99px";
     $("oHRreadoutCtx").textContent="";$("oHRfootnote").textContent="";
@@ -675,24 +695,26 @@ function update(){
   if($("oPoolMed"))$("oPoolMed").innerHTML=fmtM(pmv);
   $("oBat3").innerHTML=(sBAT(36,p)*100).toFixed(0)+' <small>%</small>';
   $("oGps3").innerHTML=(sGPS(36,p)*100).toFixed(0)+' <small>%</small>';
-  renderLeadTimeSensitivity(bm,gm,pmv);
+  if(!light)renderLeadTimeSensitivity(bm,gm,pmv);
 
   // RMST (48-mo horizon) + projected 80th event + significance/power check
   const dR=rmst(sGPS,p,48)-rmst(sBAT,p,48);
   $("oRmst").innerHTML=(dR>=0?'+':'')+dR.toFixed(1)+' <small>mo</small>';
   const cutoff=+$("cutoff").value; $("vCut").textContent=cutoff;
-  const{t80,Tan,Dan}=t80Analysis(p,cutoff);
-  $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(0)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small> <span class="tag m" style="font-size:9px;vertical-align:1px">from 78@m63</span>';
-  const aFin=analyzeLR(Tan,p), thIA=analyzeLR(46,p).z, th80=aFin.z;
   const binding=$("mcFloor").checked;
-  const pStop=1-Phi(ZEFF-thIA);
-  const pWin= binding? condPow(thIA,th80,Dan,p.zfut).cp : Phi(th80-ZFINAL);
-  lastPointPwin=pWin;
-  $("oPower").innerHTML="<b>Readout power check</b> (cutoff m"+cutoff+"): "+(t80<=cutoff?("reaches 80 events ~m"+t80.toFixed(0)):("<b style='color:var(--bad)'>80th not reached</b> — reads at m"+cutoff+", "+Dan.toFixed(0)+" events"))+" · readout HR "+aFin.hr.toFixed(2)+" · log-rank Z="+th80.toFixed(2)+" · interim Z="+thIA.toFixed(2)+" (would stop early "+(100*pStop).toFixed(0)+"% of the time) · <b style='color:"+(pWin>0.5?'var(--good)':'var(--bad)')+"'>P(significant win) = "+(100*pWin).toFixed(0)+"%</b> "+(binding?"<small>(given no early stop)</small>":"<small>(non-binding)</small>");
-  if(chartPinMonth!=null)showChartTip(chartPinMonth,p,true);
-  scheduleReadoutUpdate();
-
   const gs=hrGaugeState(p,cutoff);
+  const{t80,Tan,Dan}=gs;
+  $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(0)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small> <span class="tag m" style="font-size:9px;vertical-align:1px">from 78@m63</span>';
+  if(!light){
+    const thIA=analyzeLR(46,p).z, th80=analyzeLR(Tan,p).z;
+    const pStop=1-Phi(ZEFF-thIA);
+    const pWin= binding? condPow(thIA,th80,Dan,p.zfut).cp : Phi(th80-ZFINAL);
+    lastPointPwin=pWin;
+    const aFin=analyzeLR(Tan,p);
+    $("oPower").innerHTML="<b>Readout power check</b> (cutoff m"+cutoff+"): "+(t80<=cutoff?("reaches 80 events ~m"+t80.toFixed(0)):("<b style='color:var(--bad)'>80th not reached</b> — reads at m"+cutoff+", "+Dan.toFixed(0)+" events"))+" · readout HR "+aFin.hr.toFixed(2)+" · log-rank Z="+th80.toFixed(2)+" · interim Z="+thIA.toFixed(2)+" (would stop early "+(100*pStop).toFixed(0)+"% of the time) · <b style='color:"+(pWin>0.5?'var(--good)':'var(--bad)')+"'>P(significant win) = "+(100*pWin).toFixed(0)+"%</b> "+(binding?"<small>(given no early stop)</small>":"<small>(non-binding)</small>");
+  }
+  if(chartPinMonth!=null)showChartTip(chartPinMonth,p,true);
+  if(!light)scheduleReadoutUpdate();
   const hrFin=gs.hrForFinal;
   // interim IA row (@ m46) — zoned like the final gauge: green ≤0.547 early-stop region + labeled 0.547 threshold line
   const hrIA=gs.hrInterim;
@@ -729,6 +751,7 @@ function update(){
         :"Monte Carlo below uses <b>non-binding</b> interim — IA is informational only.");
   }
 
+  if(!light){
   const ev1=eventsAt(T1,p),ev2=eventsAt(T2,p),ev3=eventsAt(T3,p),ev4=eventsAt(T4,p);
   $("e1").textContent=ev1.toFixed(1);$("e2").textContent=ev2.toFixed(1);
   $("e3").innerHTML=ev3.toFixed(1)+' <span class="tag m" style="font-size:9px">model</span> · confirmed <b>78</b>';
@@ -754,6 +777,7 @@ function update(){
   else if(vClears){v.className="verdict v-win";v.textContent=(regalMode==="inverse"?"Anchor-constrained inversion: fits mandatory event anchors; projected readout HR "+vHr.toFixed(2)+" < 0.636 → derived mOS/tails consistent with a win at this GPS cure point on the sweep. (Other cure fractions also fit — see inversion MC.)":"Consistent with all announced event anchors AND projected readout HR "+vHr.toFixed(2)+" < 0.636 → this world clears the threshold. (Other green worlds below also fit — that's the identification problem.)")+iaTension;}
   else{v.className="verdict v-lose";v.textContent=(regalMode==="inverse"?"Anchor-constrained inversion: fits the mandatory event anchors but projected readout HR "+vHr.toFixed(2)+" > 0.636 → derived parameters predict a miss at this cure-fraction point. Sweep cw35/cw42/cw50 or check BAT cap.":"Consistent with the announced event anchors but projected readout HR "+vHr.toFixed(2)+" > 0.636 → this world MISSES. Note what it took: check the BAT median / long-survivor sliders — failure needs near-unprecedented BAT.")+iaTension;}
   $("note").innerHTML=noteText();
+  }
 }
 
 function noteText(){
@@ -1002,6 +1026,7 @@ function applyState(s){
     if(s.val)tabsDirty.value=true;
     if(s.tab)switchTab(s.tab);
     else if(s.ui&&s.ui.explainLvl){curLvl=s.ui.explainLvl;renderTab("explain",true);}
+    updateNow();
   }finally{restoringState=false;}
   return true;
 }
@@ -1265,7 +1290,11 @@ function communityDDHtml(){
   '<li><span class="val-ok">✅</span> Event anchors 60 / 72 / 78 and final trigger 80 — <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank">SELLAS PRs</a></li>'+
   '<li><span class="val-ok">✅</span> Win bar HR &lt; 0.636 (~BAT 8.0 vs GPS 12.6 mo design) — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">Jamy/Cicic 2025</a></li>'+
   '<li><span class="val-ok">✅</span> IRM / lead-time inflation logic (Suissa left-truncation) — <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank">Suissa 2008</a></li>'+
-  '<li><span class="val-part">⚠️</span> BAT 3-yr OS cap ~15–18% — Kurosawa whole-cohort no-HCT 14% (CR2 subgroups higher) <span class="val-ok">✅</span>; exact REGAL BAT tail unknown</li>'+
+  '<li><span class="val-ok">✅</span> Kurosawa CR2/no-HCT 3-yr OS by cyto: inv(16) 78% n=14, t(8;21) 53% n=18, intermediate 19% n=82, unfavorable 35% n=18 — <a href="https://haematologica.org/article/view/5781" target="_blank">Haematologica 2010 Fig. 4</a></li>'+
+  '<li><span class="val-part">⚠️</span> BAT 3-yr OS cap ~13–19% (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1uoc6ug/what_we_can_learn_from_fatima_2026_the_most/" target="_blank">Jul 2026 Fatima post</a>) — Kurosawa whole-cohort no-HCT 14% <span class="val-ok">✅</span>; QUAZAR placebo 27.9% (not 25%) <span class="val-ok">✅</span>; app default batcap 14% mid-band</li>'+
+  '<li><span class="val-part">⚠️</span> Fatima 2026 Ven-era floor (claimed 5% 3-yr OS, n=356) — <span class="val-no">❌</span> no indexed primary; frontline Ven+HMA <em>failure</em>, not REGAL CR2 BAT. Closest pubs: Gangat <a href="https://haematologica.org/article/view/haematol.2022.282677" target="_blank">Haematologica 2023</a> n=103; Johnson <a href="https://haematologica.org/article/view/11956" target="_blank">Haematologica 2025</a> n=86 r/r</li>'+
+  '<li><span class="val-part">⚠️</span> REGAL N=126 &amp; EU CTR ~57% ≥65 <span class="val-ok">✅</span>; median age 67 — <span class="val-no">❌</span> not in REGAL disclosure</li>'+
+  '<li><span class="val-no">❌</span> Tsirigotis Apr 30 email — private, unverified</li>'+
   '<li><span class="val-model">🔬</span> Bayes ~62× vs no-cure null — <span class="val-no">❌</span> not robust if BAT has long tail (<a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank">uhdisj41</a>)</li>'+
   '<li><span class="val-model">🔬</span> Part 2 P(success) 99.9%, BAT mOS 11.4 mo — model outputs; not disclosed trial data</li>'+
   '</ul></div>'+
@@ -1328,6 +1357,11 @@ function communityDDHtml(){
   '<tr><td>No trial ever &gt;90% control overperformance</td><td><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12882696/" target="_blank">Nalin 2026</a></td><td><span class="val-no">❌</span> as stated</td></tr>'+
   '<tr><td>~⅓ BAT transplant bridge</td><td>Remarkable-Big estimate</td><td><span class="val-no">❌</span> unverified</td></tr>'+
   '<tr><td>COVID frailty selection in CR2</td><td>Hypothesis only</td><td><span class="val-no">❌</span></td></tr>'+
+  '<tr><td>Kurosawa CR2/no-HCT cyto splits (78/53/19/35%)</td><td><a href="https://haematologica.org/article/view/5781" target="_blank">Haematologica 2010</a></td><td><span class="val-ok">✅</span></td></tr>'+
+  '<tr><td>QUAZAR placebo 25% 3-yr OS</td><td>Primary 27.9% — <a href="https://www.jons-online.com/articles/oral-azacitidine-oral-aza-in-patients-with-acute-myeloid-leukemia-aml-in-first-remission-after-intensive-chemotherapy-ic-long-term-overall-survival-os-results-from-the-phase-3-quazar-aml-001-trial" target="_blank">ASH 2021</a></td><td><span class="val-no">❌</span></td></tr>'+
+  '<tr><td>Fatima 2026 n=356, 5% 3-yr OS</td><td>No indexed primary (Jul 2026)</td><td><span class="val-no">❌</span></td></tr>'+
+  '<tr><td>VIALE-M design 42% 3-yr OS</td><td><a href="https://clinicaltrials.gov/study/NCT04102020" target="_blank">NCT04102020</a> SAP</td><td><span class="val-no">❌</span></td></tr>'+
+  '<tr><td>Tsirigotis Apr 30 email</td><td>Private correspondence</td><td><span class="val-no">❌</span></td></tr>'+
   '</tbody></table>'+
   '<p class="cw-note" style="margin-top:10px"><b>Excluded from factual display:</b> CW Bayes 62× and P(success) 99.9% without strawman label; literal “99.99% stock win”; Thetamancer 90% max overperformance claim; Remarkable-Big HSCT bridge fraction; COVID frailty mechanism — all retained only as tagged 🔬/❌ above.</p>';
 }
@@ -1448,16 +1482,22 @@ let settleTimer=null;
 // runs only after the sliders settle, not on every dragged frame.
 function scheduleSettle(){
   clearTimeout(settleTimer);
-  settleTimer=setTimeout(()=>{settleTimer=null;refreshOpenPanels();updateHashQuiet();},160);
+  settleTimer=setTimeout(()=>{
+    settleTimer=null;
+    if(sliderDragging)return;
+    refreshOpenPanels();
+    updateHashQuiet();
+  },160);
 }
-function updateNow(){
-  _updateOrig();
+function updateNow(forceFull){
+  _updateOrig(forceFull===true);
   if(!restoringState){scheduleSettle();}
 }
 update=updateNow;
 
 function initApp(){
   buildBands();
+  initSliderDrag();
   applyEmbedMode();
   initFactsAsOf();
   initScmpSelects();
