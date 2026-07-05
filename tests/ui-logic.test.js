@@ -30,7 +30,8 @@ import {
   REQUIRED_INV_KEYS,
   BASIC_SHARES_M,
   FD_SHARES_M,
-  ATM_SHARES_M
+  ATM_SHARES_M,
+  formatShareDilutionSubtitle
 } from "../js/ui/state.js";
 import { mk } from "./helpers.js";
 import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES } from "./fixtures/presets.js";
@@ -290,6 +291,26 @@ test("dilution stress raises share count and lowers equity $/sh", () => {
   assert.equal(FD_SHARES_M, 222);
   assert.equal(ATM_SHARES_M, 240);
   assert.ok(stress.ps < base.ps);
+  assert.ok(Math.abs(stress.EV - base.EV) < 0.01, "EV must not change with share count");
+});
+
+test("181M vs 222M vs 240M FD show expected $/sh spread at same EV", () => {
+  const at222 = computeValuationMetrics(VAL_DEFAULTS);
+  const at181 = computeValuationMetrics({ ...VAL_DEFAULTS, shares: BASIC_SHARES_M });
+  const at240 = computeValuationMetrics({ ...VAL_DEFAULTS, shares: ATM_SHARES_M });
+  assert.ok(at181.ps > at222.ps);
+  assert.ok(at240.ps < at222.ps);
+  assert.ok(Math.abs(at181.EV - at222.EV) < 0.01);
+  assert.ok(Math.abs(at240.EV - at222.EV) < 0.01);
+  assert.ok(Math.abs(at222.ps - 45.88) < 0.15);
+  assert.ok(Math.abs(at181.ps - at222.ps * (222 / 181.3)) < 0.05);
+  assert.ok(Math.abs(at240.ps - at222.ps * (222 / 240)) < 0.05);
+});
+
+test("formatShareDilutionSubtitle highlights delta vs 222M FD", () => {
+  assert.equal(formatShareDilutionSubtitle(222), "");
+  assert.match(formatShareDilutionSubtitle(240), /240M FD|222M FD/);
+  assert.match(formatShareDilutionSubtitle(240), /EV unchanged/);
 });
 
 test("EXPLAIN_LEVELS lists six explain tiers", () => {

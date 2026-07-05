@@ -64,7 +64,8 @@ import {
   computeValuationMetrics as computeValuationMetricsPure,
   computeFrozenBestEst,
   DEFAULT_CASH_M,
-  FD_SHARES_M
+  FD_SHARES_M,
+  formatShareDilutionSubtitle
 } from './ui/state.js';
 import {
   DEFAULT_TICKER,
@@ -414,8 +415,10 @@ function applyDilutionStress(sharesM){
     b.classList.toggle("p-def",Math.abs(Number(b.dataset.dilutionStress)-sharesM)<0.05);
   });
   tabsDirty.value=true;
+  refreshLiveQuotePollIfSharesChanged(sharesM);
   if(activeTab==="value")renderVal();
   else updateBestEstStrip();
+  if(!restoringState)updateHashQuiet();
 }
 function scheduleReadoutUpdate(){clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
 function updateReadoutVisibility(){
@@ -1659,10 +1662,19 @@ function updateMarketQuoteUI(vo){
     vsEl.title="Model risk-adj equity $"+(frozen.equity/1000).toFixed(1)+"B vs mkt cap "+(capM>=1000?(capM/1000).toFixed(1)+"B":Math.round(capM)+"M");
   }
 }
+let lastQuoteSharesM=null;
+function refreshLiveQuotePollIfSharesChanged(sharesM){
+  const s=Number.isFinite(sharesM)&&sharesM>0?sharesM:sharesMForQuote();
+  if(!Number.isFinite(s)||s<=0||lastQuoteSharesM===s)return;
+  lastQuoteSharesM=s;
+  initLiveQuote();
+}
 function initLiveQuote(){
   if(embedMode||typeof fetch==="undefined")return;
+  const sharesM=sharesMForQuote();
+  lastQuoteSharesM=sharesM;
   if(stopQuotePoll)stopQuotePoll();
-  stopQuotePoll=startLiveQuotePoll(DEFAULT_TICKER,(q)=>{liveQuote=q;updateMarketQuoteUI(liveValOverrides());},{sharesM:sharesMForQuote()});
+  stopQuotePoll=startLiveQuotePoll(DEFAULT_TICKER,(q)=>{liveQuote=q;updateMarketQuoteUI(liveValOverrides());},{sharesM});
 }
 function renderSLS(){
   const os=+$("sls_os").value,bench=+$("sls_bench").value,orr=+$("sls_orr").value;
@@ -1705,6 +1717,12 @@ function renderVal(){
   const eqHead=$("oEquityHead");if(eqHead)eqHead.innerHTML=(ra?"Risk-adj equity value":"Gross equity value")+' <span class="tag m">EV + cash</span>';
   const oEq=$("oEquity");if(oEq)oEq.textContent=fmtB(equity);
   $("oPS").textContent="$"+ps.toFixed(2)+(ra?" risk-adj equity/sh":" gross equity/sh");
+  const oPsDil=$("oPsDil");
+  if(oPsDil){
+    const dilNote=formatShareDilutionSubtitle(shares);
+    if(dilNote){oPsDil.textContent=dilNote;oPsDil.hidden=false;}
+    else{oPsDil.textContent="";oPsDil.hidden=true;}
+  }
   const oEvPs=$("oEvPs");if(oEvPs)oEvPs.textContent="$"+evPerShare.toFixed(2)+" EV/sh";
   const buyLo=(totPeak*Math.max(1,mult-1.5)+platform*1000+cash)/shares, buyHi=(totPeak*(mult+1.5)+platform*1000+cash)/shares;
   $("oBuy").textContent="$"+buyLo.toFixed(0)+"–$"+buyHi.toFixed(0)+"/sh";
@@ -1713,7 +1731,13 @@ function renderVal(){
   if(typeof renderBands2==="function")renderBands2();
 }
 const debouncedRenderVal=debounce(renderVal,75);
-function onValInput(){tabsDirty.value=true;updateBestEstStrip();if(activeTab==="value")debouncedRenderVal();}
+function onValInput(){
+  tabsDirty.value=true;
+  refreshLiveQuotePollIfSharesChanged(+$("v_shares").value);
+  updateBestEstStrip();
+  if(activeTab==="value")debouncedRenderVal();
+  else if(!restoringState)updateHashQuiet();
+}
 ["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares","v_cash"].forEach(id=>on(id,"input",onValInput));
 on("v_riskadj","change",onValInput);
 // ---- generic prior/implausible/anchor bands for Tab 2 & 3 sliders ----

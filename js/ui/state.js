@@ -106,6 +106,17 @@ export const FD_SHARES_M = 222;
 /** ATM dilution stress (M) — ~222M FD + full $150M ATM at ~$6.25/sh (capacity, not issuance). */
 export const ATM_SHARES_M = 240;
 
+/** UX subtitle when share slider differs from FD anchor — EV unchanged, $/sh scales ÷ shares. */
+export function formatShareDilutionSubtitle(sharesM, refSharesM = FD_SHARES_M, refLabel = "222M FD") {
+  if (!Number.isFinite(sharesM) || !Number.isFinite(refSharesM) || refSharesM <= 0) return "";
+  if (Math.abs(sharesM - refSharesM) < 0.05) return "";
+  const sharePct = (sharesM / refSharesM - 1) * 100;
+  const perShPct = (refSharesM / sharesM - 1) * 100;
+  const shareSign = sharePct >= 0 ? "+" : "−";
+  const psSign = perShPct >= 0 ? "+" : "−";
+  return `${shareSign}${Math.abs(sharePct).toFixed(0)}% vs ${refLabel} · ${psSign}${Math.abs(perShPct).toFixed(0)}% $/sh · EV unchanged`;
+}
+
 // [shortCode, group("" = top-level marker), fieldName]
 export const SHARE_FIELD_DEFS = [
   ["t", "", "tab"], ["m", "", "regalMode"], ["rp", "", "activeRegalPreset"],
