@@ -60,6 +60,14 @@ test("capbreach preset fits anchors but HR misses win threshold", () => {
   assert.ok(hr > 0.636, `capbreach HR ${hr} should miss 0.636 threshold`);
 });
 
+test("moderate preset HR near 0.40 and fits anchors", () => {
+  const p = paramsFromPresetQ(P.moderate);
+  assert.ok(passesVerdict(p));
+  assert.ok(isBiologicallyPlausible(p));
+  const hr = hazardRatio(T4, p);
+  assert.ok(hr >= 0.38 && hr <= 0.42, `moderate HR ${hr} expected ~0.40`);
+});
+
 test("cw preset HR below win threshold", () => {
   const p = paramsFromPresetQ(P.cw);
   assert.ok(hazardRatio(T2, p) < 0.636);

@@ -71,6 +71,7 @@ export const SHARE_P = {
   best:    { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
   bind:    { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
   nonbind: { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false },
+  moderate:{ bat: 11, batc: 13, gpsc: 28, gpsu: 34, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
   critique:{ bat: 10.5, batc: 12, gpsc: 18, gpsu: 30.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 6, cens: 12, mcFloor: true },
   bull:    { bat: 10,  batc: 1,  gpsc: 40, gpsu: 38,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
   bear:    { bat: 10,  batc: 16, gpsc: 14, gpsu: 29,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },

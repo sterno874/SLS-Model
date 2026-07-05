@@ -226,6 +226,9 @@ test("bind/nonbind are not separate forward preset buttons", () => {
   const forward = matchAll(/data-preset="([^"]+)"/g, html).map((m) => m[1]);
   assert.ok(!forward.includes("bind"));
   assert.ok(!forward.includes("nonbind"));
+  assert.ok(forward.includes("moderate"));
+  assert.match(html, /id="hdrHrCallout"/);
+  assert.match(html, /Biology-first ~0\.26 · Moderate DD ~0\.40 · Neutral ridge ~0\.45–0\.64/);
   assert.match(html, /id="mcFloor"/);
   assert.match(html, /Binding interim IA/);
 });
