@@ -1,6 +1,6 @@
 import { STRATF, ZFUT, inverseSolve, passesVerdict, isBiologicallyPlausible, hrGaugeState } from "../math/survival.js";
 
-export const VALID_TABS = ["gps", "sls009", "value", "explain", "biology"];
+export const VALID_TABS = ["gps", "sls009", "value", "explain", "statistics", "biology"];
 export const EXPLAIN_LEVELS = ["eli5", "ms", "hs", "col", "pro", "phd"];
 export const REQUIRED_PRESET_KEYS = ["bat", "batc", "gpsc", "gpsu", "delay", "mid", "k"];
 export const REQUIRED_INV_KEYS = ["gpsc", "batcap"];

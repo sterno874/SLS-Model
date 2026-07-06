@@ -61,17 +61,29 @@ test("top tab buttons exist with expected data-tab values", () => {
   const tabs = matchAll(/class="tabbtn[^"]*"[^>]*data-tab="([^"]+)"/g, html).map(
     (m) => m[1]
   );
-  assert.equal(tabs.length, 5);
+  assert.equal(tabs.length, 6);
   assert.deepEqual(tabs, VALID_TABS);
 });
 
-test("mobile nav panel exposes all five tabs", () => {
+test("mobile nav panel exposes all six tabs", () => {
   const navTabs = matchAll(
     /<div id="mobileNavPanel"[\s\S]*?<\/div>/g,
     html
   )[0][0].match(/data-tab="([^"]+)"/g).map((s) => s.slice(10, -1));
-  assert.equal(navTabs.length, 5);
+  assert.equal(navTabs.length, 6);
   assert.deepEqual(navTabs, VALID_TABS);
+});
+
+test("The Statistics tab is fully wired (page, header tab, mobile nav)", () => {
+  assert.match(html, /id="tab-statistics"/);
+  assert.match(html, /class="tabbtn"[^>]*data-tab="statistics"/);
+  const nav = matchAll(/<div id="mobileNavPanel"[\s\S]*?<\/div>/g, html)[0][0];
+  assert.match(nav, /data-tab="statistics"/);
+  assert.match(js, /tabsRendered=\{[^}]*statistics/);
+  assert.match(
+    js,
+    /\["gps","sls009","value","explain","statistics","biology"\]\.forEach\(id=>\{\$\("tab-"\+id\)/
+  );
 });
 
 test("The Biology tab is fully wired (page, header tab, mobile nav)", () => {
@@ -82,8 +94,45 @@ test("The Biology tab is fully wired (page, header tab, mobile nav)", () => {
   assert.match(js, /tabsRendered=\{[^}]*biology/);
   assert.match(
     js,
-    /\["gps","sls009","value","explain","biology"\]\.forEach\(id=>\{\$\("tab-"\+id\)/
+    /\["gps","sls009","value","explain","statistics","biology"\]\.forEach\(id=>\{\$\("tab-"\+id\)/
   );
+});
+
+test("The Statistics tab explains core math with inline SVG visuals", () => {
+  const stats = matchAll(/<div id="tab-statistics"[\s\S]*?<!-- \/tab-statistics -->/g, html)[0][0];
+  assert.match(stats, /Survival Function/);
+  assert.match(stats, /CDF/);
+  assert.match(stats, /hazard/i);
+  assert.match(stats, /median OS/i);
+  assert.match(stats, /Weibull/);
+  assert.match(stats, /k=0\.7/);
+  assert.match(stats, /mixture cure/i);
+  assert.match(stats, /Enrollment Convolution/);
+  assert.match(stats, /Inverse Solve/i);
+  assert.match(stats, /Monte Carlo/);
+  assert.match(stats, /log-rank/i);
+  assert.match(stats, /O'Brien-Fleming/);
+  assert.match(stats, /Conditional Power/i);
+  assert.match(stats, /Pike-style HR/i);
+  assert.match(stats, /stratF/);
+  assert.match(stats, /risk-adjusted expected value/i);
+  assert.match(stats, /Pooled Blinded Anchors/i);
+  assert.ok(matchAll(/Math lesson/g, stats).length >= 8);
+  assert.ok(matchAll(/REGAL application/g, stats).length >= 8);
+  const svgs = matchAll(/<svg[^>]*class="stats-svg"/g, stats);
+  assert.ok(svgs.length >= 6, `expected >=6 statistics diagrams, found ${svgs.length}`);
+  assert.doesNotMatch(stats, /<img/);
+});
+
+test("The Statistics tab cites trial design and event-anchor sources", () => {
+  const stats = matchAll(/<div id="tab-statistics"[\s\S]*?<!-- \/tab-statistics -->/g, html)[0][0];
+  assert.match(stats, /pmc\.ncbi\.nlm\.nih\.gov\/articles\/PMC11760237/);
+  assert.match(stats, /clinicaltrials\.gov\/study\/NCT04229979/);
+  assert.match(stats, /3014244/);
+  assert.match(stats, /3210926/);
+  assert.match(stats, /3293399/);
+  assert.match(stats, /README\.md/);
+  assert.match(stats, /RESEARCH\.md/);
 });
 
 test("The Biology tab has labeled inline SVG diagrams (no raster)", () => {

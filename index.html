@@ -94,7 +94,8 @@
       <button type="button" class="mobile-nav-item" data-tab="sls009">2 · SLS-009 (Phase 2)</button>
       <button type="button" class="mobile-nav-item" data-tab="value">3 · Valuation &amp; WT1 platform</button>
       <button type="button" class="mobile-nav-item" data-tab="explain">4 · Explain (ELI5 → PhD)</button>
-      <button type="button" class="mobile-nav-item" data-tab="biology">5 · The Biology</button>
+      <button type="button" class="mobile-nav-item" data-tab="statistics">5 · The Statistics</button>
+      <button type="button" class="mobile-nav-item" data-tab="biology">6 · The Biology</button>
     </nav>
   </div>
   <div class="tabnav" role="tablist" aria-label="Tab navigation">
@@ -102,7 +103,8 @@
     <button class="tabbtn" data-tab="sls009" role="tab" aria-selected="false">2 · SLS-009 (Phase 2)</button>
     <button class="tabbtn" data-tab="value" role="tab" aria-selected="false">3 · Valuation &amp; WT1 platform</button>
     <button class="tabbtn" data-tab="explain" role="tab" aria-selected="false">4 · Explain (ELI5 → PhD)</button>
-    <button class="tabbtn" data-tab="biology" role="tab" aria-selected="false">5 · The Biology</button>
+    <button class="tabbtn" data-tab="statistics" role="tab" aria-selected="false">5 · The Statistics</button>
+    <button class="tabbtn" data-tab="biology" role="tab" aria-selected="false">6 · The Biology</button>
   </div>
 </header>
 
@@ -1203,6 +1205,440 @@
   </div>
   <div class="facts expl-content"><div class="card expl-card"><div id="explbody"></div></div></div>
 </div><!-- /tab-explain -->
+
+<!-- ================= TAB 5 : STATISTICS ================= -->
+<div id="tab-statistics" class="tabpage" hidden>
+  <div class="tab-intro-bar">
+    <details class="howworks howworks-inline" open>
+      <summary>How this works</summary>
+      <div class="howworks-body">
+        <p>This tab is a plain-English map of the math behind the REGAL/GPS model. It is educational: it explains what the app is doing with public pooled event anchors, not what the blinded trial arm split actually is.</p>
+        <p class="field-note">Tags: <span class="tag v">public anchor</span> = trial-design or company-disclosed fact · <span class="tag m">model idea</span> = statistical assumption used for sensitivity analysis · <span class="tag d">derived</span> = computed relationship, not disclosed trial data.</p>
+      </div>
+    </details>
+    <span class="tab-intro-sep" aria-hidden="true">|</span>
+    <a class="methodlink" href="#gps" onclick="document.querySelector('.tabbtn[data-tab=gps]').click();return false;">Try it in the REGAL model</a>
+  </div>
+
+  <div class="stats-content">
+    <section class="stats-section">
+      <h2><span class="stats-kicker">Course map</span> The Statistics, From Math to REGAL</h2>
+      <p class="stats-lead">Read this tab like a short lesson series. Each block has a plain math/statistics idea on the left and the REGAL/SLS-Model application on the right.</p>
+      <div class="stats-mini-grid">
+        <div><b>Math side:</b> survival curves, hazards, distributions, log-rank scores, boundaries, Monte Carlo, expected value.</div>
+        <div><b>REGAL side:</b> pooled blinded event anchors, enrollment timing, inverse solves, HR approximations, sensitivity ranges, valuation priors.</div>
+        <div><b>Guardrail:</b> public data constrain pooled survival, not the hidden GPS/BAT arm split.</div>
+      </div>
+      <p class="stats-note"><b>Lesson checkpoint:</b> this is educational scaffolding for the app. It explains why assumptions move the model; it does not claim the trial outcome is knowable before unblinding.</p>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">1</span> Survival Function, CDF, Hazard, and Median OS</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> What <code>S(t)</code> means</h3>
+          <p>The survival function is the chance a person has not had the event by time <code>t</code>. For overall survival, the event is death.</p>
+          <p class="stats-formula"><code>S(t)=P(T&gt;t)</code><br><code>F(t)=P(T&lt;=t)=1-S(t)</code><br><code>median OS = t where S(t)=0.50</code></p>
+          <p>The CDF/death probability <code>F(t)</code> is the mirror image of survival. If <code>S(12)=0.60</code>, then <code>1-S(12)=0.40</code>, so about 40% have died by 12 months.</p>
+          <p>The hazard is not the same as death probability. It is the conditional instant risk: among people alive right now, how fast are events arriving right now?</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Why the whole curve matters</h3>
+          <p>REGAL is an event-driven OS trial, so the app cares about the entire time path of deaths, not just one median. Median OS marks the 50% crossing; the event anchors track calendar months when pooled deaths reached 60, 72, and 78. <span class="tag v">public anchor</span></p>
+          <p>A model can match a median but miss the event timeline if deaths arrive too early or too late. That is why sliders for shape, plateau, delay, and enrollment can change fit even when a headline median looks plausible.</p>
+          <p>The app labels event-fit outputs as model-implied because the public count is pooled across GPS and BAT. The hidden arm split remains unidentified.</p>
+        </article>
+      </div>
+      <div class="stats-figure">
+        <svg class="stats-svg" viewBox="0 0 560 260" role="img" aria-label="Survival function and death probability mirror chart">
+          <rect x="0" y="0" width="560" height="260" fill="#fbfcfe"/>
+          <line x1="58" y1="25" x2="58" y2="210" stroke="#c9ccd2"/>
+          <line x1="58" y1="210" x2="510" y2="210" stroke="#c9ccd2"/>
+          <line x1="58" y1="118" x2="510" y2="118" stroke="#dde2e8" stroke-dasharray="5 5"/>
+          <text x="50" y="29" text-anchor="end">100%</text>
+          <text x="50" y="122" text-anchor="end">50%</text>
+          <text x="50" y="214" text-anchor="end">0%</text>
+          <text x="58" y="232" text-anchor="middle">0m</text>
+          <text x="171" y="232" text-anchor="middle">12m</text>
+          <text x="284" y="232" text-anchor="middle">24m</text>
+          <text x="397" y="232" text-anchor="middle">36m</text>
+          <text x="510" y="232" text-anchor="middle">48m</text>
+          <polyline fill="none" stroke="#2f6fed" stroke-width="4" points="58,25 115,64 171,94 228,118 284,142 341,160 397,175 454,187 510,196"/>
+          <polyline fill="none" stroke="#d64545" stroke-width="4" points="58,210 115,171 171,141 228,118 284,94 341,76 397,61 454,49 510,40"/>
+          <line x1="228" y1="25" x2="228" y2="210" stroke="#141b26" stroke-dasharray="4 5"/>
+          <text x="238" y="42" fill="#141b26">median OS</text>
+          <text x="328" y="85" fill="#2f6fed">S(t): still alive</text>
+          <text x="322" y="57" fill="#d64545">1-S(t): death probability</text>
+          <text x="280" y="250" text-anchor="middle">Time since randomization</text>
+        </svg>
+        <figcaption class="stats-figcaption"><b>Mini chart:</b> survival falls while cumulative death probability rises. REGAL event anchors are counts from the rising red side, but the app displays both because survival is the clinical language.</figcaption>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">2</span> Exponential vs Weibull: Shape Controls Timing</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> Two common survival curves</h3>
+          <p>The exponential model assumes a constant hazard. It is simple: every month has the same conditional event rate for those still alive.</p>
+          <p class="stats-formula"><code>Exponential: S(t)=exp(-t/&lambda;)</code><br><code>median m=&lambda; ln(2)</code>, so <code>&lambda;=m/ln(2)</code></p>
+          <p>The Weibull model adds a shape parameter <code>k</code>. When <code>k=1</code>, it becomes exponential. When <code>k&lt;1</code>, hazard decreases over time. When <code>k&gt;1</code>, hazard increases over time.</p>
+          <p class="stats-formula"><code>Weibull: S(t)=exp(-(t/&lambda;)^k)</code><br><code>h(t)=(k/&lambda;)(t/&lambda;)^(k-1)</code><br><code>m=&lambda;(ln 2)^(1/k)</code></p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Why <code>k=0.7</code> changes accrual</h3>
+          <p>With the same median, <code>k=0.7</code> front-loads events: the model expects more early deaths among vulnerable patients, then a slower late pace among survivors. That can make 60 events arrive earlier while making the jump from 72 to 78 slower.</p>
+          <p>In the app, this matters because public anchors are calendar counts. A constant-hazard BAT median and a declining-hazard BAT median can imply different late event pace, even if both quote the same median OS.</p>
+          <p>Changing <code>k</code> is therefore not cosmetic. It changes whether an assumption fits early and late anchors simultaneously. <span class="tag m">model idea</span></p>
+        </article>
+      </div>
+      <div class="stats-figure">
+        <svg class="stats-svg" viewBox="0 0 620 300" role="img" aria-label="Weibull survival and hazard comparison for k values">
+          <rect x="0" y="0" width="620" height="300" fill="#fbfcfe"/>
+          <text x="155" y="24" text-anchor="middle" fill="#141b26">Survival at same median</text>
+          <line x1="50" y1="45" x2="50" y2="230" stroke="#c9ccd2"/>
+          <line x1="50" y1="230" x2="285" y2="230" stroke="#c9ccd2"/>
+          <line x1="50" y1="138" x2="285" y2="138" stroke="#dde2e8" stroke-dasharray="5 5"/>
+          <line x1="128" y1="45" x2="128" y2="230" stroke="#eef0f3"/>
+          <text x="44" y="49" text-anchor="end">100%</text>
+          <text x="44" y="142" text-anchor="end">50%</text>
+          <text x="128" y="249" text-anchor="middle">median</text>
+          <polyline fill="none" stroke="#d98a00" stroke-width="3" points="50,45 89,102 128,138 167,154 207,168 246,179 285,188"/>
+          <polyline fill="none" stroke="#8a8f99" stroke-width="3" points="50,45 89,93 128,138 167,164 207,185 246,201 285,212"/>
+          <polyline fill="none" stroke="#d64545" stroke-width="3" points="50,45 89,85 128,138 167,172 207,198 246,216 285,224"/>
+          <text x="188" y="88" fill="#d64545">k&gt;1</text>
+          <text x="196" y="124" fill="#8a8f99">k=1</text>
+          <text x="196" y="165" fill="#d98a00">k&lt;1</text>
+
+          <text x="465" y="24" text-anchor="middle" fill="#141b26">Hazard over time</text>
+          <line x1="360" y1="45" x2="360" y2="230" stroke="#c9ccd2"/>
+          <line x1="360" y1="230" x2="595" y2="230" stroke="#c9ccd2"/>
+          <text x="354" y="49" text-anchor="end">high</text>
+          <text x="354" y="234" text-anchor="end">low</text>
+          <polyline fill="none" stroke="#d98a00" stroke-width="3" points="360,74 399,112 438,136 477,154 517,168 556,180 595,190"/>
+          <polyline fill="none" stroke="#8a8f99" stroke-width="3" points="360,150 399,150 438,150 477,150 517,150 556,150 595,150"/>
+          <polyline fill="none" stroke="#d64545" stroke-width="3" points="360,210 399,195 438,176 477,154 517,127 556,96 595,61"/>
+          <text x="510" y="91" fill="#d64545">increasing</text>
+          <text x="505" y="142" fill="#8a8f99">constant</text>
+          <text x="500" y="188" fill="#d98a00">decreasing</text>
+        </svg>
+        <figcaption class="stats-figcaption"><b>Same median, different event calendar:</b> a lower Weibull <code>k</code> can create early event accrual followed by a late slowdown. That is one reason Khela-style scalar HR simulations and this app's mixture-cure sliders can diverge.</figcaption>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">3</span> Mixture Cure: Plateau vs Long Tail</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> A curve with two groups</h3>
+          <p>A mixture cure model says the population is a blend: some fraction follows a durable plateau, while the rest follow an ordinary declining survival curve.</p>
+          <p class="stats-formula"><code>S(t)=c+(1-c)S_uncured(t)</code></p>
+          <p>Here <code>c</code> is the plateau/cure fraction. It does not prove literal biological cure. It is a mathematical way to represent a curve that stops falling quickly and levels off.</p>
+          <p>A long-tailed non-cure curve can look similar for a while. That creates an identifiability problem: different stories can make nearly the same observed curve over limited follow-up.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Why plateau assumptions are powerful</h3>
+          <p>The inverse mode can ask: if GPS has a selected plateau fraction, what BAT median and GPS uncured mOS would make pooled deaths hit the public anchors?</p>
+          <p>That is useful for sensitivity analysis, but it assigns the durable tail to GPS by assumption. A favorable BAT tail, delayed GPS separation, censoring, or enrollment mix can mimic parts of the same pooled pattern.</p>
+          <p>This is the core non-identifiability warning: the anchors can support many worlds, including bullish and less bullish ones, until the arm-level split is known.</p>
+        </article>
+      </div>
+      <div class="stats-figure">
+        <svg class="stats-svg" viewBox="0 0 560 260" role="img" aria-label="Mixture cure chart comparing plateau and long tail curves">
+          <rect x="0" y="0" width="560" height="260" fill="#fbfcfe"/>
+          <line x1="58" y1="25" x2="58" y2="210" stroke="#c9ccd2"/>
+          <line x1="58" y1="210" x2="510" y2="210" stroke="#c9ccd2"/>
+          <line x1="58" y1="118" x2="510" y2="118" stroke="#dde2e8" stroke-dasharray="5 5"/>
+          <line x1="58" y1="154" x2="510" y2="154" stroke="#d98a00" stroke-dasharray="4 5"/>
+          <text x="50" y="29" text-anchor="end">100%</text>
+          <text x="50" y="122" text-anchor="end">50%</text>
+          <text x="50" y="158" text-anchor="end">plateau</text>
+          <text x="58" y="232" text-anchor="middle">0m</text>
+          <text x="171" y="232" text-anchor="middle">12m</text>
+          <text x="284" y="232" text-anchor="middle">24m</text>
+          <text x="397" y="232" text-anchor="middle">36m</text>
+          <text x="510" y="232" text-anchor="middle">48m</text>
+          <polyline fill="none" stroke="#8a8f99" stroke-width="3" points="58,25 120,84 182,124 244,151 306,169 368,181 430,190 510,198"/>
+          <polyline fill="none" stroke="#2f6fed" stroke-width="3" points="58,25 120,68 182,96 244,117 306,134 368,146 430,152 510,154"/>
+          <polyline fill="none" stroke="#1f9d55" stroke-width="3" stroke-dasharray="6 5" points="58,25 120,70 182,100 244,122 306,140 368,151 430,158 510,163"/>
+          <text x="330" y="91" fill="#2f6fed">mixture cure plateau</text>
+          <text x="314" y="184" fill="#5b6472">no plateau</text>
+          <text x="340" y="170" fill="#1f7a46">long tail can mimic</text>
+        </svg>
+        <figcaption class="stats-figcaption"><b>Identifiability problem:</b> with limited blinded follow-up, a true plateau and a very long tail can be hard to separate. The app makes that assumption visible instead of hiding it inside a single point HR.</figcaption>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">4</span> Enrollment Convolution: Calendar Events Are Integrated Over Entry Times</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> People do not all start on day one</h3>
+          <p>In a trial, patients enroll over months or years. A patient enrolled early has long follow-up by a calendar date; a patient enrolled late has short follow-up.</p>
+          <p class="stats-formula"><code>E[D(T)] = sum over patients [1-S(T-entry_i)]</code></p>
+          <p>If enrollment is continuous, that sum becomes an integral over enrollment times. This is convolution: combine the entry-time distribution with the survival curve to get expected calendar events.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Why m46, m58, m63 are calendar anchors</h3>
+          <p>REGAL's public event anchors are calendar milestones from trial start, not "everyone has 46 months of follow-up." The app therefore weights patients by when they entered.</p>
+          <p>Late enrollment can slow event accrual because some patients have not had much time at risk. Conversely, early-enrolled high-risk patients can drive early event counts.</p>
+          <p>This is why the model has event-timeline checks instead of only fitting a single median. The anchor math asks whether the whole enrolled trial would have produced 60, 72, and 78 pooled events at those calendar times.</p>
+        </article>
+      </div>
+      <div class="stats-figure">
+        <svg class="stats-svg" viewBox="0 0 620 270" role="img" aria-label="Enrollment convolution diagram showing staggered patient entry and event accumulation">
+          <rect x="0" y="0" width="620" height="270" fill="#fbfcfe"/>
+          <text x="70" y="28" fill="#141b26">Patients enter over time</text>
+          <line x1="62" y1="58" x2="358" y2="58" stroke="#c9ccd2"/>
+          <line x1="62" y1="98" x2="358" y2="98" stroke="#c9ccd2"/>
+          <line x1="62" y1="138" x2="358" y2="138" stroke="#c9ccd2"/>
+          <line x1="62" y1="178" x2="358" y2="178" stroke="#c9ccd2"/>
+          <circle cx="78" cy="58" r="6" fill="#2f6fed"/>
+          <circle cx="132" cy="98" r="6" fill="#2f6fed"/>
+          <circle cx="210" cy="138" r="6" fill="#2f6fed"/>
+          <circle cx="292" cy="178" r="6" fill="#2f6fed"/>
+          <path d="M78 58 C125 68 178 76 300 82" fill="none" stroke="#2f6fed" stroke-width="2.5"/>
+          <path d="M132 98 C177 106 225 112 330 118" fill="none" stroke="#2f6fed" stroke-width="2.5"/>
+          <path d="M210 138 C250 145 290 151 358 158" fill="none" stroke="#2f6fed" stroke-width="2.5"/>
+          <path d="M292 178 C318 184 340 189 358 196" fill="none" stroke="#2f6fed" stroke-width="2.5"/>
+          <line x1="358" y1="42" x2="358" y2="214" stroke="#d64545" stroke-width="3"/>
+          <text x="358" y="235" text-anchor="middle" fill="#d64545">calendar anchor</text>
+          <text x="88" y="216">early patients contribute more risk time</text>
+          <path d="M386 133 C420 118 432 88 456 82" fill="none" stroke="#8a8f99" stroke-width="2" marker-end="url(#statsArrow)"/>
+          <defs>
+            <marker id="statsArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#8a8f99"/>
+            </marker>
+          </defs>
+          <text x="500" y="28" text-anchor="middle" fill="#141b26">Pooled events accumulate</text>
+          <line x1="450" y1="210" x2="590" y2="210" stroke="#c9ccd2"/>
+          <line x1="450" y1="52" x2="450" y2="210" stroke="#c9ccd2"/>
+          <polyline fill="none" stroke="#d64545" stroke-width="4" points="450,198 475,184 500,165 525,139 550,110 575,84 590,72"/>
+          <line x1="450" y1="112" x2="590" y2="112" stroke="#dde2e8" stroke-dasharray="5 5"/>
+          <text x="444" y="116" text-anchor="end">72</text>
+          <text x="520" y="234" text-anchor="middle">calendar month</text>
+        </svg>
+        <figcaption class="stats-figcaption"><b>Convolution intuition:</b> the app combines the enrollment curve with arm survival curves. Event anchors are generated by all those staggered follow-up clocks added together.</figcaption>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">5</span> Pooled Blinded Anchors and the Inverse Solve</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> Average constraints do not identify components</h3>
+          <p>If you know the average of two numbers is 10, the pair could be 10 and 10, 5 and 15, or 2 and 18. Survival arms work the same way, only with curves instead of single numbers.</p>
+          <p class="stats-formula"><code>pooled survival roughly = 0.5*S_GPS(t)+0.5*S_BAT(t)</code></p>
+          <p>Inverse solving means fixing some outputs and solving backward for inputs. It is useful, but it needs assumptions because the same output can come from many input combinations.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> 60/72/78 constrain the average, not each arm</h3>
+          <p>The public anchors say pooled deaths reached about 60, 72, and 78. They do not say how many were on GPS or BAT. <span class="tag v">public anchor</span></p>
+          <p>In inverse mode, the app takes anchors plus a structural GPS cure assumption and solves for compatible BAT median and GPS uncured mOS. This is a "what worlds fit?" tool, not an arm-split detector.</p>
+          <p>That is why many worlds can fit the same pooled data: GPS benefit with ordinary BAT, smaller GPS benefit with unusually durable BAT, delayed separation, different Weibull shapes, or censoring/enrollment differences.</p>
+        </article>
+      </div>
+      <div class="stats-mini-grid stats-worlds">
+        <div><b>World A:</b> strong GPS tail + standard BAT can fit the anchors.</div>
+        <div><b>World B:</b> moderate GPS effect + favorable BAT tail can also fit.</div>
+        <div><b>World C:</b> near-null arm split is harder to square with some priors, but pooled data alone still cannot mathematically reveal the split.</div>
+      </div>
+      <p class="stats-note"><b>Lesson checkpoint:</b> inverse solve is like reconstructing ingredients from the taste of a soup. It narrows recipes that fit the taste, but it cannot prove which ingredient caused it unless you add assumptions.</p>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">6</span> Log-Rank Test, Cox Framing, HR, Z, and FH Sensitivity</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> Observed vs expected events</h3>
+          <p>At each event time, the log-rank test asks: if both arms had equal survival, how many events would we expect in each arm given how many people were still at risk?</p>
+          <p class="stats-formula"><code>E_GPS = d * n_GPS / (n_GPS+n_BAT)</code><br><code>U = sum(O_GPS-E_GPS)</code><br><code>Z = U / sqrt(V)</code></p>
+          <p><code>U</code> is the scoreboard. <code>V</code> is the variance of that scoreboard under no difference. <code>Z</code> is evidence strength in standard-error units.</p>
+          <p>Hazard ratio and <code>Z</code> are related but not identical. HR estimates effect size; <code>Z</code> measures how statistically surprising the observed imbalance is.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Primary framing and optional FH toggle</h3>
+          <p>The REGAL design paper frames the primary analysis as stratified Cox / unweighted log-rank at the 80-event final analysis, with HR &lt; 0.636 as the design win bar. <span class="tag v">public anchor</span></p>
+          <p>The app approximates the log-rank score from modeled curves. The optional Fleming-Harrington late-weighted toggle gives later event times more influence and is a sensitivity for delayed effects; it is not presented as the confirmed primary SAP weighting.</p>
+          <p>Stratification in the real trial uses pre-specified baseline factors. The app's scalar <code>stratF</code> is an efficiency approximation, not a replacement for the actual stratified Cox model.</p>
+        </article>
+      </div>
+      <div class="stats-grid">
+        <div class="stats-card">
+          <h3>Observed vs expected, one event time</h3>
+          <table class="stats-table">
+            <thead><tr><th>Arm</th><th>At risk</th><th>Observed deaths</th><th>Expected if no effect</th></tr></thead>
+            <tbody>
+              <tr><td>GPS</td><td>40</td><td>0</td><td>0.5</td></tr>
+              <tr><td>BAT</td><td>40</td><td>1</td><td>0.5</td></tr>
+            </tbody>
+          </table>
+          <p class="field-note">A single row barely matters. The log-rank statistic adds this balance check across all event times.</p>
+        </div>
+        <div class="stats-figure stats-figure-compact">
+          <svg class="stats-svg" viewBox="0 0 420 210" role="img" aria-label="Observed versus expected log-rank balance scale">
+            <rect x="0" y="0" width="420" height="210" fill="#fbfcfe"/>
+            <line x1="90" y1="95" x2="330" y2="95" stroke="#8a8f99" stroke-width="5" stroke-linecap="round"/>
+            <circle cx="210" cy="95" r="10" fill="#141b26"/>
+            <line x1="210" y1="105" x2="210" y2="165" stroke="#141b26" stroke-width="4"/>
+            <line x1="180" y1="165" x2="240" y2="165" stroke="#141b26" stroke-width="4"/>
+            <circle cx="105" cy="126" r="34" fill="#eef3fe" stroke="#2f6fed" stroke-width="2"/>
+            <circle cx="315" cy="66" r="34" fill="#fdeaea" stroke="#d64545" stroke-width="2"/>
+            <text x="105" y="121" text-anchor="middle" fill="#2f6fed">GPS</text>
+            <text x="105" y="137" text-anchor="middle" fill="#2f6fed">fewer O</text>
+            <text x="315" y="61" text-anchor="middle" fill="#d64545">BAT</text>
+            <text x="315" y="77" text-anchor="middle" fill="#d64545">more O</text>
+            <text x="210" y="30" text-anchor="middle" fill="#141b26">U = sum observed - expected</text>
+            <text x="210" y="194" text-anchor="middle">bigger imbalance + enough events = bigger |Z|</text>
+          </svg>
+          <figcaption class="stats-figcaption">The log-rank test is a standardized balance scale. HR is the estimated relative hazard; <code>Z</code> is how far the observed scale tips after accounting for variance.</figcaption>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">7</span> O'Brien-Fleming Boundary and Conditional Power</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> Interim looks spend alpha carefully</h3>
+          <p>A trial that peeks early needs stricter early evidence, otherwise repeated looks inflate false-positive risk. O'Brien-Fleming style boundaries make early stopping hard and final stopping closer to the usual threshold.</p>
+          <p class="stats-formula"><code>interim: higher Z bar</code><br><code>final: lower Z bar</code><br><code>conditional power = chance of final success given what is known now</code></p>
+          <p>Not stopping early does not mean "no effect." It usually means the interim evidence did not cross the very high early efficacy line, or the review continued for other design reasons.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> What continuation at 60 does and does not prove</h3>
+          <p>REGAL had an interim at 60 events and continued. Under the public design framing, that makes extreme early-win stories less likely, because a very large early separation might have crossed the OBF efficacy boundary.</p>
+          <p>But continuation does not prove final failure, final success, or a particular HR. It only adds a constraint to the space of compatible worlds.</p>
+          <p>The app's binding-interim toggle soft-conditions Monte Carlo on continuation. That changes posterior weight and conditional power; it does not reveal the hidden IDMC data.</p>
+        </article>
+      </div>
+      <div class="stats-figure">
+        <svg class="stats-svg" viewBox="0 0 560 220" role="img" aria-label="O'Brien-Fleming interim and final boundary visual">
+          <rect x="0" y="0" width="560" height="220" fill="#fbfcfe"/>
+          <line x1="72" y1="142" x2="500" y2="142" stroke="#c9ccd2" stroke-width="2"/>
+          <line x1="72" y1="132" x2="72" y2="152" stroke="#c9ccd2"/>
+          <line x1="215" y1="132" x2="215" y2="152" stroke="#c9ccd2"/>
+          <line x1="358" y1="132" x2="358" y2="152" stroke="#c9ccd2"/>
+          <line x1="500" y1="132" x2="500" y2="152" stroke="#c9ccd2"/>
+          <text x="72" y="170" text-anchor="middle">0</text>
+          <text x="215" y="170" text-anchor="middle">1</text>
+          <text x="358" y="170" text-anchor="middle">2</text>
+          <text x="500" y="170" text-anchor="middle">3</text>
+          <line x1="360" y1="52" x2="360" y2="158" stroke="#2f6fed" stroke-width="4"/>
+          <line x1="407" y1="42" x2="407" y2="158" stroke="#d64545" stroke-width="4"/>
+          <rect x="360" y="92" width="47" height="26" fill="#fff4e0" stroke="#f0d090"/>
+          <circle cx="326" cy="142" r="7" fill="#8a8f99"/>
+          <text x="360" y="34" text-anchor="middle" fill="#2f6fed">final bar</text>
+          <text x="407" y="27" text-anchor="middle" fill="#d64545">interim OBF bar</text>
+          <text x="384" y="110" text-anchor="middle" fill="#8a5a00">harder early</text>
+          <text x="326" y="190" text-anchor="middle">continuation excludes only the far-right early-stop region</text>
+        </svg>
+        <figcaption class="stats-figcaption">OBF boundaries help control false positives across multiple looks. The REGAL continuation is evidence about what did not happen at interim; it is not a final readout.</figcaption>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">8</span> Monte Carlo: Forward, Inverse, and Likelihood Weighting</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> Drawing many possible worlds</h3>
+          <p>Monte Carlo means repeatedly sampling uncertain inputs, calculating outputs, and studying the distribution. It turns "what if this assumption is wrong?" into a visible range.</p>
+          <p class="stats-formula"><code>weight(draw) higher if draw fits observed anchors</code></p>
+          <p>Likelihood weighting does not make a draw true. It gives more influence to simulated worlds whose event increments look more like the public data.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Sensitivity analysis, not prophecy</h3>
+          <p><b>Forward MC:</b> draw medians, shape, plateau, delay, censoring, and enrollment assumptions first; then ask which draws fit public anchors and win.</p>
+          <p><b>Inverse MC:</b> start from anchors and a structural assumption such as GPS cure fraction; solve for compatible hidden medians and HRs.</p>
+          <p>Both are useful stress tests. Neither sees arm-level events, future adjudication, true censoring, protocol deviations, or regulatory interpretation.</p>
+        </article>
+      </div>
+      <div class="stats-figure">
+        <svg class="stats-svg" viewBox="0 0 620 260" role="img" aria-label="Monte Carlo cloud and histogram sketch">
+          <rect x="0" y="0" width="620" height="260" fill="#fbfcfe"/>
+          <text x="150" y="28" text-anchor="middle" fill="#141b26">Draws in assumption space</text>
+          <line x1="55" y1="210" x2="285" y2="210" stroke="#c9ccd2"/>
+          <line x1="55" y1="48" x2="55" y2="210" stroke="#c9ccd2"/>
+          <circle cx="94" cy="176" r="4" fill="#c9ccd2"/>
+          <circle cx="120" cy="136" r="5" fill="#2f6fed"/>
+          <circle cx="146" cy="158" r="4" fill="#c9ccd2"/>
+          <circle cx="172" cy="102" r="7" fill="#2f6fed"/>
+          <circle cx="198" cy="122" r="5" fill="#2f6fed"/>
+          <circle cx="224" cy="74" r="4" fill="#c9ccd2"/>
+          <circle cx="247" cy="150" r="8" fill="#2f6fed"/>
+          <circle cx="263" cy="96" r="4" fill="#c9ccd2"/>
+          <ellipse cx="190" cy="126" rx="96" ry="54" fill="none" stroke="#2f6fed" stroke-dasharray="6 5"/>
+          <text x="170" y="235" text-anchor="middle">survival assumptions</text>
+          <path d="M310 128 C340 105 355 105 386 128" fill="none" stroke="#8a8f99" stroke-width="2" marker-end="url(#mcArrow)"/>
+          <defs>
+            <marker id="mcArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#8a8f99"/>
+            </marker>
+          </defs>
+          <text x="465" y="28" text-anchor="middle" fill="#141b26">Weighted output distribution</text>
+          <line x1="390" y1="210" x2="580" y2="210" stroke="#c9ccd2"/>
+          <rect x="402" y="176" width="22" height="34" fill="#dde8fd"/>
+          <rect x="430" y="150" width="22" height="60" fill="#bcd2fb"/>
+          <rect x="458" y="104" width="22" height="106" fill="#7fa7f4"/>
+          <rect x="486" y="78" width="22" height="132" fill="#2f6fed"/>
+          <rect x="514" y="130" width="22" height="80" fill="#7fa7f4"/>
+          <rect x="542" y="168" width="22" height="42" fill="#bcd2fb"/>
+          <line x1="508" y1="55" x2="508" y2="220" stroke="#d64545" stroke-width="2" stroke-dasharray="5 5"/>
+          <text x="508" y="47" text-anchor="middle" fill="#d64545">win bar</text>
+          <text x="485" y="235" text-anchor="middle">HR or Z outcome</text>
+        </svg>
+        <figcaption class="stats-figcaption">A Monte Carlo cloud is a sensitivity map. The histogram is a weighted summary of assumptions that fit the anchors better or worse.</figcaption>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">9</span> HR Approximations, Khela-Style Scalar HR, and Stratification Efficiency</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> Effect size depends on the model</h3>
+          <p>A Cox/log-rank HR is an event-time weighted comparison of hazards. A parametric HR from exponential or Weibull curves is a model-implied ratio. A Pike/log-rank HR approximation uses observed-vs-expected event arithmetic.</p>
+          <p class="stats-formula"><code>Pike-style HR approx = (O/E)_GPS / (O/E)_BAT</code></p>
+          <p>These can be close under proportional hazards. They can diverge when curves cross, effects are delayed, hazards change over time, or one arm has a plateau.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Why scalar HR differs from sliders</h3>
+          <p>A Khela-style scalar HR simulation can apply one risk multiplier across patients. That is clean and fast, but it compresses curve shape into one number.</p>
+          <p>The SLS-Model sliders can separately change GPS cure fraction, uncured median, delay, BAT median, BAT Weibull <code>k</code>, and long-tail behavior. Those are richer assumptions, so the final Pike/log-rank HR approximation may not match a single scalar HR setup.</p>
+          <p>The <code>stratF</code> slider is also an approximation: it scales statistical efficiency to mimic stratification effects without knowing the true within-stratum risk sets from the final dataset.</p>
+        </article>
+      </div>
+      <p class="stats-note"><b>Lesson checkpoint:</b> HR is not a physical constant. It is a summary of survival differences under a testing framework. When hazards are non-proportional, always look at the curves and event timing, not just one HR label.</p>
+    </section>
+
+    <section class="stats-section">
+      <h2><span class="stats-kicker">10</span> Valuation Statistics: Expected Value, P(success), Dilution</h2>
+      <div class="stats-pair">
+        <article class="stats-card stats-lesson">
+          <h3><span class="stats-pill">Math lesson</span> Risk-adjusted expected value</h3>
+          <p>Expected value is a probability-weighted average. A simplified biotech version is: value if successful times probability of success, plus other assets, minus or plus balance-sheet items.</p>
+          <p class="stats-formula"><code>risk-adjusted value = P(success) * success value</code><br><code>equity per share = (EV + cash) / diluted shares</code></p>
+          <p>Changing either probability or share count can move per-share value a lot. That is sensitivity, not precision.</p>
+        </article>
+        <article class="stats-card stats-application">
+          <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Why P(GPS) is separate from p value</h3>
+          <p>The valuation tab's P(GPS) is a user prior for risk-adjusting commercial value. It is not the trial p value, not FDA approval probability from a regulator, and not automatically the Monte Carlo P(win).</p>
+          <p>The model also separates cash and fully diluted shares. A stronger REGAL view can still be offset per share by dilution, while cash can support runway and add to equity value.</p>
+          <p>The right way to use this section is to stress-test: change P(success), peak sales, multiples, cash, and diluted shares, then see which assumptions dominate the outcome.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="stats-section stats-sources">
+      <h2><span class="stats-kicker">Refs</span> Trial-Specific Sources and App Docs</h2>
+      <ul class="stats-list">
+        <li>REGAL design and primary analysis framing: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy/Cicic 2025 design paper</a>.</li>
+        <li>REGAL protocol/trial registry: <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">ClinicalTrials.gov NCT04229979</a>.</li>
+        <li>Public pooled event anchors: <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60-event interim PR</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72-event update</a>, and <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78-event Q1 2026 update</a>.</li>
+        <li>App methodology and source policy: <a href="./README.md" target="_blank" rel="noopener">README</a> and <a href="./RESEARCH.md" target="_blank" rel="noopener">RESEARCH.md</a>.</li>
+      </ul>
+    </section>
+  </div>
+</div><!-- /tab-statistics -->
 
 <div id="tab-biology" class="tabpage" hidden>
   <div class="tab-intro-bar">

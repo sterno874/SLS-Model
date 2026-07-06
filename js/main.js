@@ -145,7 +145,7 @@ function debounce(fn,ms){
 }
 let updateTimer=null,updateSpinnerTimer=null,pendingDrawRaf=null,pendingDrawP=null,pendingDrawLight=false,lastBandsKey="";
 let sliderDragging=false;
-const tabsRendered={gps:false,sls009:false,value:false,explain:false,biology:false};
+const tabsRendered={gps:false,sls009:false,value:false,explain:false,statistics:false,biology:false};
 const tabsDirty={sls009:true,value:true,explain:true};
 function panelOpen(id){const el=$(id);return!!(el&&el.open);}
 function scheduleDraw(p,light){
@@ -1570,7 +1570,7 @@ requestAnimationFrame(()=>{
 });
 
 // ================= TABS & METHODOLOGY =================
-const TAB_SHORT_LABELS={gps:"REGAL / GPS",sls009:"SLS-009",value:"Valuation",explain:"Explain",biology:"Biology"};
+const TAB_SHORT_LABELS={gps:"REGAL / GPS",sls009:"SLS-009",value:"Valuation",explain:"Explain",statistics:"The Statistics",biology:"Biology"};
 function closeMobileNav(){
   const panel=$("mobileNavPanel"),toggle=$("navToggle"),backdrop=$("mobileNavBackdrop");
   if(!panel)return;
@@ -1616,6 +1616,7 @@ function renderTab(t,force){
   if(t==="sls009"&&(force||tabsDirty.sls009||!tabsRendered.sls009)){renderSLS();tabsRendered.sls009=true;tabsDirty.sls009=false;}
   if(t==="value"&&(force||tabsDirty.value||!tabsRendered.value)){renderVal();tabsRendered.value=true;tabsDirty.value=false;}
   if(t==="explain"&&(force||!tabsRendered.explain)){showLevel(curLvl);tabsRendered.explain=true;}
+  if(t==="statistics"){tabsRendered.statistics=true;}
   if(t==="biology"){initBioDiagrams();tabsRendered.biology=true;}
 }
 function switchTab(t){
@@ -1623,7 +1624,7 @@ function switchTab(t){
   document.querySelectorAll(".tabbtn").forEach(x=>{const on=x.dataset.tab===t;x.classList.toggle("active",on);x.setAttribute("aria-selected",on?"true":"false");});
   syncMobileNav(t);
   closeMobileNav();
-  ["gps","sls009","value","explain","biology"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
+  ["gps","sls009","value","explain","statistics","biology"].forEach(id=>{$("tab-"+id).hidden=(id!==t);});
   updateReadoutVisibility();
   renderTab(t);
   if(!restoringState)updateHashQuiet();

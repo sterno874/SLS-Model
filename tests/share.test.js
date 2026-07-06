@@ -243,6 +243,15 @@ test("biology tab round-trips in share hash", () => {
   assert.deepEqual(decoded, s);
 });
 
+test("statistics tab round-trips in share hash", () => {
+  const s = freshLoadState();
+  s.tab = "statistics";
+  const hash = buildShareHash(s);
+  const decoded = decodeShareHash(hash);
+  assert.equal(decoded.tab, "statistics");
+  assert.deepEqual(decoded, s);
+});
+
 test("sls009 bear preset + slider delta round-trips full state", () => {
   const s = freshLoadState();
   s.tab = "sls009";
