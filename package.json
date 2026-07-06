@@ -5,5 +5,8 @@
   "scripts": {
     "test": "node tests/run-all.js",
     "test:mutation": "node tests/mutation/run.js"
+  },
+  "devDependencies": {
+    "linkedom": "^0.18.12"
   }
 }

@@ -185,8 +185,15 @@ function drawEmptyChart(){
   chartParams=null;
 }
 let updateRaf=null;
+function clearRegalMCOutput(msg){
+  const status=$("mcStatus"),stats=$("mcStats"),hist=$("mcHist");
+  if(status)status.textContent=msg||"inputs changed — click Run";
+  if(stats)stats.textContent="";
+  if(hist)hist.innerHTML="";
+}
 function scheduleUpdate(){
   lastMcPwin=null; // params changed → any prior MC P(win) is stale until MC is re-run
+  clearRegalMCOutput();
   if(restoringState){updateNow();return;}
   // Throttle the light gauge/event/verdict update to one run per animation frame so the
   // readouts track the slider live; heavy work (band windows, readout MC, open panels)
@@ -232,6 +239,7 @@ function applyInverseResult(r){
 }
 function setRegalMode(mode){
   lastMcPwin=null; // mode switch changes the effective params → invalidate cached MC P(win)
+  clearRegalMCOutput("mode changed — click Run");
   regalMode=mode;
   $("modeForward").classList.toggle("active",mode==="forward");
   $("modeInverse").classList.toggle("active",mode==="inverse");
@@ -262,7 +270,7 @@ const CFG=[
    why:"PRIOR (blue): additive long-survivor PLATEAU fraction (batc) — flat tail patients, NOT total 3-yr OS. Kurosawa CR2 transplant-ineligible ~14% [9] is a 3-YR OS biology cap; at typical BAT medians the Weibull tail alone already yields ~15% at 3yr with batc=0, so little room remains for extra plateau. Static 1σ 0–5% (μ≈1%); blue band shrinks with BAT median vs the cap slider (default 14%). NOTE: event-fit tension at 18–24% plateau persists (see impwhy).",
    impwhy:"IMPLAUSIBLE (>20% plateau): at typical BAT medians pushes 3-yr OS well above the Kurosawa ~14% cap even before GPS benefit. Bear preset (16%) is a deliberate stress test. The puzzle: data + no-halt fits push into high-plateau zones anyway — mild evidence the interim was NON-binding OR the control arm is unusually favorable. Use the transplant slider for a legitimate tail."},
  {id:"gpsc",field:"gpsc",min:0,max:75,step:1,  sc:0.01,sig:{b3:[0,70],b2:[0,55],b1:[10,40],mu:25},
-   why:"PRIOR (blue): GPS cure/plateau fraction — highly uncertain. Phase 2 CR1 showed a ~47% 3-yr plateau [1] (but selection-biased); Phase 2 CR2 (the closest analog) showed NO plateau [7]; T-cell immune-response rate ~64% [1]. Wide band on purpose."},
+   why:"PRIOR (blue): GPS cure/plateau fraction — highly uncertain. Phase 2 CR1 showed a ~47% 3-yr plateau [1] (but selection-biased); Phase 2 CR2 (the closest analog) showed NO plateau [7]; T-cell immune-response rate ~64% [1]. HLA/responder-mix biology may mean moderate cure + longer benefited uncured tail rather than a uniform cure probability. Wide band on purpose."},
  {id:"gpsu",field:"gpsu",min:6,max:55,step:0.5,sc:1,   sig:{b3:[6,55],b2:[8,48],b1:[13,40],mu:20},
    why:"PRIOR (blue): median OS of non-cured GPS patients. Phase 2 CR2 GPS median OS 16.3m [7]; Phase 2 CR1 median DFS 16.9m [1]. 1σ 13–27m. The m63 event point pulls fits toward the high end."},
  {id:"delay",field:"delay",min:0,max:6,step:0.5,sc:1,  sig:{b3:[0,6],b2:[0,5],b1:[0.5,3.5],mu:2},
@@ -428,6 +436,7 @@ function applyDilutionStress(sharesM){
   const el=$("v_shares");
   if(!el)return;
   el.value=String(sharesM);
+  clearValMCOutput("inputs changed — click Run");
   document.querySelectorAll("[data-dilution-stress]").forEach((b)=>{
     b.classList.toggle("p-def",Math.abs(Number(b.dataset.dilutionStress)-sharesM)<0.05);
   });
@@ -790,12 +799,18 @@ function noteText(){
 
 // ---------- Monte Carlo (posterior over final HR) ----------
 function rn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function mcDrawLimit(defaultN,key){
+  const cfg=typeof window!=="undefined"?window.__SLS_MODEL_MC_DRAWS:null;
+  const raw=cfg&&typeof cfg==="object"?cfg[key]:cfg;
+  const n=Number(raw);
+  return Number.isFinite(n)&&n>0?Math.floor(n):defaultN;
+}
 const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
 function clampf(f,v){const c=CFG.find(x=>x.field===f);return Math.max(c.min*c.sc,Math.min(c.max*c.sc,v));}
 const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
 function runMC(){
   if(regalMode==="inverse"){runMCInverse();return;}
-  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=220000,t0=performance.now();
+  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=mcDrawLimit(220000,"regal"),t0=performance.now();
   for(let i=0;i<MAX;i++){ if(performance.now()-t0>3600)break; tried++;
     const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
     for(const f of MCFIELDS) p[f]=clampf(f,ctr[f]+SD[f]*rn());
@@ -817,7 +832,7 @@ function runMC(){
   renderMC(acc,tried);
 }
 function runMCInverse(){
-  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=80000,t0=performance.now();
+  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=mcDrawLimit(80000,"inverse"),t0=performance.now();
   const sdG=SD.gpsc||0.08,sdCap=1.5,baseCap=+$("batcap").value;
   for(let i=0;i<MAX;i++){if(performance.now()-t0>4000)break;tried++;
     const cap=Math.round(Math.max(12,Math.min(22,baseCap+sdCap*rn())));
@@ -927,6 +942,7 @@ function syncRegalPresetMarker(){
 }
 function applyRegalPreset(name,q){
   lastMcPwin=null; // preset changes params → invalidate cached MC P(win)
+  clearRegalMCOutput("preset changed — click Run");
   q=q||P[name];
   if(!q)return;
   activeRegalPreset=name;
@@ -948,6 +964,7 @@ function applyRegalPreset(name,q){
 }
 function applyInversePreset(name,q){
   lastMcPwin=null; // preset changes params → invalidate cached MC P(win)
+  clearRegalMCOutput("preset changed — click Run");
   q=q||INV[name];activeInvPreset=name;
   $("gpsc").value=q.gpsc;$("batcap").value=q.batcap;
   $("delay").value=q.delay;$("mid").value=q.mid;$("k").value=q.k;
@@ -989,6 +1006,7 @@ function applySliderValues(ids,block){
 function applyState(s){
   if(!s||s.v!==1)return false;
   restoringState=true;lastMcPwin=null; // restoring a shared state changes params → invalidate cached MC P(win)
+  clearRegalMCOutput("state restored — click Run");
   try{
     activeRegalPreset=s.activeRegalPreset||activeRegalPreset;activeInvPreset=s.activeInvPreset||activeInvPreset;
     activeSlsPreset=s.activeSlsPreset||activeSlsPreset;activeValPreset=s.activeValPreset||activeValPreset;
@@ -1310,6 +1328,12 @@ function communityDDHtml(){
   '<li><span class="val-model">🔬</span> Durable-subgroup overlap / BAT tail cap — REGAL stratifies long-CR1, MRD, cyto (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">NCT</a>); prognostic factors correlate — treating them as independent stacks overstates BAT. Debated with bears in <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tqb3wa/a_bearish_take/" target="_blank">bear thread</a></li>'+
   '<li><span class="val-model">🔬</span> Model 4 (drop interim HR &gt;0.5 floor): IDMC may continue despite low interim HR — <span class="val-ok">✅</span> IDMC recommended continue without modification (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank">PR</a>); OBF early-stop HR≲0.55 is <span class="val-part">⚠️ derived</span>, not published arm-level HR</li>'+
   '</ul></div>'+
+  '<div class="contrib"><h4>External community model comparators <span class="tag m">not model truth</span></h4>'+
+  '<p>Public models are useful triangulation checks, but they do not reveal REGAL arm-level outcomes. Each makes different choices about patient-level simulation, curve shape, recruitment, interim conditioning, and BAT selection.</p>'+
+  '<ul>'+
+  '<li><span class="val-part">⚠️</span> Vola Corvidae / Khela7-style Monte Carlo reports REGAL PoS around 77% under declining-hazard Weibull patient-level simulations; constant hazards can exceed 90%. The requested 85.5% / HR~0.376 Reddit-specific figure was not directly verified from a sourceable post during this update, so do not state it as fact. <a href="https://vola-corvidae.com/artikel/monte_carlo_simulations_sls.html" target="_blank">source</a></li>'+
+  '<li><span class="val-ok">✅</span> MoAlbaek <code>Regal_modeling</code> exists as a public GitHub model. Its docs verify an enrollment-selection lever (<code>esel</code>, 0–50%, default 25%) that lifts base BAT median OS ~8→12→19 mo as q rises 0→25→50% and drops plateau P(success) ~100→94→13%. These are analyst assumptions, not disclosed BAT data. <a href="https://github.com/moalbaek/Regal_modeling" target="_blank">GitHub</a> · <a href="https://raw.githubusercontent.com/moalbaek/Regal_modeling/main/REGAL_MODEL_DOCUMENTATION.md" target="_blank">docs</a></li>'+
+  '</ul></div>'+
   '<div class="contrib"><h4>u/uhguy85</h4>'+
   '<p><b>Who:</b> Community explainer focused on interpreting ML outputs and enrollment timing. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1t6uts2/9999_regal_trial_success_rate_what_does_this_mean/" target="_blank">99.99% explainer</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1td14uq/enrollment_cadence_impact_on_bat_mos_calculation/" target="_blank">Enrollment cadence</a></p>'+
   '<p><b>Core thesis:</b> “99.99%” is the fraction of <em>simulated</em> parameter draws that reproduce public milestones <em>and</em> HR &lt; 0.636 — not stock certainty or fraud-free guarantee.</p>'+
@@ -1344,6 +1368,7 @@ function communityDDHtml(){
   '<li><span class="val-ok">✅</span> Blinded pooled counts sit on GPS-cure ↔ BAT-heterogeneity ridge — identifiability acknowledged in-app</li>'+
   '<li><span class="val-ok">✅</span> Brayer CR2 GPS mOS 16.3 mo (n=10) vs 5.4 mo control — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">design paper Table</a></li>'+
   '<li><span class="val-part">⚠️</span> Immune response ≠ OS benefit — Maslak CR1 immune–survival correlation p≈0.08–0.11 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">design cites Maslak 2018</a>); 80% REGAL immunogenicity still <span class="val-no">❌</span> does not cap durable GPS fraction</li>'+
+  '<li><span class="val-model">🔬</span> HLA / mixed-responder biology — Maslak sources support broad HLA/CD4/CD8 design and heterogeneous immune response, but HLA-stratified REGAL OS is undisclosed. Use as a sensitivity, not a default.</li>'+
   '<li><span class="val-model">🔬</span> Cap durable GPS at 25–30% (Phase 2-consistent) before claiming success — stress test implemented via Critique preset / biology caps</li>'+
   '</ul></div>'+
   '<table class="valtbl"><thead><tr><th>Claim (selected)</th><th>Primary source</th><th>Status</th></tr></thead><tbody>'+
@@ -1441,6 +1466,7 @@ function valCommunityDDHtml(){
   '<div class="contrib"><h4>u/Remarkable-Big-9849 — platform biology caution</h4>'+
   '<ul>'+
   '<li><span class="val-ok">✅</span> WT1 antigen validated; GPS mechanism plausible (<a href="https://pubmed.ncbi.nlm.nih.gov/19723653/" target="_blank">Cheever</a>)</li>'+
+  '<li><span class="val-part">⚠️</span> HLA / responder mix can make uniform GPS cure assumptions over-simple — primary sources support broad HLA/CD4/CD8 coverage, but community HLA decomposition is not REGAL proof (<a href="https://doi.org/10.1182/bloodadvances.2017014175" target="_blank">Maslak 2018</a>)</li>'+
   '<li><span class="val-part">⚠️</span> Platform $B hard to defend pre-REGAL — solid-tumor programs early (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1tqb3wa/a_bearish_take/" target="_blank">bear thread</a>)</li>'+
   '</ul></div>'+
   '<div class="contrib"><h4>Bear / skeptic valuation points</h4>'+
@@ -1732,7 +1758,7 @@ function renderSLS(){
   if(typeof renderBands2==="function")renderBands2();
 }
 const debouncedRenderSLS=debounce(renderSLS,75);
-function onSlsInput(){tabsDirty.sls009=true;if(activeTab==="sls009")debouncedRenderSLS();}
+function onSlsInput(){clearSlsMCOutput();tabsDirty.sls009=true;if(activeTab==="sls009")debouncedRenderSLS();}
 ["sls_os","sls_bench","sls_orr","fl_base","fl_sls","tp_base","tp_sls"].forEach(id=>on(id,"input",onSlsInput));
 
 // ================= TAB 3 : VALUATION =================
@@ -1767,12 +1793,13 @@ function renderVal(){
   const oEvPs=$("oEvPs");if(oEvPs)oEvPs.textContent="$"+evPerShare.toFixed(2)+" EV/sh";
   const buyLo=(totPeak*Math.max(1,mult-1.5)+platform*1000+cash)/shares, buyHi=(totPeak*(mult+1.5)+platform*1000+cash)/shares;
   $("oBuy").textContent="$"+buyLo.toFixed(0)+"–$"+buyHi.toFixed(0)+"/sh";
-  $("oValNote").innerHTML=(ra?"Peaks and EV are risk-adjusted by P(GPS) and P(SLS-009) below. ":"Peaks and EV are <b>gross</b> (100% approval) — enable risk-adjustment in the MC panel to scale peaks. ")+"Peak sales = new-starts × penetration × avg-years-on-therapy × price (<span class=\"tag m\">model output</span>). EV = "+(ra?"risk-adj ":"")+"peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B WT1 platform lump (not peak×multiple). <b>Equity $/sh = (EV + cash) / FD shares</b> (cash $"+cash.toFixed(1)+"M"+(Math.abs(cash-DEFAULT_CASH_M)>0.05?"; default $"+DEFAULT_CASH_M.toFixed(1)+"M":"")+"; basic outstanding ~181.3M vs FD modeled "+shares+"M). Buyout range ≈ equity ±1.5× peak, not peak sales alone. Multiple ~4–8× (<a href=\"https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm\" target=\"_blank\" rel=\"noopener\">Gilead–Forty Seven</a>). Every input is an <span class=\"tag a\">assumption</span>; not investment advice.";
+  $("oValNote").innerHTML=(ra?"Peaks and EV are risk-adjusted by P(GPS) and P(SLS-009) below. ":"Peaks and EV are <b>gross</b> (100% approval) — enable risk-adjustment in the MC panel to scale peaks. ")+"Peak sales = new-starts × penetration × avg-years-on-therapy × price (<span class=\"tag m\">model output</span>). GPS years are a <span class=\"tag a\">commercial duration assumption</span>, not a protocol cap: CT.gov lists Y2 Q2M and post-2-year Q3M dosing until relapse. EV = "+(ra?"risk-adj ":"")+"peak × "+mult.toFixed(1)+"× + $"+platform.toFixed(1)+"B WT1 platform lump (not peak×multiple). <b>Equity $/sh = (EV + cash) / FD shares</b> (cash $"+cash.toFixed(1)+"M"+(Math.abs(cash-DEFAULT_CASH_M)>0.05?"; default $"+DEFAULT_CASH_M.toFixed(1)+"M":"")+"; basic outstanding ~181.3M vs FD modeled "+shares+"M). Buyout range ≈ equity ±1.5× peak, not peak sales alone. Multiple ~4–8× (<a href=\"https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm\" target=\"_blank\" rel=\"noopener\">Gilead–Forty Seven</a>). Every input is an <span class=\"tag a\">assumption</span>; not investment advice.";
   updateBestEstStrip();
   if(typeof renderBands2==="function")renderBands2();
 }
 const debouncedRenderVal=debounce(renderVal,75);
 function onValInput(){
+  clearValMCOutput();
   tabsDirty.value=true;
   refreshLiveQuotePollIfSharesChanged(+$("v_shares").value);
   updateBestEstStrip();
@@ -1794,7 +1821,7 @@ const CFG2=[
  {id:"v_cr1",min:2000,max:12000,sig:{b1:[4000,8000],b2:[3000,10000],b3:[2000,12000]},anchor:6000,src:"Confident Web est.; SEER/ACS; >60% relapse"},
  {id:"v_gpen",min:10,max:80,sig:{b1:[35,65],b2:[25,75],b3:[10,80]},imp:[70,80],src:"assumption (first-in-class maintenance)"},
  {id:"v_gprice",min:100,max:300,sig:{b1:[130,200],b2:[110,250],b3:[100,300]},imp:[250,300],src:"US orphan-oncology pricing comps"},
- {id:"v_gyears",min:1,max:5,sig:{b1:[2,4],b2:[1.5,4.5],b3:[1,5]},src:"derived from GPS survival (Tab 1)"},
+ {id:"v_gyears",min:1,max:5,sig:{b1:[2,4],b2:[1.5,4.5],b3:[1,5]},src:"commercial average-duration assumption; REGAL can dose Q2M in Year 2 and Q3M after 2 years until relapse (NCT04229979)"},
  {id:"v_flpool",min:5000,max:15000,sig:{b1:[7000,12000],b2:[5000,14000],b3:[5000,15000]},src:"SEER-derived (unfit newly-dx AML)"},
  {id:"v_rrpool",min:2000,max:8000,sig:{b1:[3000,6000],b2:[2000,7000],b3:[2000,8000]},src:"SEER-derived; >60% relapse"},
  {id:"v_spen",min:10,max:70,sig:{b1:[25,55],b2:[15,65],b3:[10,70]},imp:[60,70],src:"assumption (add-on to SoC)"},
@@ -1824,14 +1851,26 @@ const SLSP={
  bear:{sls_os:6.5,sls_bench:3.5,sls_orr:35,fl_base:14.7,fl_sls:17,tp_base:5.3,tp_sls:10},
  bull:{sls_os:11, sls_bench:2.2,sls_orr:55,fl_base:14.7,fl_sls:24,tp_base:5.3,tp_sls:16}
 };
-document.querySelectorAll("button[data-sls]").forEach(b=>b.onclick=()=>{const name=b.dataset.sls;activeSlsPreset=name;const q=SLSP[name];for(const k in q)$(k).value=q[k];highlightPresets("button[data-sls]","sls",name);renderSLS();});
+function clearSlsMCOutput(msg){
+  const status=$("mcSlsStatus"),stats=$("mcSlsStats"),hist=$("mcSlsHist");
+  if(status)status.textContent=msg||"inputs changed — click Run";
+  if(stats)stats.textContent="";
+  if(hist)hist.innerHTML="";
+}
+function clearValMCOutput(msg){
+  const status=$("mcValStatus"),stats=$("mcValStats"),hist=$("mcValHist");
+  if(status)status.textContent=msg||"inputs changed — click Run";
+  if(stats)stats.textContent="";
+  if(hist)hist.innerHTML="";
+}
+document.querySelectorAll("button[data-sls]").forEach(b=>b.onclick=()=>{const name=b.dataset.sls;activeSlsPreset=name;const q=SLSP[name];for(const k in q)$(k).value=q[k];clearSlsMCOutput("preset changed — click Run");highlightPresets("button[data-sls]","sls",name);renderSLS();});
 const VALP={
  best:{v_cr2:2800,v_cr1:5500,v_gpen:45,v_gprice:145,v_gyears:2.8,v_flpool:9000,v_rrpool:3500,v_spen:38,v_sprice:145,v_syears:1.4,v_platform:2.5,v_mult:5,v_shares:222,v_cash:107.1},
  cons:{v_cr2:2000,v_cr1:4000,v_gpen:30,v_gprice:125,v_gyears:2.0,v_flpool:7000,v_rrpool:2800,v_spen:22,v_sprice:125,v_syears:1.0,v_platform:0.5,v_mult:4,v_shares:225,v_cash:107.1},
  bull:{v_cr2:3800,v_cr1:7500,v_gpen:58,v_gprice:185,v_gyears:3.5,v_flpool:11000,v_rrpool:4500,v_spen:50,v_sprice:175,v_syears:1.8,v_platform:4,v_mult:6.5,v_shares:218,v_cash:107.1},
  cw:  {v_cr2:3000,v_cr1:6000,v_gpen:58,v_gprice:165,v_gyears:3.2,v_flpool:11000,v_rrpool:4500,v_spen:45,v_sprice:165,v_syears:1.7,v_platform:4,v_mult:5.5,v_shares:220,v_cash:107.1}
 };
-document.querySelectorAll("button[data-val]").forEach(b=>b.onclick=()=>{const name=b.dataset.val;activeValPreset=name;const q=VALP[name];for(const k in q)$(k).value=q[k];highlightPresets("button[data-val]","val",name);renderVal();});
+document.querySelectorAll("button[data-val]").forEach(b=>b.onclick=()=>{const name=b.dataset.val;activeValPreset=name;const q=VALP[name];for(const k in q)$(k).value=q[k];clearValMCOutput("preset changed — click Run");highlightPresets("button[data-val]","val",name);renderVal();});
 
 // ---- generic histogram + samplers for Tab 2/3 Monte Carlo ----
 function drawHist(hostId,vals,lo,hi,bin,thr,greenBelow){
@@ -1863,7 +1902,7 @@ function samp2(id){const c=CFG2.find(x=>x.id===id);return Math.max(c.min,Math.mi
 function qtl(a,q){const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(q*s.length))];}
 
 function mcSLS(){
-  const N=20000,flev=+$("sls_flev").value;$("v_slsflev").textContent=flev;
+  const N=mcDrawLimit(20000,"sls"),flev=+$("sls_flev").value;$("v_slsflev").textContent=flev;
   let folds=[],flhrs=[],pwSum=0,big=0;
   for(let i=0;i<N;i++){
     const os=samp2("sls_os"),bench=samp2("sls_bench"),flb=samp2("fl_base"),fls=samp2("fl_sls");
@@ -1883,7 +1922,7 @@ on("mcSlsRun","click",function(){
 on("sls_flev","input",function(){$("v_slsflev").textContent=$("sls_flev").value;});
 
 function mcVal(){
-  const N=20000,ra=$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
+  const N=mcDrawLimit(20000,"val"),ra=$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
   let evs=[],pss=[];
   for(let i=0;i<N;i++){
     const cr2=samp2("v_cr2"),cr1=samp2("v_cr1"),gpen=samp2("v_gpen")/100,gprice=samp2("v_gprice"),gyears=samp2("v_gyears");
