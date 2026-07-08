@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { P, INV } from "./fixtures/presets.js";
@@ -136,13 +136,28 @@ test("The Statistics tab cites trial design and event-anchor sources", () => {
   assert.match(stats, /RESEARCH\.md/);
 });
 
-test("The Biology tab has labeled inline SVG diagrams (no raster)", () => {
+test("The Biology tab has labeled SVG diagrams and image explainers", () => {
   const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
   const svgs = matchAll(/<svg[^>]*class="bio-svg"/g, bio);
   assert.ok(svgs.length >= 5, `expected >=5 diagrams, found ${svgs.length}`);
+  const imgs = matchAll(/<img[^>]*src="assets\/biology\/[^"]+\.jpg"[^>]*alt="[^"]+"/g, bio);
+  assert.ok(imgs.length >= 3, `expected >=3 biology images with alt text, found ${imgs.length}`);
+  assert.match(bio, /assets\/biology\/wt1-cell-surface-presentation\.jpg/);
+  assert.match(bio, /assets\/biology\/gps-heteroclitic-activation\.jpg/);
+  assert.match(bio, /assets\/biology\/gps-mrd-battle-of-numbers\.jpg/);
+  assert.match(bio, /WT1 protein processed into peptides and displayed on MHC class I and II/);
+  assert.match(bio, /native WT1 tolerance, GPS heteroclitic analog activation/);
+  assert.match(bio, /active relapse with high tumor burden against CR2 remission/);
+  for (const asset of [
+    "wt1-cell-surface-presentation.jpg",
+    "gps-heteroclitic-activation.jpg",
+    "gps-mrd-battle-of-numbers.jpg"
+  ]) {
+    assert.ok(statSync(path.join(root, "assets", "biology", asset)).size < 300_000);
+  }
   assert.match(bio, /<figcaption class="bio-figcaption"/);
+  assert.match(bio, /<figcaption class="bio-image-caption"/);
   assert.match(bio, /<text /);
-  assert.doesNotMatch(bio, /<img/);
 });
 
 test("The Biology tab cites primary sources for each mechanism", () => {
@@ -180,6 +195,8 @@ test("The Biology tab explains GPS peptide-HLA rationale without overclaiming", 
   assert.match(bio, /What this does not prove/);
   assert.match(bio, /mechanistically plausible/);
   assert.match(bio, /not clinical proof/i);
+  assert.match(bio, /not clinical efficacy proof/i);
+  assert.match(bio, /does not prove GPS clears residual disease/i);
   assert.doesNotMatch(bio, /destroyed exactly 99\.9/i);
   assert.doesNotMatch(bio, /steriliz/i);
   assert.match(bio, /data-coverage="single"/);

@@ -566,6 +566,9 @@
   .bio-visual-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:var(--space-md);min-width:0}
   .bio-visual-card h4,.bio-prediction-panel h4{margin:0 0 var(--space-sm);font-size:13px;line-height:1.35}
   .bio-visual-card p,.bio-prediction-panel p,.bio-proof-box p{font-size:12.5px;line-height:1.55;margin:var(--space-sm) 0 0;color:var(--muted)}
+  .bio-image-figure{margin:var(--space-sm) 0 0}
+  .bio-image-figure img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#f8fafc}
+  .bio-image-caption{font-size:11.5px;color:var(--muted);line-height:1.45;margin-top:var(--space-xs)}
   .bio-card-lead{margin-bottom:var(--space-sm)!important}
   .bio-mini-svg{margin:var(--space-sm) 0;min-height:150px}
   .bio-prediction-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,360px);gap:var(--space-md);align-items:center;margin-top:var(--space-md);padding:var(--space-md);border:1px solid var(--line);border-radius:10px;background:#fff}
