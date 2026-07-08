@@ -1745,6 +1745,174 @@
       <p class="bio-honesty"><b>Mixed-responder sensitivity:</b> Primary sources support broad HLA coverage and heterogeneous immune responses, not a proven uniform cure fraction. A plausible sensitivity is moderate durable responders plus a longer benefited-but-uncured tail; HLA-specific REGAL OS is undisclosed, so community HLA decomposition remains a hypothesis until unblinding. <span class="tag a">Under verification</span></p>
       <p>The peptides are given with the adjuvant <b>Montanide</b> and pre-dosing with <b>GM-CSF</b>, which recruits and activates antigen-presenting cells (APCs) so the peptides are presented efficiently. The intended result is a population of <b>WT1-specific CD8⁺ cytotoxic T lymphocytes (CTLs)</b>, helped by CD4⁺ T cells, that patrol for and lyse WT1⁺ residual leukemic cells. <span class="tag f">Established</span> <span class="tag m">Theoretical MOA</span></p>
 
+      <div class="bio-gps-rationale" id="bio-gps-rationale">
+        <div class="bio-rationale-head">
+          <h3>Plain-English GPS rationale: how a peptide vaccine can point T cells at WT1</h3>
+          <p>Think of each cell as putting tiny protein snippets in a glass display case. The display case is called <b>HLA</b> in people, or <b>MHC</b> in the broader biology language. T cells do not see the whole WT1 protein; they see a <b>WT1 peptide + HLA display</b>.</p>
+        </div>
+
+        <div class="bio-visual-grid">
+          <article class="bio-visual-card">
+            <h4>1. WT1 peptide becomes a target</h4>
+            <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 190" role="img" aria-labelledby="gpsTargetTitle gpsTargetDesc" preserveAspectRatio="xMidYMid meet">
+              <title id="gpsTargetTitle">WT1 peptide display story</title>
+              <desc id="gpsTargetDesc">WT1 protein is cut into peptides, displayed by HLA or MHC, seen by a T cell receptor, then remembered by immune cells.</desc>
+              <defs>
+                <marker id="gpsTargetArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6472"/></marker>
+              </defs>
+              <rect class="dg-box-bad" x="12" y="58" width="76" height="54" rx="10"/>
+              <text class="dg-t" x="50" y="80" text-anchor="middle">WT1</text>
+              <text class="dg-t-sm" x="50" y="96" text-anchor="middle">protein</text>
+              <path class="dg-flow" d="M88,85 L118,85" marker-end="url(#gpsTargetArrow)"/>
+              <g transform="translate(124 56)">
+                <rect class="dg-box" x="0" y="0" width="76" height="58" rx="10"/>
+                <rect x="14" y="14" width="12" height="9" rx="3" fill="#2f6fed"/>
+                <rect x="32" y="14" width="12" height="9" rx="3" fill="#d98a00"/>
+                <rect x="50" y="14" width="12" height="9" rx="3" fill="#1f9d55"/>
+                <text class="dg-t-sm" x="38" y="42" text-anchor="middle">peptides</text>
+              </g>
+              <path class="dg-flow" d="M200,85 L230,85" marker-end="url(#gpsTargetArrow)"/>
+              <g transform="translate(236 50)">
+                <rect class="dg-box-gps" x="0" y="0" width="96" height="70" rx="12"/>
+                <path d="M18,40 C30,22 66,22 78,40" fill="none" stroke="#2f6fed" stroke-width="5" stroke-linecap="round"/>
+                <rect x="38" y="30" width="20" height="9" rx="4" fill="#d98a00"/>
+                <text class="dg-t-sm" x="48" y="58" text-anchor="middle">HLA display</text>
+              </g>
+              <path class="dg-flow-gps" d="M284,120 C284,156 182,156 160,126" marker-end="url(#gpsTargetArrow)"/>
+              <circle cx="136" cy="122" r="20" fill="#eef3fe" stroke="#2f6fed" stroke-width="1.5"/>
+              <path d="M130,112 L136,122 L146,110" fill="none" stroke="#2f6fed" stroke-width="2"/>
+              <text class="dg-t-sm" x="136" y="164" text-anchor="middle">TCR sees the peptide-HLA pair</text>
+            </svg>
+            <p>GPS tries to teach the immune system that these WT1 display cases are worth reacting to, then leave behind memory-like T cells that can patrol for residual WT1⁺ blasts. <span class="tag m">Theoretical MOA</span></p>
+          </article>
+
+          <article class="bio-visual-card bio-coverage-card" data-gps-coverage="multi">
+            <h4>2. Four keys, many locks</h4>
+            <p class="bio-card-lead">People inherit different HLA "locks." A single peptide may fit some locks but miss others. A four-peptide design across class I and class II creates more chances for at least one useful display.</p>
+            <div class="bio-diagram-controls" role="group" aria-label="Compare peptide coverage schematics">
+              <button type="button" class="p bio-coverage-btn" data-coverage="single">Single epitope</button>
+              <button type="button" class="p p-def bio-coverage-btn" data-coverage="multi">4-peptide CD4+CD8</button>
+            </div>
+            <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 210" role="img" aria-labelledby="gpsLocksTitle gpsLocksDesc" preserveAspectRatio="xMidYMid meet">
+              <title id="gpsLocksTitle">HLA coverage and redundancy schematic</title>
+              <desc id="gpsLocksDesc">Peptide keys are matched to HLA locks. The multi-peptide CD4 and CD8 design lights up more schematic lock matches than a single epitope.</desc>
+              <g class="gps-lock-grid">
+                <text class="dg-t-sm" x="72" y="22" text-anchor="middle">HLA-A</text>
+                <text class="dg-t-sm" x="144" y="22" text-anchor="middle">HLA-B</text>
+                <text class="dg-t-sm" x="216" y="22" text-anchor="middle">HLA-DR</text>
+                <text class="dg-t-sm" x="288" y="22" text-anchor="middle">HLA-DQ</text>
+                <g transform="translate(46 36)">
+                  <rect class="dg-box" x="0" y="0" width="52" height="40" rx="10"/><rect class="dg-box" x="72" y="0" width="52" height="40" rx="10"/><rect class="dg-box" x="144" y="0" width="52" height="40" rx="10"/><rect class="dg-box" x="216" y="0" width="52" height="40" rx="10"/>
+                  <rect class="dg-box" x="0" y="56" width="52" height="40" rx="10"/><rect class="dg-box" x="72" y="56" width="52" height="40" rx="10"/><rect class="dg-box" x="144" y="56" width="52" height="40" rx="10"/><rect class="dg-box" x="216" y="56" width="52" height="40" rx="10"/>
+                  <rect class="dg-box" x="0" y="112" width="52" height="40" rx="10"/><rect class="dg-box" x="72" y="112" width="52" height="40" rx="10"/><rect class="dg-box" x="144" y="112" width="52" height="40" rx="10"/><rect class="dg-box" x="216" y="112" width="52" height="40" rx="10"/>
+                  <g class="gps-coverage-single">
+                    <circle cx="26" cy="20" r="13" fill="#2f6fed" opacity=".88"/><text class="dg-t-w dg-t-sm" x="26" y="24" text-anchor="middle">P1</text>
+                    <circle cx="98" cy="132" r="13" fill="#2f6fed" opacity=".88"/><text class="dg-t-w dg-t-sm" x="98" y="136" text-anchor="middle">P1</text>
+                  </g>
+                  <g class="gps-coverage-multi">
+                    <circle cx="26" cy="20" r="13" fill="#2f6fed" opacity=".9"/><text class="dg-t-w dg-t-sm" x="26" y="24" text-anchor="middle">P1</text>
+                    <circle cx="98" cy="20" r="13" fill="#d98a00" opacity=".9"/><text class="dg-t-w dg-t-sm" x="98" y="24" text-anchor="middle">P2</text>
+                    <circle cx="170" cy="20" r="13" fill="#1f9d55" opacity=".9"/><text class="dg-t-w dg-t-sm" x="170" y="24" text-anchor="middle">P3</text>
+                    <circle cx="242" cy="76" r="13" fill="#8a5fbf" opacity=".9"/><text class="dg-t-w dg-t-sm" x="242" y="80" text-anchor="middle">P4</text>
+                    <circle cx="26" cy="132" r="13" fill="#d98a00" opacity=".9"/><text class="dg-t-w dg-t-sm" x="26" y="136" text-anchor="middle">P2</text>
+                    <circle cx="98" cy="132" r="13" fill="#2f6fed" opacity=".9"/><text class="dg-t-w dg-t-sm" x="98" y="136" text-anchor="middle">P1</text>
+                    <circle cx="170" cy="132" r="13" fill="#1f9d55" opacity=".9"/><text class="dg-t-w dg-t-sm" x="170" y="136" text-anchor="middle">P3</text>
+                  </g>
+                </g>
+              </g>
+              <text class="dg-t-sm gps-coverage-label" x="180" y="202" text-anchor="middle">Schematic redundancy, not population genetics</text>
+            </svg>
+            <p>Not every patient presents every peptide. The rationale is redundancy: more WT1 snippets and both HLA classes can broaden the odds of presentation without proving response in any one patient.</p>
+          </article>
+
+          <article class="bio-visual-card">
+            <h4>3. Heteroclitic swap: a slightly stronger teaching shape</h4>
+            <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 170" role="img" aria-labelledby="gpsSwapTitle gpsSwapDesc" preserveAspectRatio="xMidYMid meet">
+              <title id="gpsSwapTitle">Heteroclitic amino acid swap metaphor</title>
+              <desc id="gpsSwapDesc">Native WT1 peptide and an altered heteroclitic peptide differ by one amino acid. The altered peptide is drawn as fitting the HLA groove more strongly while pointing T cells back to native WT1.</desc>
+              <defs>
+                <marker id="gpsSwapArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6472"/></marker>
+              </defs>
+              <path d="M38,58 C74,36 118,36 154,58" fill="none" stroke="#8a8f99" stroke-width="10" stroke-linecap="round"/>
+              <rect x="78" y="43" width="34" height="14" rx="6" fill="#cfd5dd"/>
+              <text class="dg-t" x="96" y="88" text-anchor="middle">Native WT1</text>
+              <text class="dg-t-sm" x="96" y="104" text-anchor="middle">good enough fit</text>
+              <path class="dg-flow" d="M158,54 L204,54" marker-end="url(#gpsSwapArrow)"/>
+              <path d="M218,58 C254,32 300,32 336,58" fill="none" stroke="#2f6fed" stroke-width="10" stroke-linecap="round"/>
+              <rect x="254" y="40" width="34" height="14" rx="6" fill="#d98a00"/>
+              <circle cx="292" cy="47" r="6" fill="#d64545"/>
+              <text class="dg-t" x="278" y="88" text-anchor="middle">Altered peptide</text>
+              <text class="dg-t-sm" x="278" y="104" text-anchor="middle">one amino-acid swap</text>
+              <path class="dg-flow-gps" d="M278,112 C250,146 130,146 104,114" marker-end="url(#gpsSwapArrow)" stroke-dasharray="5 5"/>
+              <text class="dg-t-sm" x="190" y="156" text-anchor="middle">Train on altered shape; cross-recognize native WT1</text>
+            </svg>
+            <p>A heteroclitic peptide is like a training magnet: the altered amino acid may improve predicted HLA fit or T-cell teaching while still aiming the learned response back at native WT1 on cancer cells. <span class="tag m">Theoretical MOA</span></p>
+          </article>
+
+          <article class="bio-visual-card">
+            <h4>4. CD8 soldiers plus CD4 coaches</h4>
+            <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 185" role="img" aria-labelledby="gpsCdTitle gpsCdDesc" preserveAspectRatio="xMidYMid meet">
+              <title id="gpsCdTitle">CD8 killer and CD4 helper roles</title>
+              <desc id="gpsCdDesc">MHC class I presents short peptides to CD8 killer T cells, while MHC class II presents longer helper peptides to CD4 helper T cells that support memory and durability.</desc>
+              <defs>
+                <marker id="gpsCdArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6472"/></marker>
+              </defs>
+              <rect class="dg-box-gps" x="24" y="36" width="120" height="54" rx="10"/>
+              <text class="dg-t" x="84" y="58" text-anchor="middle">Class I</text>
+              <text class="dg-t-sm" x="84" y="74" text-anchor="middle">short CD8 epitope</text>
+              <path class="dg-flow-bad" d="M144,63 L206,63" marker-end="url(#gpsCdArrow)"/>
+              <rect class="dg-box-bad" x="212" y="34" width="124" height="58" rx="10"/>
+              <text class="dg-t-b" x="274" y="58" text-anchor="middle">CD8 killer</text>
+              <text class="dg-t-sm" x="274" y="75" text-anchor="middle">finds and kills</text>
+              <rect class="dg-box-gps" x="24" y="112" width="120" height="54" rx="10"/>
+              <text class="dg-t" x="84" y="134" text-anchor="middle">Class II</text>
+              <text class="dg-t-sm" x="84" y="150" text-anchor="middle">long CD4 peptides</text>
+              <path class="dg-flow-gps" d="M144,139 L206,139" marker-end="url(#gpsCdArrow)"/>
+              <rect class="dg-box-gps" x="212" y="110" width="124" height="58" rx="10"/>
+              <text class="dg-t-b" x="274" y="134" text-anchor="middle">CD4 coach</text>
+              <text class="dg-t-sm" x="274" y="151" text-anchor="middle">help + memory</text>
+            </svg>
+            <p>GPS combines a short CD8-oriented WT1 epitope with longer CD4-helper peptides. The simple idea: killers matter, but helper signals can make the response more durable.</p>
+          </article>
+        </div>
+
+        <div class="bio-prediction-panel">
+          <div>
+            <h4>What MHCflurry and MixMHC2pred add</h4>
+            <p><b>MHCflurry</b> and <b>MixMHC2pred</b> are open computational tools that estimate how well peptide snippets fit common HLA molecules. They are useful for asking, "Is this peptide display biologically plausible?" They are not patient immune assays.</p>
+          </div>
+          <svg class="bio-svg bio-predict-svg" viewBox="0 0 360 128" role="img" aria-labelledby="gpsPredictTitle gpsPredictDesc" preserveAspectRatio="xMidYMid meet">
+            <title id="gpsPredictTitle">Computational HLA fit scoring caveat</title>
+            <desc id="gpsPredictDesc">Prediction tools score peptide-HLA fit, which supports mechanistic plausibility but does not prove immune response or survival benefit.</desc>
+            <defs>
+              <marker id="gpsPredictArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6472"/></marker>
+            </defs>
+            <text class="dg-t-sm" x="28" y="28">peptide</text>
+            <rect class="dg-box-gps" x="86" y="12" width="78" height="28" rx="8"/>
+            <text class="dg-t" x="125" y="31" text-anchor="middle">HLA</text>
+            <path class="dg-flow-gps" d="M168,26 L216,26" marker-end="url(#gpsPredictArrow)"/>
+            <rect class="dg-box" x="220" y="12" width="112" height="28" rx="8"/>
+            <text class="dg-t-sm" x="276" y="31" text-anchor="middle">fit score</text>
+            <rect x="30" y="70" width="300" height="14" rx="7" fill="#eef1f5"/>
+            <rect x="30" y="70" width="204" height="14" rx="7" fill="#2f6fed" opacity=".72"/>
+            <text class="dg-t-sm" x="30" y="104">supportive plausibility</text>
+            <text class="dg-t-sm" x="330" y="104" text-anchor="end">not clinical proof</text>
+          </svg>
+          <p class="bio-prediction-caveat"><b>Claim discipline:</b> example computational screens, including user-run MHCflurry/MixMHC2pred runs, can corroborate HLA-presentation plausibility. Unless independently audited here, exact binding-affinity counts should be treated as <span class="tag a">example computational screen</span>, not a canonical clinical fact.</p>
+        </div>
+
+        <div class="bio-proof-box">
+          <div>
+            <b>What this can support</b>
+            <p>WT1 is a rational antigen; GPS has a biologically coherent CD4+CD8, multi-epitope design; prediction tools can make peptide-HLA presentation more plausible.</p>
+          </div>
+          <div>
+            <b>What this does not prove</b>
+            <p>It does not prove a patient will mount T cells, that those T cells kill enough leukemia, or that REGAL improves survival. That requires immune assays and unblinded clinical outcomes.</p>
+          </div>
+        </div>
+      </div>
+
       <figure class="bio-figure">
         <svg class="bio-svg" viewBox="0 0 760 320" role="img" aria-labelledby="d2title d2desc" preserveAspectRatio="xMidYMid meet">
           <title id="d2title">GPS vaccine mechanism of action</title>

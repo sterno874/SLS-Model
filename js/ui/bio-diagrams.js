@@ -84,6 +84,31 @@ function initGpsHover(root) {
   });
 }
 
+/** Compare a single-epitope schematic against the four-peptide CD4/CD8 GPS design. */
+function initGpsCoverageToggle(root) {
+  const card = q(root, ".bio-coverage-card");
+  if (!card || card.dataset.coverageInit) return;
+  card.dataset.coverageInit = "1";
+
+  function setCoverage(mode) {
+    const next = mode === "single" ? "single" : "multi";
+    card.dataset.gpsCoverage = next;
+    qa(card, ".bio-coverage-btn").forEach((btn) => {
+      const on = btn.dataset.coverage === next;
+      btn.classList.toggle("p-def", on);
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+
+  card.addEventListener("click", (e) => {
+    const btn = e.target.closest(".bio-coverage-btn");
+    if (!btn) return;
+    setCoverage(btn.dataset.coverage);
+  });
+  setCoverage(card.dataset.gpsCoverage || "multi");
+}
+
 /** Immune cascade dual-apoptosis highlight. */
 function initDualApoptosis(root) {
   const fig = q(root, "#bio-sls .bio-figure");
@@ -133,5 +158,6 @@ function initDualApoptosis(root) {
 export function initBioDiagrams(root = document) {
   initCdk9Toggle(root);
   initGpsHover(root);
+  initGpsCoverageToggle(root);
   initDualApoptosis(root);
 }

@@ -9,6 +9,7 @@ import { EXPLAIN_LEVELS, VALID_TABS } from "../js/ui/state.js";
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const html = readFileSync(path.join(root, "index.html"), "utf8");
 const js = readFileSync(path.join(root, "js/main.js"), "utf8");
+const bioJs = readFileSync(path.join(root, "js/ui/bio-diagrams.js"), "utf8");
 
 function matchAll(re, text) {
   const out = [];
@@ -158,6 +159,23 @@ test("The Biology tab cites primary sources for each mechanism", () => {
 test("The Biology tab has interactive diagram wiring", () => {
   assert.match(js, /initBioDiagrams/);
   assert.match(js, /bio-diagrams\.js/);
+});
+
+test("The Biology tab explains GPS peptide-HLA rationale without overclaiming", () => {
+  const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
+  assert.match(bio, /Plain-English GPS rationale/);
+  assert.match(bio, /Four keys, many locks/);
+  assert.match(bio, /Heteroclitic swap/);
+  assert.match(bio, /CD8 soldiers plus CD4 coaches/);
+  assert.match(bio, /MHCflurry/);
+  assert.match(bio, /MixMHC2pred/);
+  assert.match(bio, /example computational screen/);
+  assert.match(bio, /What this can support/);
+  assert.match(bio, /What this does not prove/);
+  assert.match(bio, /not clinical proof/i);
+  assert.match(bio, /data-coverage="single"/);
+  assert.match(bio, /data-coverage="multi"/);
+  assert.match(bioJs, /initGpsCoverageToggle/);
 });
 
 test("The Biology tab preserves honesty flags (blinded / single-arm / no combo)", () => {
