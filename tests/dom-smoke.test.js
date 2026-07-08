@@ -163,16 +163,25 @@ test("The Biology tab has interactive diagram wiring", () => {
 
 test("The Biology tab explains GPS peptide-HLA rationale without overclaiming", () => {
   const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
-  assert.match(bio, /Plain-English GPS rationale/);
+  assert.match(bio, /Why GPS is built differently/);
+  assert.match(bio, /immunology hack in plain English/);
   assert.match(bio, /Four keys, many locks/);
   assert.match(bio, /Heteroclitic swap/);
   assert.match(bio, /CD8 soldiers plus CD4 coaches/);
+  assert.match(bio, /Inside-out WT1 target system/);
+  assert.match(bio, /CR2 maintenance is the right terrain/);
+  assert.match(bio, /may improve the odds of immune surveillance/);
+  assert.match(bio, /Short peptides can clear quickly/);
+  assert.match(bio, /Montanide ISA 51/);
   assert.match(bio, /MHCflurry/);
   assert.match(bio, /MixMHC2pred/);
   assert.match(bio, /example computational screen/);
   assert.match(bio, /What this can support/);
   assert.match(bio, /What this does not prove/);
+  assert.match(bio, /mechanistically plausible/);
   assert.match(bio, /not clinical proof/i);
+  assert.doesNotMatch(bio, /destroyed exactly 99\.9/i);
+  assert.doesNotMatch(bio, /steriliz/i);
   assert.match(bio, /data-coverage="single"/);
   assert.match(bio, /data-coverage="multi"/);
   assert.match(bioJs, /initGpsCoverageToggle/);
