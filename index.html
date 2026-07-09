@@ -17,7 +17,7 @@
 <meta name="twitter:title" content="REGAL Survival &amp; HR Explorer · SLS Model"/>
 <meta name="twitter:description" content="Concise DD tool for GPS/REGAL, SLS-009, and valuation — interactive survival, HR, and Monte Carlo explorer."/>
 <meta name="twitter:image" content="https://sls-model.vercel.app/og-image.png"/>
-<link rel="stylesheet" href="css/main.css"/>
+<link rel="stylesheet" href="css/main.css?v=mobile-nav-1"/>
 
 </head>
 <body>
@@ -82,10 +82,11 @@
     </div>
   </div>
   <div class="hdr-nav-mobile embed-hide no-print">
-    <button type="button" id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="mobileNavPanel" aria-label="Open navigation menu">
+    <button type="button" id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="mobileNavPanel" aria-label="Open sections menu">
       <span class="nav-toggle-bars" aria-hidden="true"><span></span><span></span><span></span></span>
+      <span class="nav-toggle-label">Sections</span>
+      <span class="hdr-active-tab" id="hdrActiveTab">REGAL / GPS</span>
     </button>
-    <span class="hdr-active-tab" id="hdrActiveTab">REGAL / GPS</span>
   </div>
   <div id="mobileNavBackdrop" class="mobile-nav-backdrop embed-hide no-print" hidden aria-hidden="true"></div>
   <div id="mobileNavPanel" class="mobile-nav-panel embed-hide no-print" hidden>

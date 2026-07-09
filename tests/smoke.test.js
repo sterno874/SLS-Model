@@ -8,7 +8,7 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 test("index.html references split CSS and ES module entry", () => {
   const html = readFileSync(path.join(root, "index.html"), "utf8");
-  assert.match(html, /href="css\/main\.css"/);
+  assert.match(html, /href="css\/main\.css(?:\?[^"]*)?"/);
   assert.match(html, /type="module" src="js\/main\.js"/);
   assert.match(html, /class="hr-metrics"/);
   assert.match(html, /id="oIAstatus"/);

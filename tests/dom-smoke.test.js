@@ -8,6 +8,7 @@ import { EXPLAIN_LEVELS, VALID_TABS } from "../js/ui/state.js";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const html = readFileSync(path.join(root, "index.html"), "utf8");
+const css = readFileSync(path.join(root, "css", "main.css"), "utf8");
 const js = readFileSync(path.join(root, "js/main.js"), "utf8");
 const bioJs = readFileSync(path.join(root, "js/ui/bio-diagrams.js"), "utf8");
 
@@ -20,7 +21,17 @@ function matchAll(re, text) {
 }
 
 test("index.html links css/main.css", () => {
-  assert.match(html, /href="css\/main\.css"/);
+  assert.match(html, /href="css\/main\.css(?:\?[^"]*)?"/);
+});
+
+test("best estimate strip has mobile card layout", () => {
+  const strip = matchAll(/<div id="bestEstStrip"[\s\S]*?<\/div>\s*<\/header>/g, html)[0][0];
+  for (const id of ["bePresetLabel", "beGpsHr", "beSlsHr", "beBuyout", "beLivePrice", "beVsMkt"]) {
+    assert.match(strip, new RegExp(`id="${id}"`));
+  }
+  assert.match(css, /@media\(max-width:640px\)\{[\s\S]*\.best-est-strip\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css, /@media\(max-width:640px\)\{[\s\S]*\.best-est-item\{[^}]*flex-direction:column/);
+  assert.match(css, /@media\(max-width:380px\)\{[\s\S]*\.best-est-strip\{grid-template-columns:1fr\}/);
 });
 
 test("index.html loads js/main.js as ES module", () => {
@@ -73,6 +84,17 @@ test("mobile nav panel exposes all six tabs", () => {
   )[0][0].match(/data-tab="([^"]+)"/g).map((s) => s.slice(10, -1));
   assert.equal(navTabs.length, 6);
   assert.deepEqual(navTabs, VALID_TABS);
+});
+
+test("mobile nav selector is discoverable", () => {
+  const selector = matchAll(/<div class="hdr-nav-mobile[\s\S]*?<\/div>/g, html)[0][0];
+  assert.match(selector, /id="navToggle"/);
+  assert.match(selector, /<span class="nav-toggle-label">Sections<\/span>/);
+  assert.match(selector, /id="hdrActiveTab"/);
+  assert.doesNotMatch(selector, /<\/button>\s*<span class="hdr-active-tab"/);
+  assert.match(css, /\/\* mobile section selector \*\//);
+  assert.match(css, /\.nav-toggle\{[^}]*width:100%/);
+  assert.match(css, /\.nav-toggle-label\{[^}]*text-transform:uppercase/);
 });
 
 test("The Statistics tab is fully wired (page, header tab, mobile nav)", () => {
@@ -355,7 +377,7 @@ test("hamburger nav toggle is accessible", () => {
   assert.match(html, /id="navToggle"/);
   assert.match(html, /aria-expanded="false"/);
   assert.match(html, /aria-controls="mobileNavPanel"/);
-  assert.match(html, /aria-label="Open navigation menu"/);
+  assert.match(html, /aria-label="Open sections menu"/);
   assert.match(js, /function initMobileNav\(/);
   assert.match(js, /function closeMobileNav\(/);
 });
