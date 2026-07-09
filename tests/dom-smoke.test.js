@@ -154,15 +154,17 @@ test("The Biology tab has labeled SVG diagrams and image explainers", () => {
   const svgs = matchAll(/<svg[^>]*class="bio-svg"/g, bio);
   assert.ok(svgs.length >= 5, `expected >=5 diagrams, found ${svgs.length}`);
   const imgs = matchAll(/<img[^>]*src="assets\/biology\/[^"]+\.jpg"[^>]*alt="[^"]+"/g, bio);
-  assert.ok(imgs.length >= 5, `expected >=5 biology images with alt text, found ${imgs.length}`);
+  assert.ok(imgs.length >= 6, `expected >=6 biology images with alt text, found ${imgs.length}`);
   assert.match(bio, /assets\/biology\/wt1-cell-surface-presentation\.jpg/);
   assert.match(bio, /assets\/biology\/gps-heteroclitic-activation\.jpg/);
   assert.match(bio, /assets\/biology\/gps-mrd-battle-of-numbers\.jpg/);
+  assert.match(bio, /assets\/biology\/gps-delivery-depot-alarm\.jpg/);
   assert.match(bio, /assets\/biology\/gps-hla-four-keys\.jpg/);
   assert.match(bio, /assets\/biology\/gps-cd4-cd8-t-cell-roles\.jpg/);
   assert.match(bio, /WT1 protein processed into peptides and displayed on MHC class I and II/);
   assert.match(bio, /native WT1 tolerance, GPS heteroclitic analog activation/);
   assert.match(bio, /active relapse with high tumor burden against CR2 remission/);
+  assert.match(bio, /Montanide depot, GM-CSF alarm, dendritic cell pickup, and T cell training/);
   assert.match(bio, /different HLA locks across patients and four GPS peptide keys/);
   assert.match(bio, /CD8 killer T cell attacking a WT1 displaying leukemia cell/);
   assert.match(bio, /not a patient-level response prediction/);
@@ -171,6 +173,7 @@ test("The Biology tab has labeled SVG diagrams and image explainers", () => {
     "wt1-cell-surface-presentation.jpg",
     "gps-heteroclitic-activation.jpg",
     "gps-mrd-battle-of-numbers.jpg",
+    "gps-delivery-depot-alarm.jpg",
     "gps-hla-four-keys.jpg",
     "gps-cd4-cd8-t-cell-roles.jpg"
   ]) {
@@ -199,14 +202,14 @@ test("The Biology tab has interactive diagram wiring", () => {
 
 test("The Biology tab explains GPS peptide-HLA rationale without overclaiming", () => {
   const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
-  assert.match(bio, /Why GPS is built differently/);
-  assert.match(bio, /immunology hack in plain English/);
-  assert.match(bio, /Four keys, many locks/);
-  assert.match(bio, /Heteroclitic swap/);
-  assert.match(bio, /CD8 soldiers plus CD4 coaches/);
+  assert.match(bio, /GPS mechanism in plain English/);
+  assert.match(bio, /T cells do not see the whole WT1 protein/);
+  assert.match(bio, /Four keys, many HLA locks/);
+  assert.match(bio, /Heteroclitic peptides try to break tolerance/);
+  assert.match(bio, /CD8 killers plus CD4 help/);
   assert.match(bio, /Inside-out WT1 target system/);
   assert.match(bio, /CR2 maintenance is the right terrain/);
-  assert.match(bio, /may improve the odds of immune surveillance/);
+  assert.match(bio, /may give immune surveillance better odds/);
   assert.match(bio, /Short peptides can clear quickly/);
   assert.match(bio, /Montanide ISA 51/);
   assert.match(bio, /MHCflurry/);
@@ -214,9 +217,10 @@ test("The Biology tab explains GPS peptide-HLA rationale without overclaiming", 
   assert.match(bio, /example computational screen/);
   assert.match(bio, /What this can support/);
   assert.match(bio, /What this does not prove/);
-  assert.match(bio, /mechanistically plausible/);
+  assert.match(bio, /coherent mechanism/);
   assert.match(bio, /not clinical proof/i);
   assert.match(bio, /not clinical efficacy proof/i);
+  assert.match(bio, /mechanism rationale, not clinical efficacy proof/i);
   assert.match(bio, /does not prove GPS clears residual disease/i);
   assert.doesNotMatch(bio, /destroyed exactly 99\.9/i);
   assert.doesNotMatch(bio, /steriliz/i);
@@ -240,12 +244,35 @@ test("The Biology tab labels evidence strength for key GPS claims", () => {
   assert.match(bio, /How to read these claims/i);
   assert.match(bio, /Mechanism is not clinical proof/i);
   assert.match(bio, /REGAL survival benefit is unproven until unblinding/i);
-  assert.match(bio, /Small GPS studies support immunogenicity, not Phase 3 survival proof/i);
+  assert.match(bio, /immunogenicity .* documented in small GPS studies/i);
   assert.match(bio, /MHCflurry[\s\S]*Computational prediction/);
   assert.match(bio, /cancer peptide vaccines have a long history/i);
   assert.match(bio, /failures elsewhere are not direct evidence/i);
   assert.match(bio, /no human trial combines GPS \+ SLS-009/i);
   assert.ok(matchAll(/class="bio-status /g, bio).length >= 30);
+});
+
+test("The Biology tab orders GPS claims as a shareable reader journey", () => {
+  const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
+  const ordered = [
+    "How to read these claims",
+    "WT1 — the leukemia antigen GPS goes after",
+    "GPS / galinpepimut-S — a WT1 peptide vaccine",
+    "Inside-out WT1 target system",
+    "Heteroclitic peptides try to break tolerance",
+    "CD8 killers plus CD4 help",
+    "Four keys, many HLA locks",
+    "CR2 maintenance is the right terrain",
+    "Delivery depot and APC alarm",
+    "What this can support",
+    "What this does not prove"
+  ];
+  let lastIndex = -1;
+  for (const phrase of ordered) {
+    const idx = bio.indexOf(phrase);
+    assert.ok(idx > lastIndex, `${phrase} should appear after the prior Biology checkpoint`);
+    lastIndex = idx;
+  }
 });
 
 test("The Biology tab preserves honesty flags (blinded / single-arm / no combo)", () => {

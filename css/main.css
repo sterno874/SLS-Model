@@ -542,17 +542,18 @@
   }
   /* ===== The Biology tab ===== */
   #tab-biology .tab-intro-bar{align-items:center}
-  .bio-content{padding:var(--space-md) var(--page-pad) var(--space-2xl);max-width:var(--content-max);margin:0 auto;width:100%}
+  #tab-biology .bio-content{padding:var(--space-md) var(--page-pad) var(--space-2xl);max-width:var(--content-max);margin:0 auto;width:100%}
   .bio-section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:var(--panel-pad);box-shadow:var(--shadow);margin-bottom:var(--section-gap)}
   .bio-section h2{font-size:18px;margin:0 0 var(--space-xs);line-height:1.25;letter-spacing:-.01em;display:flex;align-items:baseline;gap:var(--space-sm);flex-wrap:wrap}
   .bio-section h2 .bio-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--bio-accent);background:var(--surface-accent);border-radius:6px;padding:2px 8px;line-height:1.4}
   .bio-section h3{font-size:14px;margin:var(--space-lg) 0 var(--space-xs)}
-  .bio-section p{font-size:13.5px;line-height:1.65;margin:0 0 var(--space-md);max-width:80ch}
+  .bio-section p{font-size:13.5px;line-height:1.65;margin:0 0 var(--space-md);max-width:96ch}
   .bio-section p:last-child{margin-bottom:0}
   .bio-section ul{font-size:13.5px;line-height:1.6;margin:0 0 var(--space-md);padding-left:var(--space-lg)}
   .bio-section li{margin:var(--space-xs) 0}
   .bio-lead{font-size:14.5px!important;line-height:1.6!important;color:var(--ink)}
-  .bio-evidence-guide{display:grid;grid-template-columns:minmax(220px,1fr) minmax(260px,1.4fr);gap:var(--space-md);align-items:start;margin-top:var(--space-md);padding:var(--space-md);border:1px solid #c9daf8;border-radius:10px;background:#f6f9ff}
+  .bio-lead,.bio-honesty{max-width:none!important}
+  .bio-evidence-guide{display:grid;grid-template-columns:minmax(240px,.85fr) minmax(0,2.15fr);gap:var(--space-md);align-items:start;margin-top:var(--space-md);padding:var(--space-md);border:1px solid #c9daf8;border-radius:10px;background:#f6f9ff}
   .bio-evidence-guide h3{font-size:13px;margin:0 0 var(--space-xs);line-height:1.3}
   .bio-evidence-guide p{font-size:12.5px!important;line-height:1.55!important;color:var(--muted);margin:0!important}
   .bio-evidence-legend{display:flex;flex-wrap:wrap;gap:var(--space-xs);align-items:flex-start}
@@ -574,19 +575,19 @@
   .bio-modality.mod-gps{border-left:4px solid var(--gps)}
   .bio-modality.mod-sls{border-left:4px solid var(--good)}
   .bio-modality p{font-size:12.5px;margin:0}
-  .bio-gps-rationale{margin:var(--space-lg) 0;padding:var(--space-lg);border:1px solid #c9daf8;border-radius:var(--radius);background:linear-gradient(180deg,#fbfcfe 0%,#f5f8ff 100%)}
+  .bio-gps-rationale{margin:var(--space-lg) 0;padding:clamp(var(--space-md),2.2vw,var(--space-xl));border:1px solid #c9daf8;border-radius:var(--radius);background:linear-gradient(180deg,#fbfcfe 0%,#f5f8ff 100%)}
   .bio-rationale-head h3{margin-top:0}
-  .bio-rationale-head p{font-size:13px;color:var(--muted);max-width:92ch}
+  .bio-rationale-head p{font-size:13px;color:var(--muted);max-width:112ch}
   .bio-visual-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-md);margin:var(--space-md) 0;align-items:stretch}
   .bio-visual-card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:var(--space-md);min-width:0;display:flex;flex-direction:column;gap:var(--space-sm)}
   .bio-visual-card h4,.bio-prediction-panel h4{margin:0;font-size:13px;line-height:1.35}
-  .bio-visual-card p,.bio-prediction-panel p,.bio-proof-box p{font-size:12.5px;line-height:1.55;margin:0;color:var(--muted)}
+  .bio-visual-card p,.bio-prediction-panel p,.bio-proof-box p{font-size:12.5px;line-height:1.55;margin:0;color:var(--muted);max-width:none}
+  .bio-hack-grid{align-items:start}
   .bio-image-figure{margin:0;display:flex;flex-direction:column;gap:var(--space-sm)}
   .bio-image-figure img{display:block;width:100%;max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#f8fafc}
   .bio-image-caption{font-size:11.5px;color:var(--muted);line-height:1.45;margin:0}
-  .bio-card-lead{margin-bottom:var(--space-sm)!important}
-  .bio-mini-svg{margin:0;min-height:150px}
-  .bio-prediction-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,360px);gap:var(--space-md);align-items:center;margin-top:var(--space-md);padding:var(--space-md);border:1px solid var(--line);border-radius:10px;background:#fff}
+  .bio-image-card .bio-image-figure{margin-top:auto}
+  .bio-prediction-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,360px);gap:var(--space-lg);align-items:center;margin-top:var(--space-md);padding:var(--space-md);border:1px solid var(--line);border-radius:10px;background:#fff}
   .bio-predict-svg{max-width:360px;justify-self:end}
   .bio-prediction-caveat{grid-column:1/-1;margin-top:0!important;padding-top:var(--space-sm);border-top:1px dashed var(--line)}
   .bio-proof-box{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-top:var(--space-md)}
@@ -638,6 +639,9 @@
   .bio-honesty b{color:#6b4e00}
   .bio-course-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-md);margin:var(--space-md) 0}
   @media(max-width:720px){.bio-course-grid{grid-template-columns:1fr}}
+  @media(min-width:980px){
+    .bio-mechanism-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
   @media(max-width:780px){.bio-visual-grid,.bio-prediction-panel,.bio-proof-box,.bio-evidence-guide{grid-template-columns:1fr}.bio-predict-svg{justify-self:stretch}}
   @media(max-width:768px){
     #tab-biology .tab-intro-bar{align-items:stretch;gap:var(--space-sm)}
