@@ -99,7 +99,7 @@ test("The Biology tab is fully wired (page, header tab, mobile nav)", () => {
   );
 });
 
-test("The Statistics tab explains core math with inline SVG visuals", () => {
+test("The Statistics tab explains core math with SVG and selected image visuals", () => {
   const stats = matchAll(/<div id="tab-statistics"[\s\S]*?<!-- \/tab-statistics -->/g, html)[0][0];
   assert.match(stats, /Survival Function/);
   assert.match(stats, /CDF/);
@@ -122,7 +122,20 @@ test("The Statistics tab explains core math with inline SVG visuals", () => {
   assert.ok(matchAll(/REGAL application/g, stats).length >= 8);
   const svgs = matchAll(/<svg[^>]*class="stats-svg"/g, stats);
   assert.ok(svgs.length >= 6, `expected >=6 statistics diagrams, found ${svgs.length}`);
-  assert.doesNotMatch(stats, /<img/);
+  const imgs = matchAll(/<img[^>]*src="assets\/statistics\/[^"]+\.jpg"[^>]*alt="[^"]+"/g, stats);
+  assert.equal(imgs.length, 2);
+  assert.match(stats, /assets\/statistics\/weibull-shape-timing\.jpg/);
+  assert.match(stats, /assets\/statistics\/regal-pooled-event-anchors\.jpg/);
+  assert.match(stats, /same median with k 0\.7 early risk and longer tail/i);
+  assert.match(stats, /hidden GPS versus BAT arm split/i);
+  assert.match(stats, /not patient-level REGAL data/i);
+  assert.match(stats, /unblinding, not the pooled curve alone/i);
+  for (const asset of [
+    "weibull-shape-timing.jpg",
+    "regal-pooled-event-anchors.jpg"
+  ]) {
+    assert.ok(statSync(path.join(root, "assets", "statistics", asset)).size < 300_000);
+  }
 });
 
 test("The Statistics tab cites trial design and event-anchor sources", () => {
@@ -141,17 +154,25 @@ test("The Biology tab has labeled SVG diagrams and image explainers", () => {
   const svgs = matchAll(/<svg[^>]*class="bio-svg"/g, bio);
   assert.ok(svgs.length >= 5, `expected >=5 diagrams, found ${svgs.length}`);
   const imgs = matchAll(/<img[^>]*src="assets\/biology\/[^"]+\.jpg"[^>]*alt="[^"]+"/g, bio);
-  assert.ok(imgs.length >= 3, `expected >=3 biology images with alt text, found ${imgs.length}`);
+  assert.ok(imgs.length >= 5, `expected >=5 biology images with alt text, found ${imgs.length}`);
   assert.match(bio, /assets\/biology\/wt1-cell-surface-presentation\.jpg/);
   assert.match(bio, /assets\/biology\/gps-heteroclitic-activation\.jpg/);
   assert.match(bio, /assets\/biology\/gps-mrd-battle-of-numbers\.jpg/);
+  assert.match(bio, /assets\/biology\/gps-hla-four-keys\.jpg/);
+  assert.match(bio, /assets\/biology\/gps-cd4-cd8-t-cell-roles\.jpg/);
   assert.match(bio, /WT1 protein processed into peptides and displayed on MHC class I and II/);
   assert.match(bio, /native WT1 tolerance, GPS heteroclitic analog activation/);
   assert.match(bio, /active relapse with high tumor burden against CR2 remission/);
+  assert.match(bio, /different HLA locks across patients and four GPS peptide keys/);
+  assert.match(bio, /CD8 killer T cell attacking a WT1 displaying leukemia cell/);
+  assert.match(bio, /not a patient-level response prediction/);
+  assert.match(bio, /not REGAL efficacy/);
   for (const asset of [
     "wt1-cell-surface-presentation.jpg",
     "gps-heteroclitic-activation.jpg",
-    "gps-mrd-battle-of-numbers.jpg"
+    "gps-mrd-battle-of-numbers.jpg",
+    "gps-hla-four-keys.jpg",
+    "gps-cd4-cd8-t-cell-roles.jpg"
   ]) {
     assert.ok(statSync(path.join(root, "assets", "biology", asset)).size < 300_000);
   }
@@ -199,9 +220,32 @@ test("The Biology tab explains GPS peptide-HLA rationale without overclaiming", 
   assert.match(bio, /does not prove GPS clears residual disease/i);
   assert.doesNotMatch(bio, /destroyed exactly 99\.9/i);
   assert.doesNotMatch(bio, /steriliz/i);
-  assert.match(bio, /data-coverage="single"/);
-  assert.match(bio, /data-coverage="multi"/);
-  assert.match(bioJs, /initGpsCoverageToggle/);
+  assert.match(bio, /schematic coverage logic/i);
+  assert.match(bio, /not a patient-level response prediction/i);
+});
+
+test("The Biology tab labels evidence strength for key GPS claims", () => {
+  const bio = matchAll(/<div id="tab-biology"[\s\S]*?<!-- \/tab-biology -->/g, html)[0][0];
+  for (const label of [
+    "Established biology",
+    "Computational prediction",
+    "Mechanistic rationale",
+    "Small clinical studies",
+    "REGAL hypothesis / Phase 3 unproven",
+    "Class risk / failed elsewhere",
+    "Not directly tested for GPS"
+  ]) {
+    assert.match(bio, new RegExp(label.replace(/[+]/g, "\\+"), "i"));
+  }
+  assert.match(bio, /How to read these claims/i);
+  assert.match(bio, /Mechanism is not clinical proof/i);
+  assert.match(bio, /REGAL survival benefit is unproven until unblinding/i);
+  assert.match(bio, /Small GPS studies support immunogenicity, not Phase 3 survival proof/i);
+  assert.match(bio, /MHCflurry[\s\S]*Computational prediction/);
+  assert.match(bio, /cancer peptide vaccines have a long history/i);
+  assert.match(bio, /failures elsewhere are not direct evidence/i);
+  assert.match(bio, /no human trial combines GPS \+ SLS-009/i);
+  assert.ok(matchAll(/class="bio-status /g, bio).length >= 30);
 });
 
 test("The Biology tab preserves honesty flags (blinded / single-arm / no combo)", () => {

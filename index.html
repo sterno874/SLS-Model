@@ -1292,37 +1292,9 @@
           <p>Changing <code>k</code> is therefore not cosmetic. It changes whether an assumption fits early and late anchors simultaneously. <span class="tag m">model idea</span></p>
         </article>
       </div>
-      <div class="stats-figure">
-        <svg class="stats-svg" viewBox="0 0 620 300" role="img" aria-label="Weibull survival and hazard comparison for k values">
-          <rect x="0" y="0" width="620" height="300" fill="#fbfcfe"/>
-          <text x="155" y="24" text-anchor="middle" fill="#141b26">Survival at same median</text>
-          <line x1="50" y1="45" x2="50" y2="230" stroke="#c9ccd2"/>
-          <line x1="50" y1="230" x2="285" y2="230" stroke="#c9ccd2"/>
-          <line x1="50" y1="138" x2="285" y2="138" stroke="#dde2e8" stroke-dasharray="5 5"/>
-          <line x1="128" y1="45" x2="128" y2="230" stroke="#eef0f3"/>
-          <text x="44" y="49" text-anchor="end">100%</text>
-          <text x="44" y="142" text-anchor="end">50%</text>
-          <text x="128" y="249" text-anchor="middle">median</text>
-          <polyline fill="none" stroke="#d98a00" stroke-width="3" points="50,45 89,102 128,138 167,154 207,168 246,179 285,188"/>
-          <polyline fill="none" stroke="#8a8f99" stroke-width="3" points="50,45 89,93 128,138 167,164 207,185 246,201 285,212"/>
-          <polyline fill="none" stroke="#d64545" stroke-width="3" points="50,45 89,85 128,138 167,172 207,198 246,216 285,224"/>
-          <text x="188" y="88" fill="#d64545">k&gt;1</text>
-          <text x="196" y="124" fill="#8a8f99">k=1</text>
-          <text x="196" y="165" fill="#d98a00">k&lt;1</text>
-
-          <text x="465" y="24" text-anchor="middle" fill="#141b26">Hazard over time</text>
-          <line x1="360" y1="45" x2="360" y2="230" stroke="#c9ccd2"/>
-          <line x1="360" y1="230" x2="595" y2="230" stroke="#c9ccd2"/>
-          <text x="354" y="49" text-anchor="end">high</text>
-          <text x="354" y="234" text-anchor="end">low</text>
-          <polyline fill="none" stroke="#d98a00" stroke-width="3" points="360,74 399,112 438,136 477,154 517,168 556,180 595,190"/>
-          <polyline fill="none" stroke="#8a8f99" stroke-width="3" points="360,150 399,150 438,150 477,150 517,150 556,150 595,150"/>
-          <polyline fill="none" stroke="#d64545" stroke-width="3" points="360,210 399,195 438,176 477,154 517,127 556,96 595,61"/>
-          <text x="510" y="91" fill="#d64545">increasing</text>
-          <text x="505" y="142" fill="#8a8f99">constant</text>
-          <text x="500" y="188" fill="#d98a00">decreasing</text>
-        </svg>
-        <figcaption class="stats-figcaption"><b>Same median, different event calendar:</b> a lower Weibull <code>k</code> can create early event accrual followed by a late slowdown. That is one reason Khela-style scalar HR simulations and this app's mixture-cure sliders can diverge.</figcaption>
+      <div class="stats-figure stats-image-figure">
+        <img src="assets/statistics/weibull-shape-timing.jpg" alt="Weibull k comparison showing the same median with k 0.7 early risk and longer tail, k 1 constant hazard, and k 1.3 rising risk" loading="lazy" decoding="async"/>
+        <figcaption class="stats-figcaption"><b>Same median, different event calendar:</b> the image illustrates the same point as the slider: lower Weibull <code>k</code> can front-load events and leave a longer tail, while higher <code>k</code> delays early events and rises later. It is a shape intuition, not patient-level REGAL data.</figcaption>
       </div>
     </section>
 
@@ -1442,6 +1414,10 @@
         <div><b>World A:</b> strong GPS tail + standard BAT can fit the anchors.</div>
         <div><b>World B:</b> moderate GPS effect + favorable BAT tail can also fit.</div>
         <div><b>World C:</b> near-null arm split is harder to square with some priors, but pooled data alone still cannot mathematically reveal the split.</div>
+      </div>
+      <div class="stats-figure stats-image-figure">
+        <img src="assets/statistics/regal-pooled-event-anchors.jpg" alt="Observed pooled REGAL events 60 72 78 with hidden GPS versus BAT arm split and multiple compatible worlds" loading="lazy" decoding="async"/>
+        <figcaption class="stats-figcaption"><b>Public anchors, hidden split:</b> 60/72/78 are real pooled milestones, but the arm-level GPS vs BAT split is not public. The figure shows why inverse solving needs assumptions and why unblinding, not the pooled curve alone, resolves the competing worlds.</figcaption>
       </div>
       <p class="stats-note"><b>Lesson checkpoint:</b> inverse solve is like reconstructing ingredients from the taste of a soup. It narrows recipes that fit the taste, but it cannot prove which ingredient caused it unless you add assumptions.</p>
     </section>
@@ -1645,12 +1621,11 @@
     <details class="howworks howworks-inline">
       <summary>How this works</summary>
       <div class="howworks-body">
-        <p>This tab explains the <b>biology behind SELLAS' two drug candidates</b> from the target up: what the target molecule does, then how the drug is designed to act on it. Diagrams are hand-built inline SVG (no AI images), labeled and on the same color tokens as the rest of the app.</p>
+        <p>This tab explains the <b>biology behind SELLAS' two drug candidates</b> from the target up: what the target molecule does, then how the drug is designed to act on it. Visuals are hand-built inline SVG or selected conceptual images, labeled and kept on the same color tokens as the rest of the app.</p>
         <p>Every mechanistic claim links a primary source (peer-reviewed paper, ClinicalTrials.gov record, or company filing). Where the biology is textbook-established we say so; where a step is the drug's <em>intended</em> mechanism rather than a proven clinical result, we flag it; and clinical numbers that are single-arm or still blinded are flagged as company-reported.</p>
-        <p class="field-note">Tags: <span class="tag f">Established</span> textbook / peer-reviewed biology · <span class="tag m">Theoretical MOA</span> intended mechanism, not a proven clinical outcome · <span class="tag a">Company-reported</span> single-arm or blinded data from SELLAS.</p>
+        <p class="field-note">Evidence labels distinguish established biology, computational prediction, mechanistic rationale, small clinical studies, REGAL-unproven hypotheses, class risk, and claims not directly tested for GPS.</p>
       </div>
     </details>
-    <span class="tab-intro-sep" aria-hidden="true">|</span>
     <a class="methodlink" href="#gps" onclick="document.querySelector('.tabbtn[data-tab=gps]').click();return false;">See REGAL model →</a>
   </div>
 
@@ -1663,32 +1638,42 @@
       <div class="bio-modality-grid">
         <div class="bio-modality mod-gps">
           <h4><span class="swatch" style="background:var(--gps)"></span>GPS (galinpepimut-S) — immunotherapy</h4>
-          <p>A WT1-directed peptide vaccine. It teaches CD4⁺ and CD8⁺ T cells to recognize and kill cells that overexpress the <b>WT1</b> protein — used to keep patients in remission. <span class="tag f">Established</span></p>
+          <p>A WT1-directed peptide vaccine designed to teach CD4⁺ and CD8⁺ T cells to recognize cells that overexpress the <b>WT1</b> protein — used as remission maintenance. <span class="bio-status bio-status-established">Established biology</span> <span class="bio-status bio-status-rationale">Mechanistic rationale</span></p>
         </div>
         <div class="bio-modality mod-sls">
           <h4><span class="swatch" style="background:var(--good)"></span>SLS-009 (tambiciclib) — targeted small molecule</h4>
-          <p>A selective inhibitor of the kinase <b>CDK9</b>. Blocking CDK9 collapses the short-lived survival transcripts MCL-1 and MYC, pushing leukemic blasts into apoptosis. <span class="tag f">Established</span> <span class="tag m">Theoretical MOA</span></p>
+          <p>A selective inhibitor of the kinase <b>CDK9</b>. Blocking CDK9 collapses the short-lived survival transcripts MCL-1 and MYC, pushing leukemic blasts into apoptosis. <span class="bio-status bio-status-established">Established biology</span> <span class="bio-status bio-status-rationale">Mechanistic rationale</span></p>
         </div>
       </div>
-      <p class="bio-honesty"><b>Honest framing:</b> these are two independent programs, not a single combination product. There is <b>no human trial combining GPS + SLS-009</b> — the "platform" is a two-asset pipeline, discussed in the last section. The REGAL Phase 3 (GPS) remains <b>blinded</b> pending its 80-event final analysis, and the SLS-009 data are from an <b>early single-arm</b> study.</p>
-      <div class="bio-legend">
-        <span><b>Evidence tags:</b></span>
-        <span><span class="tag f">Established</span> peer-reviewed / textbook</span>
-        <span><span class="tag m">Theoretical MOA</span> intended mechanism</span>
-        <span><span class="tag a">Company-reported</span> single-arm / blinded</span>
+      <p class="bio-honesty"><b>Honest framing:</b> these are two independent programs, not a single combination product. There is <b>no human trial combining GPS + SLS-009</b> — the "platform" is a two-asset pipeline, discussed in the last section. The REGAL Phase 3 (GPS) remains <b>blinded</b> pending its 80-event final analysis, and the SLS-009 data are from an <b>early single-arm</b> study. <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span> <span class="bio-status bio-status-small">Small clinical studies</span></p>
+      <div class="bio-evidence-guide" aria-label="How to read Biology evidence labels">
+        <div>
+          <h3>How to read these claims</h3>
+          <p>Mechanism is not clinical proof. A claim can be solid immunology, a computationally plausible peptide-HLA fit, or a small-study signal and still not prove that GPS improves survival. REGAL survival benefit is unproven until unblinding.</p>
+        </div>
+        <div class="bio-evidence-legend">
+          <span class="bio-status bio-status-established">Established biology</span>
+          <span class="bio-status bio-status-prediction">Computational prediction</span>
+          <span class="bio-status bio-status-rationale">Mechanistic rationale</span>
+          <span class="bio-status bio-status-small">Small clinical studies</span>
+          <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span>
+          <span class="bio-status bio-status-risk">Class risk / failed elsewhere</span>
+          <span class="bio-status bio-status-untested">Not directly tested for GPS</span>
+        </div>
       </div>
     </section>
 
     <!-- ===== 2 · WT1 (target) ===== -->
     <section class="bio-section" id="bio-wt1">
       <h2><span class="bio-kicker">Target 1</span> WT1 — the leukemia antigen GPS goes after</h2>
-      <p><b>WT1</b> (Wilms' tumor 1) is a zinc-finger <b>transcription factor</b>. It is largely switched off in healthy adult tissue but is <b>overexpressed in the majority of AML and MDS</b> blasts, which makes it a tumor-associated antigen the immune system can, in principle, be pointed at. <span class="tag f">Established</span></p>
-      <p>In 2009 an NCI pilot project ranked 75 cancer antigens against pre-set criteria (therapeutic function, immunogenicity, specificity, oncogenicity, expression). <b>WT1 ranked #1</b> — the single highest-priority target antigen for cancer immunotherapy. That ranking is the core rationale for a WT1 vaccine. <span class="tag f">Established</span></p>
+      <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-established">Established biology</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span></div>
+      <p><b>WT1</b> (Wilms' tumor 1) is a zinc-finger <b>transcription factor</b>. It is largely switched off in healthy adult tissue but is <b>overexpressed in the majority of AML and MDS</b> blasts, which makes it a tumor-associated antigen the immune system can, in principle, be pointed at.</p>
+      <p>In 2009 an NCI pilot project ranked 75 cancer antigens against pre-set criteria (therapeutic function, immunogenicity, specificity, oncogenicity, expression). <b>WT1 ranked #1</b> — the single highest-priority target antigen for cancer immunotherapy. That ranking is the core rationale for a WT1 vaccine.</p>
       <h3>Why a transcription factor makes a usable antigen</h3>
-      <p>Even though WT1 sits inside the cell (and its nucleus), fragments of it are continuously chopped up and displayed on the cell surface bound to MHC molecules. A T cell that has been trained on those WT1 peptide-MHC complexes can therefore recognize a WT1⁺ blast from the outside — no need for the protein to be on the surface itself. <span class="tag f">Established</span></p>
+      <p>Even though WT1 sits inside the cell (and its nucleus), fragments of it are continuously chopped up and displayed on the cell surface bound to MHC molecules. A T cell that has been trained on those WT1 peptide-MHC complexes can therefore recognize a WT1⁺ blast from the outside — no need for the protein to be on the surface itself. <span class="bio-status bio-status-established">Established biology</span></p>
       <ul>
-        <li><b>Overexpressed, not neo-antigen:</b> WT1 is a normal self-protein overexpressed by the tumor, so the immune response has to overcome tolerance — the design problem GPS tries to solve (next section). <span class="tag f">Established</span></li>
-        <li><b>Broad applicability:</b> WT1 is expressed across AML, MDS, and several solid tumors, which is why SELLAS frames it as a platform antigen. <span class="tag f">Established</span></li>
+        <li><b>Overexpressed, not neo-antigen:</b> WT1 is a normal self-protein overexpressed by the tumor, so the immune response has to overcome tolerance — the design problem GPS tries to solve (next section). <span class="bio-status bio-status-established">Established biology</span></li>
+        <li><b>Broad applicability:</b> WT1 is expressed across AML, MDS, and several solid tumors, which is why SELLAS frames it as a platform antigen. <span class="bio-status bio-status-established">Established biology</span></li>
       </ul>
 
       <figure class="bio-figure">
@@ -1728,7 +1713,7 @@
             <rect class="sim-legend-swatch" x="110" y="-8" width="12" height="12" fill="#eef3fe" stroke="#2f6fed"/><text class="dg-t-sm" x="128" y="0">MHC display</text>
           </g>
         </svg>
-        <figcaption class="bio-figcaption"><b>Diagram 0 — WT1 as a usable antigen.</b> WT1 never sits on the cell surface, but proteasomal fragments are loaded onto MHC — the basis for peptide vaccines like GPS. <span class="tag f">Established</span> · Cheever 2009 NCI #1 ranking.</figcaption>
+        <figcaption class="bio-figcaption"><b>Diagram 0 — WT1 as a usable antigen.</b> WT1 never sits on the cell surface, but proteasomal fragments are loaded onto MHC — the basis for peptide vaccines like GPS. <span class="bio-status bio-status-established">Established biology</span> · Cheever 2009 NCI #1 ranking.</figcaption>
       </figure>
 
       <ul class="bio-sources">
@@ -1741,19 +1726,21 @@
     <!-- ===== 3 · GPS (drug) ===== -->
     <section class="bio-section" id="bio-gps">
       <h2><span class="bio-kicker">Drug 1</span> GPS / galinpepimut-S — a WT1 peptide vaccine</h2>
-      <p><b>GPS</b> is a mixture of <b>four WT1-derived peptides</b>: two are <b>heteroclitic</b> (deliberately mutated by a single amino acid to look "non-self" and break tolerance), and two are longer native WT1 peptides. Together they cover both <b>CD8⁺</b> (MHC class I) and <b>CD4⁺</b> (MHC class II) responses across a broad range of HLA types. <span class="tag f">Established</span></p>
-      <p class="bio-honesty"><b>Mixed-responder sensitivity:</b> Primary sources support broad HLA coverage and heterogeneous immune responses, not a proven uniform cure fraction. A plausible sensitivity is moderate durable responders plus a longer benefited-but-uncured tail; HLA-specific REGAL OS is undisclosed, so community HLA decomposition remains a hypothesis until unblinding. <span class="tag a">Under verification</span></p>
-      <p>The peptides are given with the adjuvant <b>Montanide</b> and pre-dosing with <b>GM-CSF</b>, which recruits and activates antigen-presenting cells (APCs) so the peptides are presented efficiently. The intended result is a population of <b>WT1-specific CD8⁺ cytotoxic T lymphocytes (CTLs)</b>, helped by CD4⁺ T cells, that patrol for and lyse WT1⁺ residual leukemic cells. <span class="tag f">Established</span> <span class="tag m">Theoretical MOA</span></p>
+      <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-established">Established biology</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span><span class="bio-status bio-status-small">Small clinical studies</span><span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></div>
+      <p><b>GPS</b> is a mixture of <b>four WT1-derived peptides</b>: two are <b>heteroclitic</b> (deliberately mutated by a single amino acid to look "non-self" and break tolerance), and two are longer native WT1 peptides. Together they are intended to cover both <b>CD8⁺</b> (MHC class I) and <b>CD4⁺</b> (MHC class II) responses across a broad range of HLA types. <span class="bio-status bio-status-established">Established biology</span> <span class="bio-status bio-status-rationale">Mechanistic rationale</span></p>
+      <p class="bio-honesty"><b>Mixed-responder sensitivity:</b> Primary sources support broad HLA coverage and heterogeneous immune responses, not a proven uniform cure fraction. A plausible sensitivity is moderate durable responders plus a longer benefited-but-uncured tail; HLA-specific REGAL OS is undisclosed, so community HLA decomposition remains a hypothesis until unblinding. <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span> <span class="bio-status bio-status-untested">Not directly tested for GPS</span></p>
+      <p>The peptides are given with the adjuvant <b>Montanide</b> and pre-dosing with <b>GM-CSF</b>, which recruits and activates antigen-presenting cells (APCs) so the peptides are presented efficiently. The intended result is a population of <b>WT1-specific CD8⁺ cytotoxic T lymphocytes (CTLs)</b>, helped by CD4⁺ T cells, that patrol for and lyse WT1⁺ residual leukemic cells. <span class="bio-status bio-status-established">Established biology</span> <span class="bio-status bio-status-rationale">Mechanistic rationale</span></p>
 
       <div class="bio-gps-rationale" id="bio-gps-rationale">
         <div class="bio-rationale-head">
           <h3>Why GPS is built differently: the immunology hack in plain English</h3>
-          <p>Think of each cell as putting tiny protein snippets in a glass display case. The display case is called <b>HLA</b> in people, or <b>MHC</b> in the broader biology language. T cells do not see the whole WT1 protein; they see a <b>WT1 peptide + HLA display</b>. GPS is a mechanistically plausible way to make that display more teachable — not clinical proof that REGAL works.</p>
+          <p>Think of each cell as putting tiny protein snippets in a glass display case. The display case is called <b>HLA</b> in people, or <b>MHC</b> in the broader biology language. T cells do not see the whole WT1 protein; they see a <b>WT1 peptide + HLA display</b>. GPS is a mechanistically plausible way to make that display more teachable — not clinical proof that REGAL works. <span class="bio-status bio-status-rationale">Mechanistic rationale</span> <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></p>
         </div>
 
         <div class="bio-visual-grid bio-hack-grid" id="bio-gps-hack">
           <article class="bio-visual-card bio-image-card">
             <h4>Inside-out WT1 target system</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-established">Established biology</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span></div>
             <figure class="bio-image-figure">
               <img src="assets/biology/wt1-cell-surface-presentation.jpg" alt="Diagram of WT1 protein processed into peptides and displayed on MHC class I and II for T-cell receptor recognition" loading="lazy" decoding="async"/>
               <figcaption class="bio-image-caption">Conceptual schematic: intracellular WT1 can become peptide-HLA/MHC surface display for TCR inspection. This supports target visibility, not clinical efficacy proof.</figcaption>
@@ -1762,14 +1749,16 @@
           </article>
           <article class="bio-visual-card bio-image-card">
             <h4>Heteroclitic peptides try to break tolerance</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-rationale">Mechanistic rationale</span><span class="bio-status bio-status-small">Small clinical studies</span><span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></div>
             <figure class="bio-image-figure">
               <img src="assets/biology/gps-heteroclitic-activation.jpg" alt="Three-panel diagram showing native WT1 tolerance, GPS heteroclitic analog activation, and cross-reactive T-cell attack" loading="lazy" decoding="async"/>
               <figcaption class="bio-image-caption">Conceptual heteroclitic model: an altered WT1 peptide may strengthen immune teaching while aiming cross-recognition back at native WT1.</figcaption>
             </figure>
-            <p>WT1 is an overexpressed self-antigen, so tolerance is a real hurdle. GPS uses two altered WT1 peptides with single-amino-acid substitutions to make immune teaching potentially stronger while still aiming cross-recognition back at native WT1.</p>
+            <p>WT1 is an overexpressed self-antigen, so tolerance is a real hurdle. GPS uses two altered WT1 peptides with single-amino-acid substitutions to make immune teaching potentially stronger while still aiming cross-recognition back at native WT1. Small GPS studies support immunogenicity, not Phase 3 survival proof.</p>
           </article>
           <article class="bio-visual-card bio-image-card">
             <h4>CR2 maintenance is the right terrain</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-rationale">Mechanistic rationale</span><span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></div>
             <figure class="bio-image-figure">
               <img src="assets/biology/gps-mrd-battle-of-numbers.jpg" alt="Diagram contrasting active relapse with high tumor burden against CR2 remission with residual disease surrounded by T cells" loading="lazy" decoding="async"/>
               <figcaption class="bio-image-caption">Conceptual MRD terrain: lower burden in CR2 may be more favorable for immune surveillance than active relapse; it does not prove GPS clears residual disease in patients.</figcaption>
@@ -1778,6 +1767,7 @@
           </article>
           <article class="bio-visual-card">
             <h4>Delivery keeps short peptides visible</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-established">Established biology</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span></div>
             <p>Short peptides can clear quickly and often need adjuvant/delivery support. GPS uses Montanide ISA 51 as a depot and GM-CSF pre-dosing to recruit and activate antigen-presenting cells before peptide presentation.</p>
           </article>
         </div>
@@ -1785,6 +1775,7 @@
         <div class="bio-visual-grid">
           <article class="bio-visual-card">
             <h4>1. WT1 peptide becomes a target</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-established">Established biology</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span></div>
             <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 190" role="img" aria-labelledby="gpsTargetTitle gpsTargetDesc" preserveAspectRatio="xMidYMid meet">
               <title id="gpsTargetTitle">WT1 peptide display story</title>
               <desc id="gpsTargetDesc">WT1 protein is cut into peptides, displayed by HLA or MHC, seen by a T cell receptor, then remembered by immune cells.</desc>
@@ -1814,50 +1805,23 @@
               <path d="M130,112 L136,122 L146,110" fill="none" stroke="#2f6fed" stroke-width="2"/>
               <text class="dg-t-sm" x="136" y="164" text-anchor="middle">TCR sees the peptide-HLA pair</text>
             </svg>
-            <p>GPS tries to teach the immune system that these WT1 display cases are worth reacting to, then leave behind memory-like T cells that can patrol for residual WT1⁺ blasts. <span class="tag m">Theoretical MOA</span></p>
+            <p>GPS tries to teach the immune system that these WT1 display cases are worth reacting to, then leave behind memory-like T cells that can patrol for residual WT1⁺ blasts. <span class="bio-status bio-status-rationale">Mechanistic rationale</span></p>
           </article>
 
-          <article class="bio-visual-card bio-coverage-card" data-gps-coverage="multi">
+          <article class="bio-visual-card bio-image-card">
             <h4>2. Four keys, many locks</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-prediction">Computational prediction</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span><span class="bio-status bio-status-untested">Not directly tested for GPS</span></div>
             <p class="bio-card-lead">People inherit different HLA "locks." A single peptide may fit some locks but miss others. A four-peptide design across class I and class II creates more chances for at least one useful display.</p>
-            <div class="bio-diagram-controls" role="group" aria-label="Compare peptide coverage schematics">
-              <button type="button" class="p bio-coverage-btn" data-coverage="single">Single epitope</button>
-              <button type="button" class="p p-def bio-coverage-btn" data-coverage="multi">4-peptide CD4+CD8</button>
-            </div>
-            <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 210" role="img" aria-labelledby="gpsLocksTitle gpsLocksDesc" preserveAspectRatio="xMidYMid meet">
-              <title id="gpsLocksTitle">HLA coverage and redundancy schematic</title>
-              <desc id="gpsLocksDesc">Peptide keys are matched to HLA locks. The multi-peptide CD4 and CD8 design lights up more schematic lock matches than a single epitope.</desc>
-              <g class="gps-lock-grid">
-                <text class="dg-t-sm" x="72" y="22" text-anchor="middle">HLA-A</text>
-                <text class="dg-t-sm" x="144" y="22" text-anchor="middle">HLA-B</text>
-                <text class="dg-t-sm" x="216" y="22" text-anchor="middle">HLA-DR</text>
-                <text class="dg-t-sm" x="288" y="22" text-anchor="middle">HLA-DQ</text>
-                <g transform="translate(46 36)">
-                  <rect class="dg-box" x="0" y="0" width="52" height="40" rx="10"/><rect class="dg-box" x="72" y="0" width="52" height="40" rx="10"/><rect class="dg-box" x="144" y="0" width="52" height="40" rx="10"/><rect class="dg-box" x="216" y="0" width="52" height="40" rx="10"/>
-                  <rect class="dg-box" x="0" y="56" width="52" height="40" rx="10"/><rect class="dg-box" x="72" y="56" width="52" height="40" rx="10"/><rect class="dg-box" x="144" y="56" width="52" height="40" rx="10"/><rect class="dg-box" x="216" y="56" width="52" height="40" rx="10"/>
-                  <rect class="dg-box" x="0" y="112" width="52" height="40" rx="10"/><rect class="dg-box" x="72" y="112" width="52" height="40" rx="10"/><rect class="dg-box" x="144" y="112" width="52" height="40" rx="10"/><rect class="dg-box" x="216" y="112" width="52" height="40" rx="10"/>
-                  <g class="gps-coverage-single">
-                    <circle cx="26" cy="20" r="13" fill="#2f6fed" opacity=".88"/><text class="dg-t-w dg-t-sm" x="26" y="24" text-anchor="middle">P1</text>
-                    <circle cx="98" cy="132" r="13" fill="#2f6fed" opacity=".88"/><text class="dg-t-w dg-t-sm" x="98" y="136" text-anchor="middle">P1</text>
-                  </g>
-                  <g class="gps-coverage-multi">
-                    <circle cx="26" cy="20" r="13" fill="#2f6fed" opacity=".9"/><text class="dg-t-w dg-t-sm" x="26" y="24" text-anchor="middle">P1</text>
-                    <circle cx="98" cy="20" r="13" fill="#d98a00" opacity=".9"/><text class="dg-t-w dg-t-sm" x="98" y="24" text-anchor="middle">P2</text>
-                    <circle cx="170" cy="20" r="13" fill="#1f9d55" opacity=".9"/><text class="dg-t-w dg-t-sm" x="170" y="24" text-anchor="middle">P3</text>
-                    <circle cx="242" cy="76" r="13" fill="#8a5fbf" opacity=".9"/><text class="dg-t-w dg-t-sm" x="242" y="80" text-anchor="middle">P4</text>
-                    <circle cx="26" cy="132" r="13" fill="#d98a00" opacity=".9"/><text class="dg-t-w dg-t-sm" x="26" y="136" text-anchor="middle">P2</text>
-                    <circle cx="98" cy="132" r="13" fill="#2f6fed" opacity=".9"/><text class="dg-t-w dg-t-sm" x="98" y="136" text-anchor="middle">P1</text>
-                    <circle cx="170" cy="132" r="13" fill="#1f9d55" opacity=".9"/><text class="dg-t-w dg-t-sm" x="170" y="136" text-anchor="middle">P3</text>
-                  </g>
-                </g>
-              </g>
-              <text class="dg-t-sm gps-coverage-label" x="180" y="202" text-anchor="middle">Schematic redundancy, not population genetics</text>
-            </svg>
+            <figure class="bio-image-figure">
+              <img src="assets/biology/gps-hla-four-keys.jpg" alt="Conceptual diagram of different HLA locks across patients and four GPS peptide keys creating redundant chances to present WT1" loading="lazy" decoding="async"/>
+              <figcaption class="bio-image-caption">Conceptual redundancy model: four WT1-derived peptides can increase presentation opportunities across HLA/MHC contexts. This is schematic coverage logic, not a patient-level response prediction.</figcaption>
+            </figure>
             <p>Not every patient presents every peptide. The rationale is redundancy: more WT1 snippets and both HLA classes can broaden the odds of presentation without proving response in any one patient.</p>
           </article>
 
           <article class="bio-visual-card">
             <h4>3. Heteroclitic swap: a slightly stronger teaching shape</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-rationale">Mechanistic rationale</span><span class="bio-status bio-status-small">Small clinical studies</span><span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></div>
             <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 170" role="img" aria-labelledby="gpsSwapTitle gpsSwapDesc" preserveAspectRatio="xMidYMid meet">
               <title id="gpsSwapTitle">Heteroclitic amino acid swap metaphor</title>
               <desc id="gpsSwapDesc">Native WT1 peptide and an altered heteroclitic peptide differ by one amino acid. The altered peptide is drawn as fitting the HLA groove more strongly while pointing T cells back to native WT1.</desc>
@@ -1877,39 +1841,24 @@
               <path class="dg-flow-gps" d="M278,112 C250,146 130,146 104,114" marker-end="url(#gpsSwapArrow)" stroke-dasharray="5 5"/>
               <text class="dg-t-sm" x="190" y="156" text-anchor="middle">Train on altered shape; cross-recognize native WT1</text>
             </svg>
-            <p>A heteroclitic peptide is like a training magnet: the altered amino acid may improve predicted HLA fit or T-cell teaching while still aiming the learned response back at native WT1 on cancer cells. <span class="tag m">Theoretical MOA</span></p>
+            <p>A heteroclitic peptide is like a training magnet: the altered amino acid may improve predicted HLA fit or T-cell teaching while still aiming the learned response back at native WT1 on cancer cells. Immunogenicity support exists, but cross-reactive killing is not Phase 3 clinical proof. <span class="bio-status bio-status-rationale">Mechanistic rationale</span></p>
           </article>
 
           <article class="bio-visual-card">
             <h4>4. CD8 soldiers plus CD4 coaches</h4>
-            <svg class="bio-svg bio-mini-svg" viewBox="0 0 360 185" role="img" aria-labelledby="gpsCdTitle gpsCdDesc" preserveAspectRatio="xMidYMid meet">
-              <title id="gpsCdTitle">CD8 killer and CD4 helper roles</title>
-              <desc id="gpsCdDesc">MHC class I presents short peptides to CD8 killer T cells, while MHC class II presents longer helper peptides to CD4 helper T cells that support memory and durability.</desc>
-              <defs>
-                <marker id="gpsCdArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#5b6472"/></marker>
-              </defs>
-              <rect class="dg-box-gps" x="24" y="36" width="120" height="54" rx="10"/>
-              <text class="dg-t" x="84" y="58" text-anchor="middle">Class I</text>
-              <text class="dg-t-sm" x="84" y="74" text-anchor="middle">short CD8 epitope</text>
-              <path class="dg-flow-bad" d="M144,63 L206,63" marker-end="url(#gpsCdArrow)"/>
-              <rect class="dg-box-bad" x="212" y="34" width="124" height="58" rx="10"/>
-              <text class="dg-t-b" x="274" y="58" text-anchor="middle">CD8 killer</text>
-              <text class="dg-t-sm" x="274" y="75" text-anchor="middle">finds and kills</text>
-              <rect class="dg-box-gps" x="24" y="112" width="120" height="54" rx="10"/>
-              <text class="dg-t" x="84" y="134" text-anchor="middle">Class II</text>
-              <text class="dg-t-sm" x="84" y="150" text-anchor="middle">long CD4 peptides</text>
-              <path class="dg-flow-gps" d="M144,139 L206,139" marker-end="url(#gpsCdArrow)"/>
-              <rect class="dg-box-gps" x="212" y="110" width="124" height="58" rx="10"/>
-              <text class="dg-t-b" x="274" y="134" text-anchor="middle">CD4 coach</text>
-              <text class="dg-t-sm" x="274" y="151" text-anchor="middle">help + memory</text>
-            </svg>
-            <p>GPS combines a short CD8-oriented WT1 epitope with longer CD4-helper peptides. The simple idea: killers matter, but helper signals can make the response more durable.</p>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-established">Established biology</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span><span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></div>
+            <figure class="bio-image-figure">
+              <img src="assets/biology/gps-cd4-cd8-t-cell-roles.jpg" alt="Conceptual diagram of CD8 killer T cell attacking a WT1 displaying leukemia cell while CD4 helper T cell supports killer and memory responses" loading="lazy" decoding="async"/>
+              <figcaption class="bio-image-caption">Conceptual T-cell role map: CD8 cells execute killing after recognizing peptide-MHC, while CD4 help can support cytotoxic function and memory. It illustrates intended immune biology, not REGAL efficacy.</figcaption>
+            </figure>
+            <p>GPS combines a short CD8-oriented WT1 epitope with longer CD4-helper peptides. The immune concept is established: killers matter, and helper signals can support durability. Whether that design produces a survival benefit in REGAL is unproven.</p>
           </article>
         </div>
 
         <div class="bio-prediction-panel">
           <div>
             <h4>What MHCflurry and MixMHC2pred add</h4>
+            <div class="bio-status-row" aria-label="Evidence status"><span class="bio-status bio-status-prediction">Computational prediction</span><span class="bio-status bio-status-rationale">Mechanistic rationale</span><span class="bio-status bio-status-untested">Not directly tested for GPS</span></div>
             <p><b>MHCflurry</b> and <b>MixMHC2pred</b> are open computational tools that estimate how well peptide snippets fit common HLA molecules. They are useful for asking, "Is this peptide display biologically plausible?" They are not patient immune assays.</p>
           </div>
           <svg class="bio-svg bio-predict-svg" viewBox="0 0 360 128" role="img" aria-labelledby="gpsPredictTitle gpsPredictDesc" preserveAspectRatio="xMidYMid meet">
@@ -1929,7 +1878,7 @@
             <text class="dg-t-sm" x="30" y="104">supportive plausibility</text>
             <text class="dg-t-sm" x="330" y="104" text-anchor="end">not clinical proof</text>
           </svg>
-          <p class="bio-prediction-caveat"><b>Claim discipline:</b> example computational screens, including user-run MHCflurry/MixMHC2pred runs, can corroborate HLA-presentation plausibility. Unless independently audited here, exact binding-affinity counts should be treated as <span class="tag a">example computational screen</span>, not a canonical clinical fact.</p>
+          <p class="bio-prediction-caveat"><b>Claim discipline:</b> example computational screens, including user-run MHCflurry/MixMHC2pred runs, can corroborate HLA-presentation plausibility. Unless independently audited here, exact binding-affinity counts should be treated as <span class="bio-status bio-status-prediction">Computational prediction</span>, not a canonical clinical fact or proof that GPS works in patients.</p>
         </div>
 
         <div class="bio-proof-box">
@@ -1942,6 +1891,7 @@
             <p>It does not prove a patient will mount T cells, that those T cells kill enough leukemia, or that REGAL improves survival. That requires immune assays and unblinded clinical outcomes.</p>
           </div>
         </div>
+        <p class="bio-honesty"><b>Peptide-vaccine class risk:</b> cancer peptide vaccines have a long history of mechanistic promise with mixed or failed clinical translation across settings. That should temper claims, but failures elsewhere are not direct evidence against this specific WT1 / CR2-maintenance / Montanide + GM-CSF GPS trial. <span class="bio-status bio-status-risk">Class risk / failed elsewhere</span> <span class="bio-status bio-status-untested">Not directly tested for GPS</span></p>
       </div>
 
       <figure class="bio-figure">
@@ -1986,7 +1936,7 @@
           <text class="dg-t-b" x="575" y="274" text-anchor="middle">Lysis of WT1⁺ blast</text>
           <text class="dg-t-sm" x="575" y="292" text-anchor="middle">clears residual disease → hold remission</text>
         </svg>
-        <figcaption class="bio-figcaption"><b>Diagram 2 — GPS vaccine flow.</b> Peptides + Montanide + GM-CSF activate an APC, which primes CD4⁺ help and CD8⁺ CTLs; the CTLs lyse WT1⁺ minimal-residual-disease blasts. This is why GPS is positioned in the <b>maintenance / second-complete-remission (CR2)</b> setting — clearing residual cells to delay relapse, not debulking active disease. <span class="tag m">Theoretical MOA</span></figcaption>
+        <figcaption class="bio-figcaption"><b>Diagram 2 — GPS vaccine flow.</b> Peptides + Montanide + GM-CSF activate an APC, which primes CD4⁺ help and CD8⁺ CTLs; the CTLs lyse WT1⁺ minimal-residual-disease blasts. This is why GPS is positioned in the <b>maintenance / second-complete-remission (CR2)</b> setting — clearing residual cells to delay relapse, not debulking active disease. <span class="bio-status bio-status-rationale">Mechanistic rationale</span> <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></figcaption>
       </figure>
 
       <figure class="bio-figure">
@@ -2021,10 +1971,10 @@
           <path class="dg-flow-bad" d="M681,168 C681,214 300,214 220,214 C120,214 87,192 87,170" marker-end="url(#d1arb)" stroke-dasharray="6 5"/>
           <text class="dg-t-sm" x="400" y="230" text-anchor="middle">CTLs patrol for and re-target any residual WT1⁺ cells</text>
         </svg>
-        <figcaption class="bio-figcaption"><b>Diagram 1 — WT1 antigen presentation → priming → killing.</b> WT1 is intracellular, but fragments are displayed on MHC, so trained CD8⁺ CTLs (with CD4⁺ help) can recognize and lyse WT1⁺ cells. <span class="tag f">Established</span> immunobiology.</figcaption>
+        <figcaption class="bio-figcaption"><b>Diagram 1 — WT1 antigen presentation → priming → killing.</b> WT1 is intracellular, but fragments are displayed on MHC, so trained CD8⁺ CTLs (with CD4⁺ help) can recognize and lyse WT1⁺ cells. <span class="bio-status bio-status-established">Established biology</span> immunobiology; clinical benefit still requires outcomes.</figcaption>
       </figure>
 
-      <p class="bio-honesty"><b>Honesty flag:</b> immunogenicity (T-cell responses to WT1) is well documented for GPS, but the pivotal <b>REGAL Phase 3 (NCT04229979)</b> overall-survival readout is <b>still blinded</b> — the final analysis triggers at 80 events (78 reported as of the May 2026 update). Whether the immune mechanism translates into a survival benefit is the open question. <span class="tag a">Company-reported / blinded</span></p>
+      <p class="bio-honesty"><b>Honesty flag:</b> immunogenicity (T-cell responses to WT1) is documented in small GPS studies, but the pivotal <b>REGAL Phase 3 (NCT04229979)</b> overall-survival readout is <b>still blinded</b> — the final analysis triggers at 80 events (78 reported as of the May 2026 update). Whether the immune mechanism translates into a survival benefit is the open question, and any REGAL survival-benefit claim is unproven until unblinding. <span class="bio-status bio-status-small">Small clinical studies</span> <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></p>
       <ul class="bio-sources">
         <li>Jamy &amp; Cicic 2025 — GPS peptide composition (WT1-A1, WT1-427 long, WT1-331 long, WT1-122A1 long), Montanide ISA 51 + GM-CSF rationale: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">PMC11760237</a></li>
         <li>REGAL Phase 3 trial record: <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a></li>
@@ -2208,13 +2158,13 @@
           <text class="dg-t-sm" x="611" y="221" text-anchor="middle">REGAL Phase 3 (CR2)</text>
           <path class="dg-flow" d="M600,126 L600,186" marker-end="url(#d5ar)"/>
         </svg>
-        <figcaption class="bio-figcaption"><b>Diagram 5 — disease-course fit.</b> SLS-009 targets active/resistant disease with AZA/VEN (studied in relapsed/refractory; frontline planned); GPS targets minimal residual disease in second remission (REGAL). Frontline SLS-009 and the entire GPS→SLS-009 sequencing idea are <b>strategy, not trial-proven</b>. <span class="tag m">Theoretical MOA</span></figcaption>
+        <figcaption class="bio-figcaption"><b>Diagram 5 — disease-course fit.</b> SLS-009 targets active/resistant disease with AZA/VEN (studied in relapsed/refractory; frontline planned); GPS targets minimal residual disease in second remission (REGAL). Frontline SLS-009 and the entire GPS→SLS-009 sequencing idea are <b>strategy, not trial-proven</b>. <span class="bio-status bio-status-rationale">Mechanistic rationale</span> <span class="bio-status bio-status-untested">Not directly tested for GPS</span></figcaption>
       </figure>
 
       <div class="bio-course-grid">
         <div class="bio-modality mod-gps">
           <h4>GPS — immune / maintenance</h4>
-          <p>Antigen-directed, works best against low-burden residual disease; positioned as CR2 maintenance to delay relapse. <span class="tag a">REGAL blinded</span></p>
+          <p>Antigen-directed, rationally positioned against low-burden residual disease as CR2 maintenance to delay relapse. <span class="bio-status bio-status-rationale">Mechanistic rationale</span> <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span></p>
         </div>
         <div class="bio-modality mod-sls">
           <h4>SLS-009 — targeted / active disease</h4>
@@ -2222,11 +2172,11 @@
         </div>
         <div class="bio-modality">
           <h4>Combined platform</h4>
-          <p>Shared WT1/AML focus and a two-asset story — but <b>no human trial combines GPS + SLS-009.</b> <span class="tag m">Strategy only</span></p>
+          <p>Shared WT1/AML focus and a two-asset story — but <b>no human trial combines GPS + SLS-009.</b> <span class="bio-status bio-status-untested">Not directly tested for GPS</span></p>
         </div>
       </div>
 
-      <p class="bio-honesty"><b>Bottom line — what is and isn't established:</b> The <em>biology</em> of both targets (WT1 as an antigen; CDK9→MCL-1/MYC) is well established. The <em>drug mechanisms</em> (GPS priming WT1-specific T cells; SLS-009 collapsing MCL-1 to overcome venetoclax resistance) are sound theoretical MOAs with supporting data. What remains <b>unproven</b>: GPS's survival benefit (REGAL blinded, final at 80 events), SLS-009's efficacy versus a randomized control (single-arm), and any GPS + SLS-009 combination (does not exist in the clinic).</p>
+      <p class="bio-honesty"><b>Bottom line — what is and isn't established:</b> The <em>biology</em> of both targets (WT1 as an antigen; CDK9→MCL-1/MYC) is well established. The <em>drug mechanisms</em> (GPS priming WT1-specific T cells; SLS-009 collapsing MCL-1 to overcome venetoclax resistance) are sound mechanistic rationales with supporting data. What remains <b>unproven</b>: GPS's survival benefit (REGAL blinded, final at 80 events), SLS-009's efficacy versus a randomized control (single-arm), and any GPS + SLS-009 combination (does not exist in the clinic). <span class="bio-status bio-status-established">Established biology</span> <span class="bio-status bio-status-rationale">Mechanistic rationale</span> <span class="bio-status bio-status-unproven">REGAL hypothesis / Phase 3 unproven</span> <span class="bio-status bio-status-untested">Not directly tested for GPS</span></p>
       <ul class="bio-sources">
         <li>REGAL Phase 3 (GPS, CR2 maintenance): <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a> · design: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">PMC11760237</a></li>
         <li>SLS-009 (r/r AML + AZA/VEN; frontline planned): <a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a></li>
