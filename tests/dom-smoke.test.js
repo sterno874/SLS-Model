@@ -261,7 +261,7 @@ test("The Biology tab labels evidence strength for key GPS claims", () => {
     "Class risk / failed elsewhere",
     "Not directly tested for GPS"
   ]) {
-    assert.match(bio, new RegExp(label.replace(/[+]/g, "\\+"), "i"));
+    assert.match(bio, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   }
   assert.match(bio, /How to read these claims/i);
   assert.match(bio, /Mechanism is not clinical proof/i);
