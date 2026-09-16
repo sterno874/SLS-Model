@@ -66,8 +66,8 @@ const VAL_DEFAULTS = {
   syears: 1.4,
   platform: 2.5,
   mult: 5,
-  shares: 222,
-  cash: 107.1,
+  shares: 217.6,
+  cash: 138.3,
   riskadj: true,
   pgps: 65,
   psls: 55
@@ -257,9 +257,9 @@ test("computeFrozenBestEst: biology-first risk-adj equity $/sh (default P(approv
   assert.ok(Math.abs(f.ps - riskAdj.ps) < 0.01);
   assert.ok(Math.abs(f.psGross - gross.ps) < 0.01);
   assert.ok(f.ps < f.psGross);
-  // Base risk-adj equity $/sh ≈ $45.88 (EV + $107.1M cash) / 222M; gross ≈ $67.61
-  assert.ok(Math.abs(f.ps - 45.88) < 0.1);
-  assert.ok(Math.abs(f.psGross - 67.61) < 0.1);
+  // Q2 base: risk-adj equity $/sh ≈ $46.96; gross ≈ $69.13
+  assert.ok(Math.abs(f.ps - 46.96) < 0.1);
+  assert.ok(Math.abs(f.psGross - 69.13) < 0.1);
 });
 
 test("computeFrozenBestEst: live P(approval) overrides update risk-adj $/sh", () => {
@@ -287,30 +287,30 @@ test("computeValuationMetrics EV scales with multiple", () => {
 test("dilution stress raises share count and lowers equity $/sh", () => {
   const base = computeValuationMetrics(VAL_DEFAULTS);
   const stress = computeValuationMetrics({ ...VAL_DEFAULTS, shares: ATM_SHARES_M });
-  assert.equal(BASIC_SHARES_M, 181.3);
-  assert.equal(FD_SHARES_M, 222);
-  assert.equal(ATM_SHARES_M, 240);
+  assert.equal(BASIC_SHARES_M, 201.9);
+  assert.equal(FD_SHARES_M, 217.6);
+  assert.equal(ATM_SHARES_M, 241.6);
   assert.ok(stress.ps < base.ps);
   assert.ok(Math.abs(stress.EV - base.EV) < 0.01, "EV must not change with share count");
 });
 
-test("181M vs 222M vs 240M FD show expected $/sh spread at same EV", () => {
-  const at222 = computeValuationMetrics(VAL_DEFAULTS);
-  const at181 = computeValuationMetrics({ ...VAL_DEFAULTS, shares: BASIC_SHARES_M });
-  const at240 = computeValuationMetrics({ ...VAL_DEFAULTS, shares: ATM_SHARES_M });
-  assert.ok(at181.ps > at222.ps);
-  assert.ok(at240.ps < at222.ps);
-  assert.ok(Math.abs(at181.EV - at222.EV) < 0.01);
-  assert.ok(Math.abs(at240.EV - at222.EV) < 0.01);
-  assert.ok(Math.abs(at222.ps - 45.88) < 0.15);
-  assert.ok(Math.abs(at181.ps - at222.ps * (222 / 181.3)) < 0.05);
-  assert.ok(Math.abs(at240.ps - at222.ps * (222 / 240)) < 0.05);
+test("basic vs FD vs ATM-stress shares show expected $/sh spread at same EV", () => {
+  const atFD = computeValuationMetrics(VAL_DEFAULTS);
+  const atBasic = computeValuationMetrics({ ...VAL_DEFAULTS, shares: BASIC_SHARES_M });
+  const atATM = computeValuationMetrics({ ...VAL_DEFAULTS, shares: ATM_SHARES_M });
+  assert.ok(atBasic.ps > atFD.ps);
+  assert.ok(atATM.ps < atFD.ps);
+  assert.ok(Math.abs(atBasic.EV - atFD.EV) < 0.01);
+  assert.ok(Math.abs(atATM.EV - atFD.EV) < 0.01);
+  assert.ok(Math.abs(atFD.ps - 46.96) < 0.15);
+  assert.ok(Math.abs(atBasic.ps - atFD.ps * (217.6 / 201.9)) < 0.05);
+  assert.ok(Math.abs(atATM.ps - atFD.ps * (217.6 / 241.6)) < 0.05);
 });
 
-test("formatShareDilutionSubtitle highlights delta vs 222M FD", () => {
-  assert.equal(formatShareDilutionSubtitle(222), "");
-  assert.match(formatShareDilutionSubtitle(240), /240M FD|222M FD/);
-  assert.match(formatShareDilutionSubtitle(240), /EV unchanged/);
+test("formatShareDilutionSubtitle highlights delta vs 217.6M FD", () => {
+  assert.equal(formatShareDilutionSubtitle(217.6), "");
+  assert.match(formatShareDilutionSubtitle(241.6), /217\.6M FD/);
+  assert.match(formatShareDilutionSubtitle(241.6), /EV unchanged/);
 });
 
 test("EXPLAIN_LEVELS lists six explain tiers", () => {

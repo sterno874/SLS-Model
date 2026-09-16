@@ -1,7 +1,9 @@
 const LN2 = Math.log(2);
 const N_ARM = 63, LMAX = 38;
-const T1=46,T2=58,T3=63,T4=65, E1=60,E2=72,E3=78, THRESH=0.636, IFLOOR=0.547; // IFLOOR = OBF interim efficacy HR at 60 deaths (Z=2.34; Jamy & Cicic 2025); REGAL did NOT stop early
+const T1=46,T2=58,T3=63,T4=66, E1=60,E2=72,E3=78, THRESH=0.636, IFLOOR=0.547; // T4 = official Q2 status cutoff (11 Aug 2026); IFLOOR = OBF interim efficacy HR at 60 deaths
 const CURRENT_EVENT_ANCHOR={count:78,date:'2026-05-11',month:63,src:'https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html',label:'Q1 2026 PR'};
+const CURRENT_EVENT_STATUS={countLower:78,countUpper:79,date:'2026-08-11',month:T4,src:'https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx',label:'officially “approaching” the 80th event',caveat:'Confirms fewer than 80 events as of the Q2 update; does not disclose whether the count was 78 or 79.'};
+const CURRENT_PUBLIC_SEARCH={date:'2026-09-16',month:67.2,label:'no 80th-event or topline announcement found',caveat:'Announcement-status observation only. It is not encoded as an event-count bound because database lock and reporting can lag the event.'};
 const PR_SOURCES={60:{date:'2025-01-23',src:'https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html',label:'Jan 2025 interim'},
   72:{date:'2025-12-29',src:'https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html',label:'Dec 2025 72-event'},
   78:{date:'2026-05-11',src:CURRENT_EVENT_ANCHOR.src,label:'May 2026 78-event/Q1'}};
@@ -60,9 +62,44 @@ function eventsAt(T,p,bins){const raw=armDeaths(T,p,sBATbase,bins)+armDeaths(T,p
 // Forward projection locked to confirmed PR anchors (78 @ m63); model increments only beyond anchor
 function eventsAtAnchored(T,p,bins){bins=bins||110;if(T<T3)return eventsAt(T,p,bins);const modelAtAnchor=eventsAt(T3,p,bins);return E3+(eventsAt(T,p,bins)-modelAtAnchor);}
 function T80PrPace(){const rate=(E3-E2)/(T3-T2);return T3+(80-E3)/rate;}
-function T80(p){let lo=T3,hi=130;if(eventsAtAnchored(hi,p,110)<80)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(eventsAtAnchored(m,p,110)<80)lo=m;else hi=m;}return (lo+hi)/2;}
-function t80Analysis(p,cutoff,bins){bins=bins||110;const t80=T80(p);if(t80<=cutoff)return{t80,Tan:t80,Dan:80};return{t80,Tan:cutoff,Dan:eventsAtAnchored(cutoff,p,bins)};}
-function mcPathToT80(q,bins){bins=bins||110;let t=T3;while(eventsAtAnchored(t,q,bins)<80&&t<120)t+=0.5;return t;}
+// Conditional time-to-trigger after the official Q2 update confirmed <80 through T4.
+// From 78 @ T3, the unknown status count is 78 or 79. Under a Poisson increment
+// model, P(79 | increment <=1)=lambda/(1+lambda); future time then requires one
+// or two additional events. This preserves event-time noise instead of treating
+// the expected cumulative count crossing 80 as an observed event date.
+function t80ConditionalCdf(T,p,statusMonth,bins){
+  bins=bins||110;statusMonth=statusMonth!=null?statusMonth:T4;
+  if(T<=statusMonth)return 0;
+  const atAnchor=eventsAt(T3,p,bins),atStatus=eventsAt(statusMonth,p,bins);
+  const lambdaPast=Math.max(0,atStatus-atAnchor);
+  const p0=1/(1+lambdaPast),p1=lambdaPast/(1+lambdaPast);
+  const lambdaFuture=Math.max(0,eventsAt(T,p,bins)-atStatus);
+  const e=Math.exp(-lambdaFuture);
+  return p1*(1-e)+p0*(1-e*(1+lambdaFuture));
+}
+function t80Quantile(p,q,statusMonth,bins){
+  bins=bins||110;q=Math.min(0.999999,Math.max(0.000001,q==null?0.5:q));
+  statusMonth=statusMonth!=null?statusMonth:T4;
+  let lo=statusMonth,hi=130;
+  if(t80ConditionalCdf(hi,p,statusMonth,bins)<q)return hi;
+  for(let i=0;i<28;i++){const m=(lo+hi)/2;if(t80ConditionalCdf(m,p,statusMonth,bins)<q)lo=m;else hi=m;}
+  return (lo+hi)/2;
+}
+function eventsAtStatusConditioned(T,p,bins){
+  bins=bins||110;
+  if(T<T3)return eventsAt(T,p,bins);
+  const atAnchor=eventsAt(T3,p,bins),atStatus=eventsAt(T4,p,bins);
+  const lambdaStatus=Math.max(0,atStatus-atAnchor);
+  if(T<=T4){
+    const lambdaT=Math.max(0,eventsAt(T,p,bins)-atAnchor);
+    return E3+lambdaT/(1+lambdaStatus);
+  }
+  const expectedAtStatus=E3+lambdaStatus/(1+lambdaStatus);
+  return Math.min(79.999,expectedAtStatus+Math.max(0,eventsAt(T,p,bins)-atStatus));
+}
+function T80(p){return t80Quantile(p,0.5,T4,110);}
+function t80Analysis(p,cutoff,bins){bins=bins||110;const t80=T80(p);if(t80<=cutoff)return{t80,Tan:t80,Dan:80};return{t80,Tan:cutoff,Dan:eventsAtStatusConditioned(cutoff,p,bins)};}
+function mcPathToT80(q,bins,u){return t80Quantile(q,u==null?0.5:u,T4,bins||110);}
 
 // ---------- HR (Pike) ----------
 function hazardRatio(T,p){const h=0.5;let Ob=0,Og=0,Eb=0,Eg=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;}if(Eb<1e-6||Eg<1e-6)return NaN;return (Og/Eg)/(Ob/Eb);}
@@ -72,7 +109,14 @@ function hrGaugeState(p,cutoff,bins){bins=bins||110;const hrInterim=hazardRatio(
 function analyzeLR(T,p){const h=1;const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;const wt=fh?(1-poolS(t,p)):1;U+=wt*(db-dt*nb/nt);V+=wt*wt*dt*(nb/nt)*(ng/nt);}const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb);const z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);return{hr:hr,z:z};}
 // conditional power given the interim landed in the CONTINUE zone [zfut,ZEFF]; returns P(continue) & conditional power
 function condPow(thIA,th80,Dan,zfut){const zf=(zfut!=null?zfut:ZFUT);const rho=Math.sqrt(60/Dan),s=Math.sqrt(Math.max(1e-6,1-rho*rho));let num=0,den=0;const M=24,lo=zf,hi=ZEFF,h=(hi-lo)/M;for(let i=0;i<=M;i++){const z=lo+i*h,wt=(i===0||i===M)?1:(i%2?4:2),f=phi(z-thIA);den+=wt*f;num+=wt*f*Phi((th80+rho*(z-thIA)-ZFINAL)/s);}den*=h/3;num*=h/3;return{Pc:den, cp:den>1e-12?num/den:0};}
-function Tfor(events,p){const evAt=(T,b)=>events>=E3?eventsAtAnchored(T,p,b):eventsAt(T,p,b);let lo=events>=E3?T3:20,hi=130;if(evAt(hi,60)<events)return hi;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(evAt(m,60)<events)lo=m;else hi=m;}return (lo+hi)/2;}
+function Tfor(events,p){
+  if(events===80)return T80(p);
+  const evAt=(T,b)=>events>=E3?eventsAtStatusConditioned(T,p,b):eventsAt(T,p,b);
+  let lo=events>=E3?T3:20,hi=130;
+  if(evAt(hi,60)<events)return hi;
+  for(let i=0;i<24;i++){const m=(lo+hi)/2;if(evAt(m,60)<events)lo=m;else hi=m;}
+  return (lo+hi)/2;
+}
 
 // ---------- medians ----------
 function medianOf(fn,p){let prev=1;for(let t=0.1;t<=240;t+=0.1){const s=fn(t,p);if(s<=0.5){const t0=t-0.1;return t0+(prev-0.5)/(prev-s)*0.1;}prev=s;}return null;}
@@ -83,7 +127,9 @@ function consistent(p,bins){
   const e1=eventsAt(T1,p,bins);if(!Number.isFinite(e1)||Math.abs(e1-E1)>4)return false;
   const e2=eventsAt(T2,p,bins);if(!Number.isFinite(e2)||Math.abs(e2-E2)>3)return false;
   const e3=eventsAt(T3,p,bins);if(!Number.isFinite(e3)||Math.abs(e3-E3)>3)return false;
-  const e4=eventsAt(T4,p,bins);if(!Number.isFinite(e4)||e4>=80||e4<77)return false;
+  const e4=eventsAt(T4,p,bins);
+  const statusLike=poisLE(1,Math.max(0,e4-e3));
+  if(!Number.isFinite(e4)||statusLike<0.05)return false;
   return true;
 }
 function passesVerdict(p,bins){
@@ -104,9 +150,10 @@ function autofitCure(p){const test=c=>eventsAt(T2,Object.assign({},p,{gpsc:c}));
 function eventErr(p){
   const e1=eventsAt(T1,p,110),e2=eventsAt(T2,p,110),e3=eventsAt(T3,p,110),e4=eventsAt(T4,p,110);
   const pm=medianOf(poolS,p);
-  // Penalize both sides of the e65 window [77,80) — old solver only punished e4>79.5 and
-  // could land on e65≈77.1 (razor-thin margin that breaks under slider step snap).
-  let err=Math.pow(e1-E1,2)+Math.pow(e2-E2,2)+Math.pow(e3-E3,2)+Math.max(0,e4-79.5)*400+Math.max(0,77-e4)*400;
+  // Exact-count anchors use squared residuals; current no-trigger status contributes
+  // a right-censored Poisson deviance for <=1 event since 78 @ m63.
+  const statusLike=Math.max(1e-12,poisLE(1,Math.max(0,e4-e3)));
+  let err=Math.pow(e1-E1,2)+Math.pow(e2-E2,2)+Math.pow(e3-E3,2)-2*Math.log(statusLike);
   if(pm!==null&&pm<13.5)err+=Math.pow(13.5-pm,2)*8;
   return err;
 }
@@ -125,7 +172,7 @@ function batcFor3yrCap(p,bat,target3yr){
   return (lo+hi)/2;
 }
 // Joint (BAT mOS, GPS uncured) grid — do NOT pin e58 exactly via gpsu bisect; that forced
-// e63/e65 onto the tolerance floor (e65≈77.1) so default/best failed under tiny perturbations.
+// later event counts onto a tolerance edge so default/best failed under tiny perturbations.
 function inverseSolve(base, cap3){
   const p=Object.assign({},base);
   let best=null,bestErr=1e9;
@@ -146,11 +193,11 @@ function inverseSolve(base, cap3){
 
 export {
   LN2, N_ARM, LMAX, T1, T2, T3, T4, E1, E2, E3, THRESH, IFLOOR,
-  CURRENT_EVENT_ANCHOR, PR_SOURCES, HRMAX, ZFINAL, rmst, ZEFF, ZFUT, STRATF,
+  CURRENT_EVENT_ANCHOR, CURRENT_EVENT_STATUS, CURRENT_PUBLIC_SEARCH, PR_SOURCES, HRMAX, ZFINAL, rmst, ZEFF, ZFUT, STRATF,
   Phi, phi, monthLabel, monthToDate, fmtCalMonth, fmtCalRange,
   lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix,
-  sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored,
-  T80PrPace, T80, t80Analysis, mcPathToT80,
+  sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored, eventsAtStatusConditioned,
+  T80PrPace, T80, t80Analysis, mcPathToT80, t80ConditionalCdf, t80Quantile,
   hazardRatio, analyzeLR, hrGaugeState, condPow, Tfor, medianOf, consistent, passesVerdict, BAT_MED_CAP, isBiologicallyPlausible, autofitCure,
   eventErr, bisectField, batcFor3yrCap, inverseSolve,
   DEFAULT_IRM_LEAD, cr2OnsetFromIrm

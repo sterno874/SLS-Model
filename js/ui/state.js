@@ -52,13 +52,13 @@ export const DEFAULT_STATE = {
     stratF: 0.9, zfut: 0.4, mcFloor: true, cutoff: 72
   },
   sls: {
-    sls_os: 8.9, sls_bench: 2.8, sls_orr: 46, fl_base: 14.7, fl_sls: 20,
+    sls_os: 8.9, sls_bench: 4.0, sls_orr: 46, fl_base: 14.7, fl_sls: 20,
     tp_base: 5.3, tp_sls: 13, sls_flev: 250
   },
   val: {
     v_cr2: 2800, v_cr1: 5500, v_gpen: 45, v_gprice: 145, v_gyears: 2.8,
     v_flpool: 9000, v_rrpool: 3500, v_spen: 38, v_sprice: 145, v_syears: 1.4,
-    v_platform: 2.5, v_mult: 5, v_shares: 222, v_cash: 107.1, v_riskadj: true,
+    v_platform: 2.5, v_mult: 5, v_shares: 217.6, v_cash: 138.3, v_riskadj: true,
     v_pgps: 65, v_psls: 55
   },
   ui: { showUncertainty: false, irm_lead: 3, bf_e58: 72, bf_cure: 42, explainLvl: "eli5" }
@@ -77,7 +77,9 @@ export const SHARE_P = {
   bear:    { bat: 10,  batc: 16, gpsc: 14, gpsu: 29,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
   cw:      { bat: 10.5,batc: 1,  gpsc: 41, gpsu: 35.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
   capbreach:{ bat: 10.5, batc: 21, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
-  noeffect:{ bat: 14,  batc: 28, gpsc: 28, gpsu: 14,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: true }
+  noeffect:{ bat: 14,  batc: 28, gpsc: 28, gpsu: 14,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: true },
+  vdm:     { bat: 16.8, batc: 0, batk: 1.16, gpsc: 0,  gpsu: 16.3, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
+  vdmfit:  { bat: 16.8, batc: 0, batk: 1.16, gpsc: 61, gpsu: 6.5,  delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true }
 };
 export const SHARE_INV = {
   cw42:   { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
@@ -86,29 +88,29 @@ export const SHARE_INV = {
   cwbind: { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: true }
 };
 export const SHARE_SLSP = {
-  best: { sls_os: 8.9, sls_bench: 2.8, sls_orr: 46, fl_base: 14.7, fl_sls: 20, tp_base: 5.3, tp_sls: 13 },
+  best: { sls_os: 8.9, sls_bench: 4.0, sls_orr: 46, fl_base: 14.7, fl_sls: 20, tp_base: 5.3, tp_sls: 13 },
   obs:  { sls_os: 8.9, sls_bench: 2.5, sls_orr: 46, fl_base: 14.7, fl_sls: 22, tp_base: 5.3, tp_sls: 15 },
-  bear: { sls_os: 6.5, sls_bench: 3.5, sls_orr: 35, fl_base: 14.7, fl_sls: 17, tp_base: 5.3, tp_sls: 10 },
+  bear: { sls_os: 6.5, sls_bench: 6.0, sls_orr: 35, fl_base: 14.7, fl_sls: 17, tp_base: 5.3, tp_sls: 10 },
   bull: { sls_os: 11,  sls_bench: 2.2, sls_orr: 55, fl_base: 14.7, fl_sls: 24, tp_base: 5.3, tp_sls: 16 }
 };
 export const SHARE_VALP = {
-  best: { v_cr2: 2800, v_cr1: 5500, v_gpen: 45, v_gprice: 145, v_gyears: 2.8, v_flpool: 9000,  v_rrpool: 3500, v_spen: 38, v_sprice: 145, v_syears: 1.4, v_platform: 2.5, v_mult: 5,   v_shares: 222, v_cash: 107.1 },
-  cons: { v_cr2: 2000, v_cr1: 4000, v_gpen: 30, v_gprice: 125, v_gyears: 2.0, v_flpool: 7000,  v_rrpool: 2800, v_spen: 22, v_sprice: 125, v_syears: 1.0, v_platform: 0.5, v_mult: 4,   v_shares: 225, v_cash: 107.1 },
-  bull: { v_cr2: 3800, v_cr1: 7500, v_gpen: 58, v_gprice: 185, v_gyears: 3.5, v_flpool: 11000, v_rrpool: 4500, v_spen: 50, v_sprice: 175, v_syears: 1.8, v_platform: 4,   v_mult: 6.5, v_shares: 218, v_cash: 107.1 },
-  cw:   { v_cr2: 3000, v_cr1: 6000, v_gpen: 58, v_gprice: 165, v_gyears: 3.2, v_flpool: 11000, v_rrpool: 4500, v_spen: 45, v_sprice: 165, v_syears: 1.7, v_platform: 4,   v_mult: 5.5, v_shares: 220, v_cash: 107.1 }
+  best: { v_cr2: 2800, v_cr1: 5500, v_gpen: 45, v_gprice: 145, v_gyears: 2.8, v_flpool: 9000,  v_rrpool: 3500, v_spen: 38, v_sprice: 145, v_syears: 1.4, v_platform: 2.5, v_mult: 5,   v_shares: 217.6, v_cash: 138.3 },
+  cons: { v_cr2: 2000, v_cr1: 4000, v_gpen: 30, v_gprice: 125, v_gyears: 2.0, v_flpool: 7000,  v_rrpool: 2800, v_spen: 22, v_sprice: 125, v_syears: 1.0, v_platform: 0.5, v_mult: 4,   v_shares: 220, v_cash: 138.3 },
+  bull: { v_cr2: 3800, v_cr1: 7500, v_gpen: 58, v_gprice: 185, v_gyears: 3.5, v_flpool: 11000, v_rrpool: 4500, v_spen: 50, v_sprice: 175, v_syears: 1.8, v_platform: 4,   v_mult: 6.5, v_shares: 214, v_cash: 138.3 },
+  cw:   { v_cr2: 3000, v_cr1: 6000, v_gpen: 58, v_gprice: 165, v_gyears: 3.2, v_flpool: 11000, v_rrpool: 4500, v_spen: 45, v_sprice: 165, v_syears: 1.7, v_platform: 4,   v_mult: 5.5, v_shares: 217.6, v_cash: 138.3 }
 };
 
-/** Q1 2026 cash & equivalents ($M) — Mar 31 2026 PR / 10-Q. */
-export const DEFAULT_CASH_M = 107.1;
-/** Basic shares outstanding (M) — Mar 31 2026 10-Q / Q1 PR. */
-export const BASIC_SHARES_M = 181.3;
-/** Fully-diluted shares modeled (M) — warrants/options on top of basic. */
-export const FD_SHARES_M = 222;
-/** ATM dilution stress (M) — ~222M FD + full $150M ATM at ~$6.25/sh (capacity, not issuance). */
-export const ATM_SHARES_M = 240;
+/** Q2 2026 cash & equivalents ($M) — Jun 30 2026 PR / 10-Q. */
+export const DEFAULT_CASH_M = 138.3;
+/** Basic shares outstanding (M) — Aug 10 2026 10-Q cover. */
+export const BASIC_SHARES_M = 201.9;
+/** Fully diluted modeled (M): basic + outstanding warrants/options/RSUs. */
+export const FD_SHARES_M = 217.6;
+/** ATM stress (M): 217.6M FD + full $150M ATM at ~$6.25/sh. */
+export const ATM_SHARES_M = 241.6;
 
 /** UX subtitle when share slider differs from FD anchor — EV unchanged, $/sh scales ÷ shares. */
-export function formatShareDilutionSubtitle(sharesM, refSharesM = FD_SHARES_M, refLabel = "222M FD") {
+export function formatShareDilutionSubtitle(sharesM, refSharesM = FD_SHARES_M, refLabel = "217.6M FD") {
   if (!Number.isFinite(sharesM) || !Number.isFinite(refSharesM) || refSharesM <= 0) return "";
   if (Math.abs(sharesM - refSharesM) < 0.05) return "";
   const sharePct = (sharesM / refSharesM - 1) * 100;
@@ -152,7 +154,7 @@ function roundVal(v) {
 }
 
 function overlayForward(g, q) {
-  g.bat = q.bat; g.batc = q.batc; g.gpsc = q.gpsc; g.gpsu = q.gpsu;
+  g.bat = q.bat; g.batc = q.batc; g.batk = q.batk != null ? q.batk : 1; g.gpsc = q.gpsc; g.gpsu = q.gpsu;
   g.delay = q.delay; g.mid = q.mid; g.k = q.k; g.autofit = !!q.auto;
   g.xtx = q.xtx != null ? q.xtx : 0; g.cens = q.cens != null ? q.cens : 0;
   if (q.mcFloor != null) g.mcFloor = !!q.mcFloor;
@@ -282,7 +284,7 @@ export function paramsFromPresetQ(q) {
   return {
     bat: q.bat,
     batc: q.batc / 100,
-    batk: 1,
+    batk: q.batk != null ? q.batk : 1,
     gpsc: q.gpsc / 100,
     gpsu: q.gpsu,
     delay: q.delay,
@@ -298,9 +300,9 @@ export function paramsFromPresetQ(q) {
 }
 
 export function paramsFromPreset(name, q, mode, P, INV) {
-  const base = { osmode: "itt", batk: 1, fh: false, stratF: STRATF, zfut: ZFUT };
   q = q || (mode === "inverse" ? INV[name] : P[name]);
   if (!q) return null;
+  const base = { osmode: "itt", batk: q.batk != null ? q.batk : 1, fh: false, stratF: STRATF, zfut: ZFUT };
   if (mode === "inverse") {
     const ir = inverseSolve(
       Object.assign({}, base, {

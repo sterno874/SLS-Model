@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { T1, T2, T4, hazardRatio, consistent, passesVerdict, isBiologicallyPlausible, medianOf, sBAT, sGPS, eventsAt, T3, E3, inverseSolve, cr2OnsetFromIrm, DEFAULT_IRM_LEAD } from "../js/math/survival.js";
+import { T1, T2, T4, hazardRatio, consistent, passesVerdict, isBiologicallyPlausible, medianOf, sBAT, sGPS, eventsAt, T3, E3, inverseSolve, cr2OnsetFromIrm, DEFAULT_IRM_LEAD, poisLE } from "../js/math/survival.js";
 import { paramsFromPresetQ, mk } from "./helpers.js";
 import { P, INV, PLAUSIBLE_PRESET_NAMES, INVERSE_PRESET_NAMES, RIDGE_PRESET_NAMES } from "./fixtures/presets.js";
 import {
@@ -99,12 +99,13 @@ test("P.best applyRegalPreset path isPlausible with margin on all anchors", () =
   const e46 = eventsAt(T1, p);
   const e58 = eventsAt(T2, p);
   const e63 = eventsAt(T3, p);
-  const e65 = eventsAt(T4, p);
+  const eStatus = eventsAt(T4, p);
   // Print exact anchors for the fix report (assert messages include values on failure)
   assert.ok(Math.abs(e46 - 60) <= 3, `e46=${e46}`);
   assert.ok(Math.abs(e58 - 72) <= 2.5, `e58=${e58}`);
   assert.ok(Math.abs(e63 - 78) <= 2.5, `e63=${e63}`);
-  assert.ok(e65 >= 77.5 && e65 < 79.5, `e65=${e65} needs margin in [77,80)`);
+  const statusLike = poisLE(1, Math.max(0, eStatus - e63));
+  assert.ok(statusLike >= 0.05, `status likelihood=${statusLike} should remain non-negligible`);
   assert.ok(medianOf(sBAT, p) <= 15, "BAT median within biology cap");
   assert.ok(medianOf(sGPS, p) > 50, "GPS mixture-cure median should be well above uncured mOS");
   // Lead-time default on best: IRM vs CR2-onset display mapping only

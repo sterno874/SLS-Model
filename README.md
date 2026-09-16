@@ -9,7 +9,7 @@ A primary-sourced, open-source interactive model of SELLAS's pipeline and valuat
 
 ## Tabs
 
-1. **REGAL / GPS (Phase 3)** — survival & HR explorer with sensitivity tornado, Bayes-factor panel, interactive IRM table, time-to-80th-event simulator, preset comparison dashboard, milestone backtest, uncertainty bands on KM curves, and shareable scenario URLs. Checked against every announced blinded event count (60/72/78, still <80).
+1. **REGAL / GPS (Phase 3)** — survival & HR explorer with sensitivity tornado, Bayes-factor panel, interactive IRM table, time-to-80th-event simulator, preset comparison dashboard, milestone backtest, uncertainty bands on KM curves, and shareable scenario URLs. Checked against every announced blinded event count (60/72/78) and the official Aug 11, 2026 “approaching 80” status.
 2. **SLS-009 (Phase 2)** — single-arm-vs-historical model for the CDK9 inhibitor (r/r + frontline AML), with a Monte-Carlo of the r/r effect and a hypothetical frontline Phase-3 power calc.
 3. **Valuation & WT1 platform** — a transparent peak-sales × multiple model with a **survival-driven prevalence pool** (longer survival ⇒ more years on therapy ⇒ bigger pool), risk-adjusted by probability of approval, plus a Monte-Carlo over the enterprise value.
 4. **Explain (ELI5 → PhD)** — the same three models explained at six depths, sources named/linked.
@@ -26,7 +26,7 @@ Click the **📐 Methodology** button on each tab. The statistical toolkit (all 
 
 ## Research memo
 
-Tagged due-diligence notes (verified / partial / community / rejected) live in **[RESEARCH.md](RESEARCH.md)** — cash, shares (basic ~181.3M vs FD modeled ~222M), REGAL anchors, SLS-009 NCT04588922, valuation comps, and model framing.
+Tagged due-diligence notes (verified / partial / community / rejected) live in **[RESEARCH.md](RESEARCH.md)** — Q2 cash/shares, REGAL anchors, the Van der Maas private-email sensitivity, SLS-009 registry/site changes, Fatima 2026 and other new studies, Reddit review, and external-model audits.
 
 ## Key sources
 
@@ -43,10 +43,12 @@ Confirmed PR milestones are **locked** where forward projection applies:
 | 60 | ~46 | Jan 2025 interim PR |
 | 72 | ~58 | Dec 2025 PR |
 | 78 | ~63 (11 May 2026) | Q1 2026 PR |
+| <80 official status | ~66 (11 Aug 2026) | Q2 update: “approaching” 80 |
+| Announcement search | ~67.2 (16 Sep 2026) | No event-80/topline announcement found; not an event-count bound |
 | 80 | TBD | protocol |
 
-- **Forward projection** (80th-event timing, readout power when cutoff &gt; m63, MC conditional power): `eventsAtAnchored` locks 78 @ m63; only model increments beyond the anchor count.
-- **Consistency scoring** (`consistent`, `eventErr`, inverse solver, Poisson likelihood, preset e46/e58/e63 columns): full trajectory from t=0 via `eventsAt` — intentionally tests whether parameters reproduce announced counts; UI labels these as **model-implied** vs **confirmed PR** anchors.
+- **Forward projection** (80th-event timing, readout power, MC conditional power): conditions on 78 or 79 events at the official Aug 11 cutoff using a Poisson waiting-time model.
+- **Consistency scoring** (`consistent`, `eventErr`, inverse solver, Poisson likelihood): exact milestones use Poisson increments; the official Q2 status contributes `P(increment ≤ 1)` after 78 @ m63. Later announcement silence is not converted into an event count because lock/review/reporting can lag.
 - **Milestone backtest**: truncated Poisson likelihood through each historical `dataThrough` month — does not re-fit with hindsight.
 
 Regression checks for anchoring live in `tests/math.test.js` (`T80`, `t80Analysis`, `Tfor`, `eventsAtAnchored`).

@@ -401,10 +401,10 @@ test("SLS-009 tab includes GenFleet PTCL catalyst panel", () => {
 
 test("valuation dilution stress presets mirror DRTS pattern", () => {
   const value = matchAll(/<div id="tab-value"[\s\S]*?<!-- \/tab-value -->/g, html)[0][0];
-  assert.match(value, /data-dilution-stress="181\.3"/);
-  assert.match(value, /data-dilution-stress="222"/);
-  assert.match(value, /data-dilution-stress="240"/);
-  assert.match(value, /ATM stress 240M/);
+  assert.match(value, /data-dilution-stress="201\.9"/);
+  assert.match(value, /data-dilution-stress="217\.6"/);
+  assert.match(value, /data-dilution-stress="241\.6"/);
+  assert.match(value, /ATM stress 241\.6M/);
   assert.match(value, /does not auto-issue against ATM capacity/);
 });
 

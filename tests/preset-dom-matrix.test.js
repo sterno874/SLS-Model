@@ -306,7 +306,7 @@ test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 15
   assert.deepEqual(new Set(inverse), new Set(Object.keys(INV)));
   assert.deepEqual(new Set(sls), new Set(Object.keys(SHARE_SLSP)));
   assert.deepEqual(new Set(val), new Set(Object.keys(SHARE_VALP)));
-  assert.deepEqual(dilution, [181.3, 222, 240]);
+  assert.deepEqual(dilution, [201.9, 217.6, 241.6]);
 
   for (const name of forward) {
     const before = document.getElementById("chart").__drawCalls || 0;
@@ -315,7 +315,10 @@ test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 15
     assert.equal(document.querySelector("button[data-preset].p-def")?.dataset.preset, name);
     assert.ok(document.getElementById("modeForward").classList.contains("active"), `${name} should be forward`);
     assert.equal(document.getElementById("bat").disabled, false, `${name} should re-enable BAT slider`);
+    assert.equal(Number(document.getElementById("bat").value), P[name].bat, `${name} BAT median slider`);
+    assert.equal(Number(document.getElementById("batk").value), P[name].batk ?? 1, `${name} BAT shape slider`);
     assert.equal(Number(document.getElementById("gpsc").value), P[name].gpsc, `${name} GPS cure slider`);
+    assert.equal(Number(document.getElementById("gpsu").value), P[name].gpsu, `${name} GPS uncured median slider`);
     assertRegalRendered(document, `forward ${name}`, before);
     await runRegalMC(document, `forward ${name}`);
   }

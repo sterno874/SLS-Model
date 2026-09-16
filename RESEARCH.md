@@ -1,6 +1,6 @@
 # SELLAS Life Sciences ($SLS) — Due Diligence Memo
 
-**As of:** 4 Jul 2026  
+**As of:** 16 Sep 2026
 **Ticker:** **SLS** — SELLAS Life Sciences Group, Inc. (NASDAQ)  
 **CIK:** [0001390478](https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001390478)  
 **Disclaimer:** Educational research for the SLS-Model app. Not investment, legal, or medical advice. Every material claim below is tagged **verified** / **partial** / **community** / **rejected** and linked where possible.
@@ -11,9 +11,9 @@
 
 SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galinpepimut-S)**, a WT1-targeting immunotherapy in pivotal Phase 3 **REGAL** (AML CR2 maintenance), and **SLS-009 (tambiciclib)**, a selective CDK9 inhibitor in Phase 2 for AML (r/r + frontline expansion).
 
-**Bull case (verified elements):** REGAL event pace (60 → 72 → 78 of 80) is slower than design assumptions; IDMC continued at interim; SLS-009 single-arm Ph2 shows large OS fold vs historical benchmarks; ~$107M cash (Mar 2026); WT1 is NCI #1-ranked cancer antigen.
+**Bull case (verified elements):** REGAL event pace (60 → 72 → 78 of 80) is slower than design assumptions; the Aug 11 update still said “approaching” 80; IDMC continued at interim; SLS-009 single-arm Ph2 remains favorable against contemporary external controls; $138.3M cash (Jun 2026); WT1 is NCI #1-ranked cancer antigen.
 
-**Bear case (verified elements):** Arm-level REGAL HR is **non-identifiable** from blinded pooled counts; Onureg (closest maintenance analog) had modest commercial uptake despite a positive trial; magrolimab $4.9B pre-approval deal failed Ph3; rapid dilution (basic shares ~90M → ~181.3M YoY); SLS-009 r/r evidence is single-arm.
+**Bear case (verified elements):** Arm-level REGAL HR is **non-identifiable** from blinded pooled counts; no 80th-event announcement is a public-status signal, not a disclosed event count; Onureg had modest commercial uptake despite a positive trial; rapid dilution took basic shares to ~201.9M; SLS-009 r/r evidence is single-arm, and Fatima 2026 raises its central historical mOS comparator from ~2.5m to 4.0m.
 
 **Model framing:** Header strip uses a **biology-first (bullish)** scenario (42% GPS cure, cw42 inverse → readout HR ~0.25) with **live risk-adj equity $/sh** at default P(GPS)≈65% / P(SLS)≈55%. Neutral-ridge HR fits (~0.45–0.64) remain plausible under identifiability. Not a price target.
 
@@ -24,18 +24,25 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 | Field | Value | Tag | Source |
 |-------|-------|-----|--------|
 | Legal name | SELLAS Life Sciences Group, Inc. | verified | SEC filings |
-| Cash (Mar 31, 2026) | **$107.1M** (+ $7.5M warrant proceeds in Q2 to date) | verified | [Q1 2026 PR](https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html) |
-| Q1 2026 net loss | ~$8.4M (~$9M/qtr opex) | verified | Q1 2026 PR |
-| Runway | ≥12 months from Q1 2026 filing (going concern) | verified | [Q1 2026 10-Q](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm) |
-| **Basic shares outstanding** | **~181.3M** (Mar 31, 2026) | verified | [Q1 2026 10-Q](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000008/sls-20260331.htm) · [Q1 2026 PR](https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html) |
-| **FD modeled (app default)** | **~222M** (basic + warrants/options/RSUs) | partial — model | Tab 3 valuation default |
-| **ATM dilution stress (model)** | **~240M** (~222M FD + full $150M ATM at ~$6.25/sh) | partial — model | Valuation dilution-stress preset |
-| ATM facility | Up to $150M authorized; unused to date | verified | Q1 2026 PR |
-| Dilution | Basic shares rose ~90M → ~181.3M in ~12 mo | verified | Q1 2026 PR |
+| Cash (Jun 30, 2026) | **$138.3M** | verified | [Q2 2026 10-Q](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000012/sls-20260630.htm) |
+| Q2 2026 net loss | **$9.6M**; H1 operating cash use $16.4M | verified | Q2 2026 10-Q |
+| Runway | ≥12 months from Q2 2026 filing (going concern) | verified | Q2 2026 10-Q |
+| **Basic shares outstanding** | **~201.9M** (Aug 10, 2026) | verified | Q2 2026 10-Q |
+| **FD modeled (app default)** | **~217.6M** (basic + 9.712M warrants + 2.649M options + 3.327M RSUs) | partial — model | Q2 2026 10-Q / Tab 3 |
+| **ATM dilution stress (model)** | **~241.6M** (~217.6M FD + full $150M ATM at ~$6.25/sh) | partial — model | Valuation dilution-stress preset |
+| ATM facility | Up to $150M authorized; unused through Q2 filing | verified | Q2 2026 10-Q |
+| 3D Medicines arbitration | SELLAS claims dismissed Jul 24, 2026; ~$1.0M fees allocated to SELLAS | verified | Q2 2026 10-Q |
 
-**Share-count narrative (canonical):** Use **basic outstanding ~181.3M** (Q1 2026 10-Q/PR) vs **FD modeled ~222M**. Do **not** treat bare “~196M” as the model denominator.
+**Share-count narrative (canonical):** Use **basic outstanding ~201.9M** vs **FD modeled ~217.6M**.
 
-**Equity $/sh identity (model):** `equity $/sh = (EV + cash) / FD shares` — cash default $107.1M.
+**Equity $/sh identity (model):** `equity $/sh = (EV + cash) / FD shares` — cash default $138.3M.
+
+### Other primary-source updates since 8 Jul 2026
+
+- **Institutional ownership:** Vanguard reported 9,666,278 shares/warrants (5.19%) and State Street reported 12,996,558 shares (7%), each as of Jun 30. These are ownership disclosures, not new issuance or additions to the share denominator ([Vanguard 13G](https://www.sec.gov/Archives/edgar/data/1390478/000210011926001315/primary_doc.xml); [State Street 13G](https://www.sec.gov/Archives/edgar/data/1390478/000009375126000539/primary_doc.xml)).
+- **SLS-009 registry:** Jul 29 version 15 changed a contact number only; Sep 3 version 16 expanded locations 26→32 and recruiting sites 10→12 without changing design, enrollment target, endpoints, dose or completion dates ([CT.gov history](https://clinicaltrials.gov/api/int/studies/NCT04588922/history); [version 16](https://clinicaltrials.gov/api/int/studies/NCT04588922/history/16)). This supports enrollment capacity, not efficacy.
+- **PDAC posters:** three preclinical SLS-009 abstracts were accepted for AACR Pancreatic Cancer; no numerical efficacy data were disclosed by the cutoff, and proceedings were scheduled for Sep 25 ([SELLAS announcement](https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-to-Present-Preclinical-Data-on-SLS009-in-Pancreatic-Ductal-Adenocarcinoma-at-the-2026-AACR-Conference-on-Pancreatic-Cancer/default.aspx); [AACR schedule](https://www.aacr.org/meeting/aacr-conference-on-pancreatic-cancer/abstracts/)). Track as exploratory optionality only.
+- **Registry negatives:** REGAL had no in-window ClinicalTrials.gov revision ([history](https://clinicaltrials.gov/api/int/studies/NCT04229979/history)); site/contact changes and CTIS estimates do not alter the confirmed N=127/event anchors.
 
 ---
 
@@ -62,6 +69,8 @@ CT.gov currently lists GPS dosing "as follows, until disease relapse": injection
 | 60 | ~46 | Jan 2025 interim PR | verified |
 | 72 | ~58 | Dec 2025 PR | verified |
 | 78 | ~63 (11 May 2026) | Q1 2026 PR | verified |
+| 78–79 official status bound | ~66 (11 Aug 2026) | Q2 update: “approaching” 80 | verified |
+| No trigger/topline announcement found | ~67.2 (16 Sep 2026) | Official IR/SEC/registry search | partial — announcement status only; reporting can lag |
 | 80 | TBD | protocol | verified |
 
 ### Biology-first vs neutral ridge
@@ -75,6 +84,17 @@ CT.gov currently lists GPS dosing "as follows, until disease relapse": injection
 **Identifiability:** Public data are **pooled** death totals only. Arm-level HR is **non-identified** without the split or strong structural assumptions (**verified** as a statistical fact; any point HR imports priors).
 
 **Control-arm priors:** Kurosawa *Haematologica* 2010 whole-cohort no-HCT 3-yr OS ~14% (not pure CR2; CR2 subgroups higher) — **verified**. Ven-era salvage mOS ~8–12 mo (Stahl 2021) — **verified**.
+
+### Van der Maas private-correspondence sensitivity
+
+u/neo2551 reported a reply attributed to the Van der Maas study group giving **median OS 16.8m (95% CI 12.3–27.4)** and **3-year OS 18.6% (95% CI 10.7–32.2)** for a purportedly REGAL-like non-transplant cohort ([Reddit thread](https://www.reddit.com/r/sellaslifesciences/comments/1w0lasw/aml_cr2_non_transplant_survival_data_over_bbq_van/)). The underlying extract is not public, and the survival origin (relapse, CR2 achievement, or randomization), eligibility mapping and transplant/rescue handling remain unresolved.
+
+The app therefore includes two named, explicitly non-central sensitivities:
+
+- **VDM email — literal pair:** Weibull BAT calibrated to 16.8m/18.6% plus GPS Phase 2 CR2 16.3m/no plateau. It implies roughly 75/97/103 pooled deaths at m46/m58/m63 and readout HR ~0.92, materially overpredicting the announced events.
+- **VDM BAT + anchor-fit GPS:** holds the reported BAT curve fixed and fits the app’s GPS family to 60/72/78 plus official Aug status. The best grid point (~60/73/77 modeled events) requires an extreme ~61% GPS plateau with ~6.5m uncured median and gives HR ~0.33. This demonstrates structural tension/non-identifiability; it does not validate the email statistics.
+
+Neither scenario changes the central BAT prior.
 
 ### HLA / mixed-responder biology sensitivity
 
@@ -101,9 +121,9 @@ REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life 
 |------|--------|-----|
 | NCT | [NCT04588922](https://clinicaltrials.gov/study/NCT04588922) | verified |
 | Setting | Open-label single-arm Ph2 + Aza/Ven, post-Ven r/r AML-MR | verified |
-| Key efficacy | ORR 46% (58% 1-prior-line); CR/CRi 29%; least-pretreated mOS **8.9 mo** vs ~2.5–2.6 historical | verified — ASH 2025 / [SEC 8-K](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000004/sls-202603198xkexhibit991.htm) |
-| Historical bench | Zainaldin 2022 ~2.4–2.6 mo; Stahl-like salvage up to ~6 mo | verified / partial |
-| Frontline | Randomized ~80-pt Ph2 enrolling (first patient Mar 2026); VIALE-A control anchor mOS 14.7, HR 0.66 | verified — [DiNardo NEJM 2020](https://pubmed.ncbi.nlm.nih.gov/32023337/) · [Mar 2026 PR](https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Announces-Enrollment-of-First-Patient-in-Newly-Diagnosed-First-Line-AML-Trial-of-SLS009/default.aspx) |
+| Key efficacy | ORR 46% (58% 1-prior-line); CR/CRi 29%; least-pretreated mOS **8.9 mo** | verified — ASH 2025 / [SEC 8-K](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000004/sls-202603198xkexhibit991.htm) |
+| Historical bench | Sponsor comparator ~2.4–2.6m; Fatima 2026 n=356: **4.0m overall**, 6.0m active Ven-containing salvage, 2.0m supportive care | verified / non-randomized — [Fatima 2026](https://doi.org/10.1038/s41408-026-01612-w) |
+| Frontline | Randomized ~80-pt Ph2; **28 enrolled by Aug 11**, topline guided Q4 2026 | verified — [Q2 update](https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx) |
 | Evidence grade | Single-arm vs historical — selection / immortal-time confounding | partial |
 
 **Rejected:** Treating r/r single-arm OS fold as equivalent to a randomized registrational win.
@@ -121,8 +141,8 @@ REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life 
 | Multiple | 5× peak | convention (oncology M&A ~4–8×) |
 | WT1 platform lump | $2.5B | assumption |
 | P(GPS) / P(SLS-009) | 65% / 55% | assumption — user priors |
-| Cash | $107.1M | verified |
-| FD shares | 222M | partial — model |
+| Cash | $138.3M | verified |
+| FD shares | 217.6M | partial — model |
 
 **Commercial duration caveat:** GPS and SLS-009 `years` inputs are average commercial years on therapy used to estimate the steady-state prevalent treated pool. For GPS, this should not be read as a REGAL protocol maximum: CT.gov extends GPS maintenance to Q2M in Year 2 and Q3M after 2 years until relapse.
 
@@ -132,7 +152,7 @@ REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life 
 - `EV = (Peak_GPS + Peak_SLS) × multiple + platform` (peaks optionally × P(approval))
 - `Equity $/sh = (EV + cash) / FD shares`
 
-**Base risk-adj equity $/sh (app defaults):** ≈ **$45.88** (biology-first valuation preset, P(GPS)=65%, P(SLS)=55%, cash $107.1M, 222M FD). Gross @100% success ≈ **$68**/sh.
+**Base risk-adj equity $/sh (app defaults):** ≈ **$46.96** (biology-first valuation preset, P(GPS)=65%, P(SLS)=55%, cash $138.3M, 217.6M FD). Gross @100% success ≈ **$69.13**/sh.
 
 ### Comparables
 
@@ -151,8 +171,29 @@ These are useful public-model comparators, **not model truth** and not arm-level
 
 | Comparator | Verified source | What it models | Key takeaways / caveats |
 |------------|-----------------|----------------|--------------------------|
-| Vola Corvidae / Khela7-style Monte Carlo | [Vola Corvidae public article](https://vola-corvidae.com/artikel/monte_carlo_simulations_sls.html) | Patient-level KM draws from Weibull OS priors, filters for interim non-futility/non-efficacy, still-not-80 status, then estimates REGAL PoS | Reports PoS around **77%** under declining-hazard assumptions; constant hazards can exceed 90%. Caveats: assumes simplified recruitment, source says code was forthcoming, and it is a patient-level simulator rather than this app's parametric expected-event engine. A requested 85.5% / HR~0.376 Reddit-specific figure was not directly verified from a primary/public source during this update, so it is not stated as fact here. |
-| MoAlbaek `Regal_modeling` | [GitHub repo](https://github.com/moalbaek/Regal_modeling) · [documentation](https://raw.githubusercontent.com/moalbaek/Regal_modeling/main/REGAL_MODEL_DOCUMENTATION.md) | Public-information reverse-engineering tool: calibrates pooled survival to 60/72/78, uses an explicit BAT component mixture, and simulates the pre-specified test | Verifies an explicit enrollment-selection lever (`esel`, 0–50%, default 25%) that drops weakest patients / keeps strongest, raising base BAT median OS **~8 → 12 → 19 months** as q rises 0 → 25 → 50%, while plateau P(success) drops **~100 → 94 → 13%** in the base preset. This is an analyst assumption lever, not disclosed REGAL BAT data. |
+| Vola Corvidae | [Article](https://vola-corvidae.com/artikel/monte_carlo_simulations_sls.html) · [code](https://github.com/Vola-Corvidae/medical-trial-Monte-Carlo-simulation) | Patient-level Weibull simulation | Article reports ~**77%**, but recalculation of the checked-in result artifact gives ~45% overall/~37% at the stated shape pair. Wall-clock seeding and artifact mismatch make 77% non-reproducible; sensitivity only. |
+| MoAlbaek `Regal_modeling` V2 | [GitHub repo](https://github.com/moalbaek/Regal_modeling) · [result bundle](https://github.com/moalbaek/Regal_modeling/blob/main/data/regal_v2_result_bundle.json) | Seven GPS effect families, BAT strata, joint history likelihood, interim-continuation conditioning, protocol-factor log-rank, ESS gates | Aug 26 production bundle reports **91.97%** under balanced priors (91.53–92.33% across named priors). The bundle validates and tests pass, but posterior concentration in cure/responder-cure families is structural; no HR/T80 posterior is serialized. Named external sensitivity, not this app’s headline. |
+| David Pham `regal-fitter` fork | [GitHub](https://github.com/davidpham87/regal-fitter) | Browser fork with final-HR intervals, KM overlays and worker pool | Aug defaults materially changed interim floor and BAT/GPS grids. No versioned result bundle under those defaults; web outputs require exported config/seed to cite quantitatively. |
+
+### Reddit review since the 8 Jul commit
+
+Only public/searchable material is covered; deleted/private comments and private Discord work cannot be audited.
+
+- **BAT heterogeneity/control improvement:** [Confident-Web Jul 9 stress test](https://www.reddit.com/r/sellaslifesciences/comments/1urcojv/bat_4yr_os_and_5yr_os_to_the_actual_fits_and_a/), [bearish response](https://www.reddit.com/r/sellaslifesciences/comments/1urvbsu/heres_why_i_think_confident_webs_due_diligence/), [Remarkable-Big Part A](https://www.reddit.com/r/sellaslifesciences/comments/1uvevrn/remarkablebigs_bat_thread_part_a/) and the [Jul 17 control-drift analogy](https://www.reddit.com/r/sellaslifesciences/comments/1uz4jcp/gps_could_match_its_phase_2_survival_and_still/) support broad both-arm tail sensitivity, not their quoted PoS values.
+- **Finite-event power:** the [Jul 12 Schoenfeld post](https://www.reddit.com/r/sellaslifesciences/comments/1uummii/ran_a_schoenfeld_power_coxcompression_model_on/) correctly emphasizes limited information at 80 events; its 63–65% mixture probability uses subjective weights and is not an external probability anchor.
+- **Reporting lag:** the [Jul 18 clinical-research discussion](https://www.reddit.com/r/clinicalresearch/comments/1v09xg1/oncology_trial_time_between_final_event_to/) supports separating event time from database-lock/topline timing. Anonymous operational estimates are qualitative only.
+- **Independent simulations:** the [Jul 27 Stochasty model](https://www.reddit.com/r/sellaslifesciences/comments/1v7m48i/results_of_a_monte_carlo_regal_simulation/) reported 78.1% raw/89.8% weighted and average HR 0.48, but benefit-constrained priors and simplified interim handling prevent importing those outputs. The [Jul 29 two-subgroup discussion](https://www.reddit.com/r/sellaslifesciences/comments/1v7pl92/) and [Jul 30 structural bear case](https://www.reddit.com/r/sellaslifesciences/comments/1vaqvtv/i_sold_my_sls_position_after_a_year_here_are_the/) reinforce explicit null/both-arm durable-survivor models.
+- **Kugler/strong-control sensitivity:** the [Aug 13 reconciliation](https://www.reddit.com/r/sellaslifesciences/comments/1vmya4v/a_kugler_reconciliation_case_for_a_floor_of_gps/) constructs BAT 16m/27% 3-year OS and HR ~0.46–0.47; the source-to-REGAL adjustments and ~81–82% PoS remain model assumptions.
+- **neo2551 control series:** [9m](https://www.reddit.com/r/sellaslifesciences/comments/1vrnyen/os_data_for_aml_cr2/), [8.2m](https://www.reddit.com/r/sellaslifesciences/comments/1vxt088/os_aml_cr2_without_transplant_data_82_months/), [10.8m](https://www.reddit.com/r/sellaslifesciences/comments/1vyr6ts/os_aml_cr2_without_transplant_data_multicenter/), [early venetoclax](https://www.reddit.com/r/sellaslifesciences/comments/1vzn4ll/os_aml_relapse_cr2_data_with_venetoclax_early/) and [Van der Maas correspondence](https://www.reddit.com/r/sellaslifesciences/comments/1w0lasw/aml_cr2_non_transplant_survival_data_over_bbq_van/) show a wide literature range and unresolved clock/population mapping. Only the VDM figures are added as named private-source sensitivities.
+- **September confidence reversal:** [summary](https://www.reddit.com/r/sellaslifesciences/comments/1wdmtjt/the_discord_ddrama/), [moderator explanation](https://www.reddit.com/r/sellaslifesciences/comments/1wdn1cf/addressing_todays_concerns_the_discord_the_models/) and [counterclaim](https://www.reddit.com/r/sellaslifesciences/comments/1wdnqnb/a_couple_things/) report private-model estimates spanning roughly 33–80%. Mechanisms enter sensitivity analysis; private outputs, contributor trades and manipulation allegations do not.
+- **Sep 12–13 independent views:** [12–14m BAT](https://www.reddit.com/r/sellaslifesciences/comments/1wedwyb/my_thoughts_on_regal_bat_survival_and_why_i_think/), [8m BAT](https://www.reddit.com/r/sellaslifesciences/comments/1wen7u9/dd_a_realistic_breakdown_of_sls_regal_phase_3_bat/), [constraint analysis](https://www.reddit.com/r/sellaslifesciences/comments/1wf9oku/regal_at_975_eventcount_maturity_gps_appears_more/) and [valuation/odds](https://www.reddit.com/r/sellaslifesciences/comments/1wfa2uw/valuation_odds_and_context_considerations/) remain scenarios. Weighted averages of subgroup medians are rejected as invalid mixture medians.
+
+### New methods and salvage evidence
+
+- **[Fatima 2026](https://doi.org/10.1038/s41408-026-01612-w) (n=356):** establishes the 4.0m overall / 6.0m active Ven-salvage / 2.0m supportive-care SLS-009 benchmark mixture; not a REGAL CR2 BAT cohort.
+- **[Berdel 2026 HAM-VEN](https://doi.org/10.3324/haematol.2026.301102)** and **[Warraich 2026 post-HCT](https://doi.org/10.1002/ajh.70480):** durable survival is heavily transplant-conditioned; retain a separate transplant tail rather than lifting no-HCT BAT.
+- **[Dumas 2026](https://doi.org/10.1111/bjh.70815) (n=317):** modern first-relapse salvage achieved similar CR2 and OS across VEN-AZA/cytarabine strategies, but roughly 55% of CR2 responders received HCT; no direct REGAL BAT-median change.
+- **[Zhao 2026](https://doi.org/10.1016/j.jclinepi.2026.112439)** supports the app’s RMST output because updated oncology HRs were less stable under non-PH. **[Okumura 2026](https://doi.org/10.1093/jjco/hyag133)** supports piecewise/time-varying sensitivity; the existing delayed-effect/Fleming-Harrington controls remain sensitivity analyses rather than a new primary estimand.
 
 ---
 
@@ -207,5 +248,13 @@ These are useful public-model comparators, **not model truth** and not arm-level
 14. [MoAlbaek REGAL modeling GitHub](https://github.com/moalbaek/Regal_modeling)
 15. [Maslak 2018 — GPS Phase 2 CR1 / immune responses](https://doi.org/10.1182/bloodadvances.2017014175)
 16. [Maslak 2010 — WT1 peptide vaccine / HLA rationale](https://pmc.ncbi.nlm.nih.gov/articles/PMC2910606/)
+17. [Q2 2026 financials / REGAL “approaching 80” update](https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx)
+18. [Q2 2026 10-Q](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000012/sls-20260630.htm)
+19. [Fatima et al. 2026 — outcomes after frontline Ven-HMA failure](https://doi.org/10.1038/s41408-026-01612-w)
+20. [Berdel et al. 2026 — HAM-VEN salvage](https://doi.org/10.3324/haematol.2026.301102)
+21. [Warraich et al. 2026 — post-Ven-HMA transplant outcomes](https://doi.org/10.1002/ajh.70480)
+22. [Dumas et al. 2026 — VEN-AZA vs cytarabine salvage](https://doi.org/10.1111/bjh.70815)
+23. [Zhao et al. 2026 — RMST versus HR stability](https://doi.org/10.1016/j.jclinepi.2026.112439)
+24. [Okumura et al. 2026 — piecewise Bayesian non-PH analysis](https://doi.org/10.1093/jjco/hyag133)
 
 Full clickable lists also live in each app tab’s **References** and the **Explain** tab (ELI5 → PhD).

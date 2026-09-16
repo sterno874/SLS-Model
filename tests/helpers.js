@@ -2,6 +2,7 @@ import {
   T1,
   T2,
   T3,
+  T4,
   E1,
   E2,
   E3,
@@ -42,7 +43,7 @@ export function paramsFromPresetQ(q) {
   return {
     bat: q.bat,
     batc: q.batc / 100,
-    batk: 1,
+    batk: q.batk != null ? q.batk : 1,
     gpsc: q.gpsc / 100,
     gpsu: q.gpsu,
     delay: q.delay,
@@ -70,13 +71,13 @@ export function poisLogLThrough(p, throughMonth) {
   const e46v = eventsAt(46, p, 100);
   const e58v = eventsAt(58, p, 100);
   const e63v = eventsAt(63, p, 100);
-  const e65v = eventsAt(65, p, 100);
+  const eStatus = eventsAt(T4, p, 100);
   let ll = 0;
   if (throughMonth >= 46) ll += lpois(60, e46v);
   if (throughMonth >= 58) ll += lpois(12, Math.max(0, e58v - e46v));
   if (throughMonth >= 63) ll += lpois(6, Math.max(0, e63v - e58v));
-  if (throughMonth >= 65) {
-    ll += Math.log(Math.max(1e-12, poisLE(1, Math.max(0, e65v - e63v))));
+  if (throughMonth >= T4) {
+    ll += Math.log(Math.max(1e-12, poisLE(1, Math.max(0, eStatus - e63v))));
   }
   return ll;
 }

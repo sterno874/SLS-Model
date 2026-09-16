@@ -53,7 +53,7 @@ import {
   eventErr
 } from "../js/math/survival.js";
 import { mk } from "./helpers.js";
-import { P, INV } from "./fixtures/presets.js";
+import { P, INV, EXTERNAL_SENSITIVITY_PRESET_NAMES } from "./fixtures/presets.js";
 import { paramsFromPresetQ } from "../js/ui/state.js";
 
 const best = mk({});
@@ -123,13 +123,13 @@ test("golden: T80PrPace linear estimate ≈ 64.67 mo", () => {
   assert.ok(Math.abs(T80PrPace() - 64.666667) < 0.01);
 });
 
-test("golden: T80(best) ≈ 66.01 mo", () => {
-  assert.ok(Math.abs(T80(best) - 66.012060) < 0.01);
+test("golden: official-status-conditioned T80(best) ≈ 67.60 mo", () => {
+  assert.ok(Math.abs(T80(best) - 67.602240) < 0.01);
 });
 
-test("golden: t80Analysis(best,72) Tan=t80, Dan=80 when t80≤cutoff", () => {
+test("golden: status-conditioned t80Analysis(best,72) reaches 80", () => {
   const a = t80Analysis(best, 72);
-  assert.ok(Math.abs(a.t80 - 66.012060) < 0.01);
+  assert.ok(Math.abs(a.t80 - 67.602240) < 0.01);
   assert.ok(Math.abs(a.Tan - a.t80) < 0.01);
   assert.equal(a.Dan, 80);
 });
@@ -210,8 +210,8 @@ test("golden: hrGaugeState(best,72) field values", () => {
   const gs = hrGaugeState(best, 72);
   assert.ok(Math.abs(gs.hrInterim - 0.304720) < 0.001);
   assert.ok(Math.abs(gs.hrM58 - 0.269526) < 0.001);
-  assert.ok(Math.abs(gs.hrReadout - 0.261769) < 0.001);
-  assert.ok(Math.abs(gs.t80 - 66.012060) < 0.01);
+  assert.ok(Math.abs(gs.hrReadout - 0.260599) < 0.001);
+  assert.ok(Math.abs(gs.t80 - 67.602240) < 0.01);
   assert.equal(gs.Dan, 80);
   assert.equal(gs.interimWouldStop, true);
   assert.equal(gs.interimClearsFloor, false);
@@ -340,7 +340,7 @@ test("passesVerdict requires pooled median > 13.5 mo for best preset", () => {
   assert.ok(passesVerdict(best));
 });
 
-for (const name of Object.keys(P)) {
+for (const name of Object.keys(P).filter((n) => !EXTERNAL_SENSITIVITY_PRESET_NAMES.includes(n))) {
   test(`preset invariant: forward "${name}" events @ anchors within tolerance`, () => {
     const p = paramsFromPresetQ(P[name]);
     assert.ok(Math.abs(eventsAt(T1, p) - E1) <= 4, `e46 for ${name}`);
@@ -348,6 +348,22 @@ for (const name of Object.keys(P)) {
     assert.ok(Math.abs(eventsAt(T3, p) - E3) <= 3, `e63 for ${name}`);
   });
 }
+
+test("VDM literal sensitivity reproduces reported BAT median and 3-year OS", () => {
+  const p = paramsFromPresetQ(P.vdm);
+  assert.ok(Math.abs(medianOf(sBAT, p) - 16.8) < 0.05);
+  assert.ok(Math.abs(sBAT(36, p) - 0.186) < 0.005);
+  assert.ok(!passesVerdict(p), "literal email/GPS pair should not be mislabeled as event-compatible");
+});
+
+test("VDM BAT anchor-fit sensitivity fits events but breaches central BAT cap", () => {
+  const p = paramsFromPresetQ(P.vdmfit);
+  assert.ok(Math.abs(eventsAt(T1, p) - E1) <= 4);
+  assert.ok(Math.abs(eventsAt(T2, p) - E2) <= 3);
+  assert.ok(Math.abs(eventsAt(T3, p) - E3) <= 3);
+  assert.ok(passesVerdict(p));
+  assert.ok(!isBiologicallyPlausible(p));
+});
 
 for (const name of Object.keys(INV)) {
   test(`preset invariant: inverse "${name}" solved params pass passesVerdict`, () => {

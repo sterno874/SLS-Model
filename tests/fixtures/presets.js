@@ -8,11 +8,14 @@ export const P = {
   bear: { bat: 10, batc: 16, gpsc: 14, gpsu: 29, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true, irm_lead: 3 },
   cw: { bat: 10.5, batc: 1, gpsc: 41, gpsu: 35.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false, irm_lead: 3 },
   capbreach: { bat: 10.5, batc: 21, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true, irm_lead: 3 },
-  noeffect: { bat: 14, batc: 28, gpsc: 28, gpsu: 14, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 3 }
+  noeffect: { bat: 14, batc: 28, gpsc: 28, gpsu: 14, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 3 },
+  vdm: { bat: 16.8, batc: 0, batk: 1.16, gpsc: 0, gpsu: 16.3, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 0 },
+  vdmfit: { bat: 16.8, batc: 0, batk: 1.16, gpsc: 61, gpsu: 6.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 0 }
 };
 
 /** Ridge/null presets fit anchors by design but are not biology-first anchor fits. */
 export const RIDGE_PRESET_NAMES = ["noeffect"];
+export const EXTERNAL_SENSITIVITY_PRESET_NAMES = ["vdm", "vdmfit"];
 
 export const INV = {
   cw42: { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
@@ -25,7 +28,7 @@ export const FORWARD_PRESET_NAMES = Object.keys(P);
 
 /** Forward presets expected to pass event trajectory + biological BAT caps. */
 export const PLAUSIBLE_PRESET_NAMES = FORWARD_PRESET_NAMES.filter(
-  (n) => !RIDGE_PRESET_NAMES.includes(n) && n !== "capbreach"
+  (n) => !RIDGE_PRESET_NAMES.includes(n) && !EXTERNAL_SENSITIVITY_PRESET_NAMES.includes(n) && n !== "capbreach"
 );
 
 export const INVERSE_PRESET_NAMES = Object.keys(INV);
