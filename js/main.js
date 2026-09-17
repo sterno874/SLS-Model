@@ -32,9 +32,12 @@ import {
   lpois,
   poisLE,
   enrollCDF,
+  sBATbase,
+  sGPSbase,
   sBAT,
   sGPS,
   poolS,
+  armDeaths,
   eventsAt,
   eventsAtAnchored,
   eventsAtStatusConditioned,
@@ -221,6 +224,7 @@ function scheduleUpdate(){
   });
 }
 function refreshOpenPanels(){
+  if(panelOpen("panelModelTables"))renderModelTables();
   if(panelOpen("panelIRM"))renderIRM();
   if(panelOpen("panelBayes"))updateBayes();
   if(panelOpen("panelBacktest"))renderBacktest();
@@ -1304,6 +1308,91 @@ function updateBayes(){
 }
 ["bf_e58","bf_cure"].forEach(id=>on(id,"input",updateBayes));
 
+// ================= CW-STYLE CURRENT-MODEL TABLES =================
+function tableValue(value,cls){
+  return "<span class='num"+(cls?" "+cls:"")+"'>"+value+"</span>";
+}
+function renderModelTables(){
+  const p=readParams(),lead=readLeadTime(),cutoff=+$("cutoff").value,binding=$("mcFloor").checked;
+  const bm=medianOf(sBAT,p),gm=medianOf(sGPS,p),pmv=medianOf(poolS,p);
+  const {t80,Tan,Dan}=t80Analysis(p,cutoff,110),aFinal=analyzeLR(Tan,p),aInterim=analyzeLR(T1,p);
+  const pwinInfo=getCurrentPwin(),pwin=pwinInfo.pw,pfail=1-pwin;
+  const batAlive=armAlive(t80,p,sBAT),gpsAlive=armAlive(t80,p,sGPS);
+  const e46=eventsAt(T1,p),e58=eventsAt(T2,p),e63=eventsAt(T3,p);
+  const anchorRmse=Math.sqrt(((e46-E1)**2+(e58-E2)**2+(e63-E3)**2)/3);
+  const plausible=passesVerdict(p)&&isBiologicallyPlausible(p);
+  const selectedLabel=regalMode==="inverse"
+    ?((PRESET_NAMES[activeInvPreset]||activeInvPreset)+" · inverse")
+    :((activeRegalPreset&&PRESET_NAMES[activeRegalPreset])||"Custom controls");
+  const med=v=>v==null?"NR (>240 m)":v.toFixed(1)+" m";
+  const pwinCls=pwin>=0.8?"model-win":(pwin>=0.5?"model-caution":"model-fail");
+  const resultCls=aFinal.z>ZFINAL?"model-win":"model-fail";
+  const summaryRows=[
+    ["Scenario",selectedLabel,"Current preset or custom-slider state; this is not a disclosed REGAL result."],
+    ["Significance test",p.fh?"Late-weighted FH(0,1)":"Unweighted log-rank",(p.fh?"Later deaths receive more weight.":"Each death receives equal weight.")+" The complete SAP is unavailable."],
+    ["BAT mOS — from randomization",med(bm),"Model-implied IRM median. Implied CR2-onset ≈ "+fmtCr2Onset(bm,lead)+" after the display-only "+lead.toFixed(1)+"-month lead adjustment."],
+    ["BAT 3-year OS",(100*sBAT(36,p)).toFixed(1)+"%","From-randomization model survival, including the BAT tail and ITT transplant setting."],
+    ["GPS durable plateau",(100*p.gpsc).toFixed(1)+"%","Structural mixture-cure parameter; not an observed or adjudicated cure rate."],
+    ["GPS uncured residual mOS",p.gpsu.toFixed(1)+" m","Post-onset residual median among the declining GPS component."],
+    ["GPS overall mOS — from randomization",med(gm),"Median of the full GPS mixture curve; may be not reached when the modeled plateau is large."],
+    ["GPS 3-year OS",(100*sGPS(36,p)).toFixed(1)+"%","Full GPS mixture survival at 36 months from randomization."],
+    ["Pooled mOS",med(pmv),"Blinded 50/50 model mixture; public interim disclosure only established >13.5 months."],
+    ["Anchor residual RMSE",anchorRmse.toFixed(2)+" events","Root-mean-square miss against public pooled anchors 60/72/78; lower is a closer fit."],
+    ["Projected 80th event","m"+t80.toFixed(1)+" · "+fmtCalMonth(t80),"Conditional predictive median under the selected Aug-status assumption."],
+    ["BAT / GPS modeled alive @ T80",batAlive.toFixed(1)+" / "+gpsAlive.toFixed(1),"Enrollment-weighted model estimate—not the undisclosed treatment-arm split."],
+    ["Interim HR / Z",aInterim.hr.toFixed(3)+" / "+aInterim.z.toFixed(2),"Expected model score at 60-event interim timing; the actual unblinded values are unknown."],
+    ["Readout HR / Z",aFinal.hr.toFixed(3)+" / "+aFinal.z.toFixed(2),"At m"+Tan.toFixed(1)+" and ~"+Dan.toFixed(0)+" events. HR is Pike-style descriptive; Z drives the app verdict."],
+    ["Margin to final Z boundary",(aFinal.z-ZFINAL>=0?"+":"")+(aFinal.z-ZFINAL).toFixed(2),aFinal.z>ZFINAL?"Expected score clears Z="+ZFINAL.toFixed(3)+".":"Expected score misses Z="+ZFINAL.toFixed(3)+"."],
+    ["P(significant win)",tableValue((100*pwin).toFixed(1)+"%",pwinCls),pwinInfo.src+"."],
+    ["P(failure)",tableValue((100*pfail).toFixed(1)+"%",pfail>0.5?"model-fail":(pfail>0.2?"model-caution":"model-win")),"Complement of the displayed P(significant win); not FDA approval probability."],
+    ["Point-scenario verdict",tableValue(aFinal.z>ZFINAL?"SIGNIFICANT":"MISSES",resultCls),(plausible?"Passes event-fit and biological screens.":"Fails at least one strict event-fit or biological screen.")+" Statistical verdict uses modeled Z, not HR 0.636 as a second rule."]
+  ];
+  const summaryBody=$("modelSummaryBody");
+  if(summaryBody)summaryBody.innerHTML=summaryRows.map(r=>"<tr><td>"+r[0]+"</td><td>"+r[1]+"</td><td>"+r[2]+"</td></tr>").join("");
+
+  const survivalBody=$("modelSurvivalBody"),followupMonths=[0,6,12,24,36,48,60];
+  if(survivalBody)survivalBody.innerHTML=followupMonths.map(month=>{
+    const bat=100*sBAT(month,p),gps=100*sGPS(month,p),pool=100*poolS(month,p);
+    return "<tr><td>"+month+" m</td><td class='num'>"+bat.toFixed(1)+"%</td><td class='num'>"+gps.toFixed(1)+"%</td><td class='num'>"+pool.toFixed(1)+"%</td><td class='num'>"+(gps-bat>=0?"+":"")+(gps-bat).toFixed(1)+" pp</td></tr>";
+  }).join("");
+
+  const checkpoints=[
+    {month:T1,public:E1+" announced",note:"Interim timing; model is compared with the 60-death pooled anchor."},
+    {month:T2,public:E2+" announced",note:"December 2025 pooled event update."},
+    {month:T3,public:E3+" announced",note:"May 2026 confirmed pooled event count."},
+    {month:T4,public:p.assumeStatus?"“Approaching 80” interpreted as <80":"No numeric count used",note:"Optional wording-based sensitivity, not a disclosed event count."},
+    {month:t80,public:"80-event trigger (projected)",note:"Conditional predictive T80; raw curve deaths can differ because the projection is anchored to public counts."}
+  ];
+  const eventsBody=$("modelEventsBody");
+  if(eventsBody)eventsBody.innerHTML=checkpoints.map(row=>{
+    const db=armDeaths(row.month,p,sBATbase,110),dg=armDeaths(row.month,p,sGPSbase,110),a=analyzeLR(row.month,p);
+    return "<tr><td class='num'>m"+row.month.toFixed(1)+" · "+fmtCalMonth(row.month)+"</td><td>"+row.public+"</td><td class='num'>"+(db+dg).toFixed(1)+"</td><td class='num'>"+db.toFixed(1)+" / "+dg.toFixed(1)+"</td><td class='num'>"+a.hr.toFixed(3)+"</td><td class='num'>"+a.z.toFixed(2)+"</td><td>"+row.note+"</td></tr>";
+  }).join("");
+
+  const meta=$("modelTableMeta");
+  if(meta)meta.textContent=selectedLabel+" · "+(p.fh?"FH(0,1) late-weighted":"unweighted")+" · "+(binding?"binding":"informational")+" interim · cutoff m"+cutoff+" · generated "+new Date().toLocaleString();
+  const status=$("modelTablesStatus");if(status)status.textContent="Current calculations rendered";
+}
+function clearModelTablePrint(){
+  document.body.classList.remove("print-model-tables");
+  const sheet=$("modelTablePrintSheet");if(sheet)sheet.replaceChildren();
+}
+function printModelTables(){
+  const panel=$("panelModelTables");if(panel)panel.open=true;
+  renderModelTables();
+  const view=$("modelTableView"),sheet=$("modelTablePrintSheet");if(!view||!sheet)return;
+  sheet.replaceChildren();
+  const clone=view.cloneNode(true);
+  clone.removeAttribute("id");
+  clone.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+  sheet.appendChild(clone);
+  document.body.classList.add("print-model-tables");
+  requestAnimationFrame(()=>{try{window.print();}finally{setTimeout(clearModelTablePrint,0);}});
+}
+onClick("modelTablesRefresh",renderModelTables);
+onClick("modelTablesPrint",printModelTables);
+window.addEventListener("afterprint",clearModelTablePrint);
+
 // ================= LEAD-TIME / IRM SENSITIVITY (display-only) =================
 const CW_REF={irm:12.61,hr:0.37,bat3:19.6,batAlive:11.3,gpsAlive:34.7,pool:18.7};
 function armAlive(T,p,fn){let a=0;for(let i=0;i<180;i++){const e0=LMAX*i/180,e1=LMAX*(i+1)/180,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);if(em>=T)continue;a+=N_ARM*w*fn(T-em,p);}return a*(1-p.cens*0.5);}
@@ -1355,6 +1444,7 @@ on("irm_lead","input",()=>{
   // Display-only: refresh IRM/CR2-onset labels without re-solving events.
   const p=readParams();
   renderLeadTimeSensitivity(medianOf(sBAT,p),medianOf(sGPS,p),medianOf(poolS,p));
+  if(panelOpen("panelModelTables"))renderModelTables();
   if(!restoringState)updateHashQuiet();
 });
 
@@ -1688,7 +1778,7 @@ function loadValCommunityDD(){
 // ================= MOBILE COLLAPSE (#9) =================
 function initMobileCollapse(){
   if(window.innerWidth>768)return;
-  ["howworks","panelTornado","panelBayes","panelIRM","panelT80","panelScmp","panelEvtSens","panelPresetCmp","panelBacktest","panelCW","panelCommunity","panelSlsBench","panelSlsBear","panelSlsComp","panelSlsCommunity","panelValWt1","panelValTam","panelValComp","panelValBear","panelValPresets","panelValCommunity"].forEach(id=>{
+  ["howworks","panelModelTables","panelTornado","panelBayes","panelIRM","panelT80","panelScmp","panelEvtSens","panelPresetCmp","panelBacktest","panelCW","panelCommunity","panelSlsBench","panelSlsBear","panelSlsComp","panelSlsCommunity","panelValWt1","panelValTam","panelValComp","panelValBear","panelValPresets","panelValCommunity"].forEach(id=>{
     const el=$(id);if(el&&el.tagName==="DETAILS")el.open=false;
   });
 }
@@ -1756,7 +1846,7 @@ function initApp(){
   updateBestEstStrip();
   initLiveQuote();
 }
-["panelIRM","panelBayes","panelBacktest","panelCommunity","panelSlsCommunity","panelValCommunity"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open){if(id==="panelCommunity")loadCommunityDD();else if(id==="panelSlsCommunity")loadSlsCommunityDD();else if(id==="panelValCommunity")loadValCommunityDD();else refreshOpenPanels();}});});
+["panelModelTables","panelIRM","panelBayes","panelBacktest","panelCommunity","panelSlsCommunity","panelValCommunity"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open){if(id==="panelCommunity")loadCommunityDD();else if(id==="panelSlsCommunity")loadSlsCommunityDD();else if(id==="panelValCommunity")loadValCommunityDD();else refreshOpenPanels();}});});
 requestAnimationFrame(()=>{
   setTimeout(()=>{
     try{initApp();}finally{forceHideLoading();}

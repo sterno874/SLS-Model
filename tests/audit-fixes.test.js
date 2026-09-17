@@ -237,6 +237,21 @@ test("unweighted versus late-weighted significance is a prominent live sensitivi
   assert.match(js, /testWeightStatus"\)\.textContent=p\.fh\?/);
 });
 
+test("CW-style table report uses current model calculations and has a focused print view", () => {
+  assert.match(html, /id="panelModelTables"/);
+  assert.match(html, /every value below is recomputed from <b>this app’s current sliders and methods<\/b>/);
+  for (const id of ["modelSummaryBody", "modelSurvivalBody", "modelEventsBody", "modelTablesPrint", "modelTablePrintSheet"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(html, /BAT \/ GPS deaths/);
+  assert.match(html, /Log-rank Z/);
+  assert.match(js, /function renderModelTables\(\)/);
+  assert.match(js, /armDeaths\(row\.month,p,sBATbase,110\)/);
+  assert.match(js, /if\(panelOpen\("panelModelTables"\)\)renderModelTables\(\)/);
+  assert.match(js, /function printModelTables\(\)/);
+  assert.match(js, /classList\.add\("print-model-tables"\)/);
+});
+
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------
 test("approx-fit warning cites the pooled-median floor, not e63", () => {
   assert.match(js, /pooled median OS/);

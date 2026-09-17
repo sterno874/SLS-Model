@@ -356,6 +356,15 @@ test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 15
   await import(`${pathToFileURL(path.join(root, "js/main.js")).href}?preset-dom-matrix=${Date.now()}`);
   await waitFor(() => document.getElementById("chart").__drawCalls > 0, "initial REGAL draw");
 
+  const modelTables = document.getElementById("panelModelTables");
+  modelTables.open = true;
+  modelTables.dispatchEvent(new Event("toggle"));
+  await waitFor(() => document.querySelectorAll("#modelSummaryBody tr").length >= 18, "CW-style summary table");
+  assert.equal(document.querySelectorAll("#modelSurvivalBody tr").length, 7);
+  assert.equal(document.querySelectorAll("#modelEventsBody tr").length, 5);
+  noBadText(document, ["modelSummaryBody", "modelSurvivalBody", "modelEventsBody"], "CW-style model tables");
+  modelTables.open = false;
+
   const forward = [...document.querySelectorAll("button[data-preset]")].map((b) => b.dataset.preset);
   const inverse = [...document.querySelectorAll("button[data-inv]")].map((b) => b.dataset.inv);
   const sls = [...document.querySelectorAll("button[data-sls]")].map((b) => b.dataset.sls);

@@ -474,6 +474,45 @@
     <div id="mcStats" class="stats-line"></div>
     <div id="mcHist" class="mc-hist-host"></div>
     <div class="regal-panels">
+<!-- CW-STYLE MODEL TABLES -->
+<details class="feat-panel model-tables-panel" id="panelModelTables">
+  <summary>Table view — CW-style layout using our calculations <span class="tag m">model</span></summary>
+  <div class="panel-body">
+    <p class="cw-note">Uses familiar columns from u/Confident-Web-7118’s posts and replies—BAT/GPS medians, cure fraction, survival, event fit, alive split, HR and significance—but every value below is recomputed from <b>this app’s current sliders and methods</b>. It does not import CW’s fitted values or probabilities. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tpcgsn/request_for_confidentweb/" target="_blank" rel="noopener">Example format</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM format</a></p>
+    <div class="model-table-toolbar no-print">
+      <button class="p p-run" id="modelTablesRefresh">↻ Refresh tables</button>
+      <button class="p p-run" id="modelTablesPrint">🖨 Print table report</button>
+      <span id="modelTablesStatus" class="run-status"></span>
+    </div>
+    <div id="modelTableView" class="model-table-report">
+      <div class="model-table-heading">
+        <h3>REGAL current-scenario calculation sheet</h3>
+        <p id="modelTableMeta"></p>
+      </div>
+
+      <h4>1 · Scenario assumptions and readout</h4>
+      <div class="table-wrap"><table class="cw-table model-calc-table" id="modelSummaryTable">
+        <thead><tr><th>Metric</th><th>Our calculation</th><th>Explanation / interpretation</th></tr></thead>
+        <tbody id="modelSummaryBody"></tbody>
+      </table></div>
+
+      <h4>2 · Modeled survival from randomization</h4>
+      <div class="table-wrap"><table class="cw-table model-calc-table" id="modelSurvivalTable">
+        <thead><tr><th>Follow-up month</th><th>BAT survival</th><th>GPS survival</th><th>Pooled survival</th><th>GPS − BAT</th></tr></thead>
+        <tbody id="modelSurvivalBody"></tbody>
+      </table></div>
+      <p class="model-table-footnote">These are per-patient survival-curve values from randomization—not calendar-month survivor counts. “Plateau” is a structural model parameter, not a disclosed cured fraction.</p>
+
+      <h4>3 · Public event-anchor fit and projected readout</h4>
+      <div class="table-wrap"><table class="cw-table model-calc-table model-event-table" id="modelEventsTable">
+        <thead><tr><th>Trial month / calendar</th><th>Public reference</th><th>Our pooled deaths</th><th>BAT / GPS deaths</th><th>HR</th><th>Log-rank Z</th><th>Explanation</th></tr></thead>
+        <tbody id="modelEventsBody"></tbody>
+      </table></div>
+      <p class="model-table-footnote">Arm-level deaths, survivor split, HR and Z are model-derived because SELLAS remains blinded. Public numbers constrain only pooled deaths. HR is descriptive; the app’s significance verdict uses Z against the selected test boundary.</p>
+    </div>
+  </div>
+</details>
+
 <!-- SENSITIVITY TORNADO -->
 <details class="feat-panel" id="panelTornado">
   <summary>Sensitivity tornado — which inputs move P(win) most? <span class="tag m">model</span></summary>
@@ -2164,7 +2203,9 @@
   </div>
 </footer>
 
-<script type="module" src="js/main.js?v=20260917a"></script>
+<section class="print-only model-table-print-sheet" id="modelTablePrintSheet"></section>
+
+<script type="module" src="js/main.js?v=20260917b"></script>
 <script>
   (function(){
     var h=location.hostname;
