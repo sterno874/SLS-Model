@@ -430,7 +430,7 @@
     <h2 id="mcPanelTitle">Monte Carlo — final-HR distribution</h2>
     <div id="mcPanelHint" class="panel-lead">Samples truncated-normal priors and <b>weights every draw continuously by the Poisson likelihood</b> of 60 @ m46, +12 to m58, and +6 to m63. When enabled, the explicit Aug sensitivity also weights P(≤1 additional event by m66). Win uses modeled log-rank Z &gt; 2.01; HR 0.636 from the <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a> is the PH reference. September announcement silence is not converted into a count.</div>
     <div class="mc-toolbar">
-      <button class="p p-run" id="mcRun">▶ Run 200k draws</button>
+      <button class="p p-run" id="mcRun">▶ Run simulation (~4s)</button>
       <button class="p" id="mcNeutral" data-regal-mode="forward">Set Best Available Guess priors</button>
       <label>analysis cutoff month <input type="range" id="cutoff" min="66" max="84" step="1" value="72"><b id="vCut">72</b></label>
       <span id="mcStatus" class="run-status">not run yet — click to run</span>
@@ -2128,7 +2128,7 @@
   </div>
 </footer>
 
-<script type="module" src="js/main.js"></script>
+<script type="module" src="js/main.js?v=20260916b"></script>
 <script>
   (function(){
     var h=location.hostname;

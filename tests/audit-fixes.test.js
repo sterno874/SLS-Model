@@ -18,6 +18,7 @@ import { P, INV } from "./fixtures/presets.js";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const js = readFileSync(path.join(root, "js/main.js"), "utf8");
+const regalMcWorker = readFileSync(path.join(root, "js/workers/regal-mc-worker.js"), "utf8");
 const html = readFileSync(path.join(root, "index.html"), "utf8");
 
 // ---------- Finding 6: MC histogram dynamic bounds + clamped markers ----------
@@ -140,6 +141,27 @@ test("truncated draws have no clamped boundary atoms and weighted quantiles use 
   }
   const rows = [{ x: 1, w: 1 }, { x: 2, w: 1 }, { x: 9, w: 20 }];
   assert.equal(weightedQuantile(rows, "x", 0.5), 9);
+});
+
+test("uncertainty envelope uses the current truncated sampler", () => {
+  assert.match(js, /function mcEnvelope[\s\S]*q\[f\]=sampleField\(f,ctr\[f\],0\.5\)/);
+  assert.doesNotMatch(js, /\bclampf\s*\(/, "removed clampf helper must not remain in a lazy chart path");
+  assert.match(js, /function sampleField\(f,mu,sdScale\)/);
+});
+
+test("full confidence-band redraw wins when animation-frame updates coalesce", () => {
+  assert.match(js, /if\(pendingDrawRaf\)\{pendingDrawLight=pendingDrawLight&&!!light;return;\}/);
+  assert.match(js, /onChange\("showUncertainty",function\(\)\{showUncertainty=this\.checked;deferWithLoading\(\(\)=>updateNow\(true\)/);
+});
+
+test("REGAL Monte Carlo runs off the browser main thread and is cancellable", () => {
+  assert.match(js, /new Worker\(new URL\("\.\/workers\/regal-mc-worker\.js",import\.meta\.url\)/);
+  assert.match(js, /function cancelRegalMC\(\)/);
+  assert.match(js, /function clearRegalMCOutput\(msg\)\{\s*cancelRegalMC\(\)/);
+  assert.doesNotMatch(js, /for\(let i=0;i<MAX;i\+\+\)\{\s*if\(performance\.now\(\)-t0>3[0-9]{3}\)/);
+  assert.match(regalMcWorker, /function runForward\(data\)/);
+  assert.match(regalMcWorker, /function runInverse\(data\)/);
+  assert.match(regalMcWorker, /postMessage\(\{ type: "progress"/);
 });
 
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------

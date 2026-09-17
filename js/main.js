@@ -165,9 +165,9 @@ function scheduleDraw(p,light){
   // Freeze chart on last fitting scenario when current params miss anchors (matches chartStaleMsg).
   const drawP=plausible||bioReject?p:(lastConsistentP||null);
   pendingDrawP=drawP;
-  pendingDrawLight=!!light;
   updatePlausibilityUI(p,plausible,approxFit,bioReject);
-  if(pendingDrawRaf)return;
+  if(pendingDrawRaf){pendingDrawLight=pendingDrawLight&&!!light;return;}
+  pendingDrawLight=!!light;
   pendingDrawRaf=requestAnimationFrame(()=>{const lp=pendingDrawLight;pendingDrawRaf=null;pendingDrawLight=false;if(pendingDrawP)draw(pendingDrawP,lp);else drawEmptyChart();});
 }
 function initSliderDrag(){
@@ -194,6 +194,7 @@ function drawEmptyChart(){
 }
 let updateRaf=null;
 function clearRegalMCOutput(msg){
+  cancelRegalMC();
   const status=$("mcStatus"),stats=$("mcStats"),hist=$("mcHist");
   if(status)status.textContent=msg||"inputs changed — click Run";
   if(stats)stats.textContent="";
@@ -614,7 +615,7 @@ function mcEnvelope(p,nDraws){
   for(let t=0;t<=tmax;t+=1)pts.push({t,bat:[],gps:[],pool:[]});
   for(let i=0;i<nDraws;i++){
     const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut};
-    for(const f of MCFIELDS) q[f]=clampf(f,ctr[f]+SD[f]*rn()*0.5);
+    for(const f of MCFIELDS) q[f]=sampleField(f,ctr[f],0.5);
     for(let j=0;j<pts.length;j++){const t=pts[j].t;pts[j].bat.push(sBAT(t,q));pts[j].gps.push(sGPS(t,q));pts[j].pool.push(poolS(t,q));}
   }
   function qtl(a,q){const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(q*s.length))];}
@@ -817,51 +818,50 @@ function mcDrawLimit(defaultN,key){
   return Number.isFinite(n)&&n>0?Math.floor(n):defaultN;
 }
 const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
-function sampleField(f,mu){const c=CFG.find(x=>x.field===f);return truncatedNormal(mu,SD[f],c.min*c.sc,c.max*c.sc,rn,Math.random);}
+function sampleField(f,mu,sdScale){const c=CFG.find(x=>x.field===f);const scale=sdScale==null?1:sdScale;return truncatedNormal(mu,SD[f]*scale,c.min*c.sc,c.max*c.sc,rn,Math.random);}
 const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
-function runMC(){
-  if(regalMode==="inverse"){runMCInverse();return;}
-  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=mcDrawLimit(220000,"regal"),t0=performance.now();
-  for(let i=0;i<MAX;i++){ if(performance.now()-t0>3600)break; tried++;
-    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,assumeStatus:ctr.assumeStatus,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
-    for(const f of MCFIELDS) p[f]=sampleField(f,ctr[f]);
-    const e58=eventsAt(58,p,80);
-    const e46=eventsAt(46,p,80), e63=eventsAt(63,p,80);
-    const pm=medianOf(poolS,p); if(pm!==null&&pm<13.5)continue;
-    // likelihood: 60 by m46, +12 to m58, +6 to m63, then <=1 more
-    // through the official Aug 11 Q2 status ("approaching" 80).
-    const l1=e46,l2=Math.max(0,e58-e46),l3=Math.max(0,e63-e58);
-    const logL=lpois(60,l1)+lpois(12,l2)+lpois(6,l3)+statusLogLikelihood(p,80);
-    const Lev=Math.exp(logL); if(!(Lev>0))continue;
-    const thIA=analyzeLR(46,p).z;                                   // proper interim log-rank z (~60 events @ m46)
-    const{t80,Tan,Dan}=t80Analysis(p,cutoff,80,Math.random());
-    const aFin=analyzeLR(Tan,p); if(isNaN(aFin.hr))continue; const th80=aFin.z;
-    const{w,pw}=interimContribution(binding,Lev,thIA,th80,Dan,p.zfut);
-    acc.push({hr:aFin.hr,w,pw,reached:t80<=cutoff,fit:consistent(p,80),fitErr:Math.sqrt(((e46-E1)**2+(e58-E2)**2+(e63-E3)**2)/3)});
-  }
-  renderMC(acc,tried);
+let regalMcWorker=null;
+function cancelRegalMC(){
+  if(regalMcWorker){regalMcWorker.terminate();regalMcWorker=null;}
+  const btn=$("mcRun");if(btn)btn.disabled=false;
 }
-function runMCInverse(){
-  const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=mcDrawLimit(80000,"inverse"),t0=performance.now();
-  const sdG=SD.gpsc||0.08,sdCap=1.5,baseCap=+$("batcap").value;
-  for(let i=0;i<MAX;i++){if(performance.now()-t0>4000)break;tried++;
-    const cap=truncatedNormal(baseCap,sdCap,12,22,rn,Math.random);
-    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,assumeStatus:ctr.assumeStatus,stratF:ctr.stratF,zfut:ctr.zfut,delay:ctr.delay,xtx:ctr.xtx,cens:ctr.cens,mid:ctr.mid,k:ctr.k,
-      gpsc:truncatedNormal(ctr.gpsc,sdG,0.05,0.75,rn,Math.random),bat:8};
-    const ir=solveInverse(p,cap);
-    if(!ir.sol)continue;
-    const s=ir.sol;
-    const{t80,Tan,Dan}=t80Analysis(s,cutoff,80,Math.random());
-    const aFin=analyzeLR(Tan,s);if(isNaN(aFin.hr))continue;
-    const thIA=analyzeLR(46,s).z,th80=aFin.z;
-    const fitWeight=Math.exp(-ir.err*0.08),{w,pw}=interimContribution(binding,fitWeight,thIA,th80,Dan,ctr.zfut);
-    acc.push({hr:aFin.hr,w,pw,reached:t80<=cutoff,gpsu:s.gpsu,bat:s.bat,fit:consistent(s,80),fitErr:Math.sqrt(ir.err/3)});
-  }
-  renderMC(acc,tried);
-  if(acc.length>=80){
-    const qf=(field,q)=>weightedQuantile(acc,field,q);
-    $("mcStats").innerHTML+=' &nbsp;·&nbsp; implied GPS residual median '+qf("gpsu",0.5).toFixed(1)+'m ['+qf("gpsu",0.05).toFixed(1)+', '+qf("gpsu",0.95).toFixed(1)+']';
-  }
+function finishRegalMC(worker){
+  if(regalMcWorker!==worker)return false;
+  worker.terminate();regalMcWorker=null;
+  $("mcRun").disabled=false;
+  return true;
+}
+function runMC(){
+  cancelRegalMC();
+  const mode=regalMode,ctr=readParams(),worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  regalMcWorker=worker;$("mcRun").disabled=true;
+  worker.onmessage=event=>{
+    if(regalMcWorker!==worker)return;
+    const data=event.data||{};
+    if(data.type==="progress"){
+      $("mcStatus").textContent=data.tried.toLocaleString()+" draws · "+data.usable.toLocaleString()+" usable · running in background…";
+      return;
+    }
+    if(data.type==="error"){
+      if(finishRegalMC(worker))$("mcStatus").textContent="Monte Carlo failed: "+data.message;
+      return;
+    }
+    if(data.type!=="done"||!finishRegalMC(worker))return;
+    renderMC(data.acc,data.tried);
+    if(data.mode==="inverse"&&data.acc.length>=80){
+      const qf=(field,q)=>weightedQuantile(data.acc,field,q);
+      $("mcStats").innerHTML+=' &nbsp;·&nbsp; implied GPS residual median '+qf("gpsu",0.5).toFixed(1)+'m ['+qf("gpsu",0.05).toFixed(1)+', '+qf("gpsu",0.95).toFixed(1)+']';
+    }
+  };
+  worker.onerror=event=>{
+    if(finishRegalMC(worker))$("mcStatus").textContent="Monte Carlo failed: "+(event.message||"worker error");
+  };
+  const specs=MCFIELDS.map(field=>{const c=CFG.find(x=>x.field===field);return{field,sd:SD[field],min:c.min*c.sc,max:c.max*c.sc};});
+  worker.postMessage({
+    mode,ctr,binding:$("mcFloor").checked,cutoff:+$("cutoff").value,specs,
+    maxDraws:mcDrawLimit(mode==="inverse"?80000:220000,mode==="inverse"?"inverse":"regal"),
+    timeLimitMs:mode==="inverse"?4000:3600,baseCap:+$("batcap").value,gpscSd:SD.gpsc||0.08
+  });
 }
 function renderMC(acc,tried){
   acc.sort((a,b)=>a.hr-b.hr);const n=acc.length;
@@ -993,8 +993,8 @@ document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInve
   el.addEventListener("input",()=>{syncRegalPresetMarker();scheduleUpdate();});
 });
 on("mcRun","click",function(){
-  $("mcRun").disabled=true;$("mcStatus").textContent="running…";
-  deferWithLoading(function(){try{runMC();}finally{$("mcRun").disabled=false;}},"Running Monte Carlo…");
+  $("mcStatus").textContent="starting background simulation…";
+  runMC();
 });
 on("mcNeutral","click",function(){applyRegalPreset("best");$("mcStatus").textContent="Best Available Guess priors set — click Run";});
 
@@ -1070,7 +1070,7 @@ function showToast(msg){let t=document.querySelector(".toast");if(!t){t=document
 function updateHashQuiet(){if(restoringState)return;const nh=encodeStateToHash();if(location.hash!==nh)history.replaceState(null,"",location.pathname+location.search+nh);}
 onClick("btnShare",()=>{const url=location.origin+location.pathname+encodeStateToHash();navigator.clipboard.writeText(url).then(()=>showToast("Link copied — fully client-side, no server storage")).catch(()=>{prompt("Copy this link:",url);});updateHashQuiet();});
 onClick("btnPrint",()=>{updatePrintSummary();window.print();});
-onChange("showUncertainty",function(){showUncertainty=this.checked;deferWithLoading(updateNow,"Computing uncertainty bands…");});
+onChange("showUncertainty",function(){showUncertainty=this.checked;deferWithLoading(()=>updateNow(true),"Computing uncertainty bands…");});
 
 // ================= FAST P(WIN) APPROX =================
 function poisLogLThrough(p,throughMonth){

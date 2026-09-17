@@ -95,6 +95,26 @@ function installDom() {
   window.requestAnimationFrame = (fn) => setTimeout(() => fn(Date.now()), 0);
   window.cancelAnimationFrame = (id) => clearTimeout(id);
   window.__SLS_MODEL_MC_DRAWS = { regal: 12000, inverse: 800, sls: 2000, val: 2000 };
+  class FakeWorker {
+    constructor() {
+      this.terminated = false;
+      this.onmessage = null;
+      this.onerror = null;
+    }
+    postMessage(data) {
+      setTimeout(() => {
+        if (this.terminated || !this.onmessage) return;
+        const acc = Array.from({ length: 100 }, (_, i) => ({
+          hr: 0.4 + i / 500, w: 1, pw: 0.7, reached: true, fit: true,
+          fitErr: 1, gpsu: 30 + i / 20
+        }));
+        this.onmessage({ data: { type: "done", mode: data.mode, tried: data.maxDraws, acc } });
+      }, 0);
+    }
+    terminate() {
+      this.terminated = true;
+    }
+  }
   window.HTMLCanvasElement.prototype.getContext = function getContext() {
     return makeCanvasContext(this);
   };
@@ -150,6 +170,7 @@ function installDom() {
     getComputedStyle: computed,
     requestAnimationFrame: window.requestAnimationFrame,
     cancelAnimationFrame: window.cancelAnimationFrame,
+    Worker: FakeWorker,
     confirm: window.confirm,
     prompt: window.prompt,
     fetch: undefined
@@ -208,7 +229,7 @@ function assertRegalRendered(document, label, previousDraws) {
 async function runRegalMC(document, label) {
   click(document, "#mcRun");
   await waitFor(
-    () => document.getElementById("mcStatus").textContent !== "running…",
+    () => !document.getElementById("mcRun").disabled,
     `${label} REGAL MC`,
     12000
   );

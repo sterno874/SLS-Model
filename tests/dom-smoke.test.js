@@ -35,7 +35,7 @@ test("best estimate strip has mobile card layout", () => {
 });
 
 test("index.html loads js/main.js as ES module", () => {
-  assert.match(html, /type="module" src="js\/main\.js"/);
+  assert.match(html, /type="module" src="js\/main\.js(?:\?v=[^"]+)?"/);
 });
 
 test("all data-preset buttons map to forward P keys", () => {
