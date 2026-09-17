@@ -39,7 +39,7 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 
 ### Other primary-source updates since 8 Jul 2026
 
-- **Institutional ownership:** Vanguard reported 9,666,278 shares/warrants (5.19%) and State Street reported 12,996,558 shares (7%), each as of Jun 30. These are ownership disclosures, not new issuance or additions to the share denominator ([Vanguard 13G](https://www.sec.gov/Archives/edgar/data/1390478/000210011926001315/primary_doc.xml); [State Street 13G](https://www.sec.gov/Archives/edgar/data/1390478/000009375126000539/primary_doc.xml)).
+- **Institutional ownership:** Vanguard reported 9,666,278 beneficially owned shares (5.19%) and State Street reported 12,996,558 shares (7%), each as of Jun 30. These are ownership disclosures—not company warrants, new issuance, or additions to the share denominator ([Vanguard 13G](https://www.sec.gov/Archives/edgar/data/1390478/000210011926001315/primary_doc.xml); [State Street 13G](https://www.sec.gov/Archives/edgar/data/1390478/000009375126000539/primary_doc.xml)).
 - **SLS-009 registry:** Jul 29 version 15 changed a contact number only; Sep 3 version 16 expanded locations 26→32 and recruiting sites 10→12 without changing design, enrollment target, endpoints, dose or completion dates ([CT.gov history](https://clinicaltrials.gov/api/int/studies/NCT04588922/history); [version 16](https://clinicaltrials.gov/api/int/studies/NCT04588922/history/16)). This supports enrollment capacity, not efficacy.
 - **PDAC posters:** three preclinical SLS-009 abstracts were accepted for AACR Pancreatic Cancer; no numerical efficacy data were disclosed by the cutoff, and proceedings were scheduled for Sep 25 ([SELLAS announcement](https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-to-Present-Preclinical-Data-on-SLS009-in-Pancreatic-Ductal-Adenocarcinoma-at-the-2026-AACR-Conference-on-Pancreatic-Cancer/default.aspx); [AACR schedule](https://www.aacr.org/meeting/aacr-conference-on-pancreatic-cancer/abstracts/)). Track as exploratory optionality only.
 - **Registry negatives:** REGAL had no in-window ClinicalTrials.gov revision ([history](https://clinicaltrials.gov/api/int/studies/NCT04229979/history)); site/contact changes and CTIS estimates do not alter the confirmed N=127/event anchors.
@@ -52,8 +52,8 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 |------|--------|-----|
 | Trial | REGAL — GPS vs BAT in AML CR2, transplant-ineligible | verified |
 | NCT | [NCT04229979](https://clinicaltrials.gov/study/NCT04229979) | verified |
-| Design | Event-driven ITT OS, N=127, 1:1, win if HR &lt; 0.636 at 80 deaths (one-sided α=0.025) | verified — [Jamy & Cicic, *Future Oncol* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/) |
-| Interim | IDMC continued at 60 deaths (Jan 2025); OBF early-stop HR ≲ 0.55 | verified — [interim PR](https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html) |
+| Design | Event-driven ITT OS, N=127, 1:1, PH design reference HR 0.636 at 80 deaths (one-sided α=0.025) | verified — [Jamy & Cicic, *Future Oncol* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/) |
+| Interim | IDMC continued at 60 deaths (Jan 2025); HR ≈0.55 is a model translation of an assumed OBF boundary, not a disclosed result | verified continuation / model interpretation — [interim PR](https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html) |
 | Event anchors | **60** @ ~m46; **72** @ ~m58; **78** @ ~m63 (11 May 2026) | verified — PRs |
 | Final | 80 events — TBD | verified — protocol |
 | Modality | WT1 peptide vaccine (MSK license); WT1 = NCI #1 antigen | verified — [Cheever 2009](https://pubmed.ncbi.nlm.nih.gov/19723653/) |
@@ -62,16 +62,18 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 
 CT.gov currently lists GPS dosing "as follows, until disease relapse": injections 1–6 every 2 weeks (Weeks 0–10), injections 7–12 every 4 weeks (Weeks 14–34), injections 13–15 every 6 weeks (Weeks 40–52), injections 16–20 every 2 months in Year 2, and injection 21+ every 3 months in Year 3; "Patients who remain in remission after 2 years will be treated every 3 months (Q3M) until disease relapse" ([NCT04229979](https://clinicaltrials.gov/study/NCT04229979)). The Jamy/Cicic design paper verifies the 15-injection first-year induction/booster schedule and termination at relapse; CT.gov supplies the extended Year 2/Year 3 maintenance wording. The app valuation `years` input is therefore a **commercial average-duration / prevalence assumption**, not a protocol cap.
 
-### Event anchors (locked)
+### Event anchors and optional status interpretation
 
 | Events | Month | Source | Tag |
 |--------|-------|--------|-----|
 | 60 | ~46 | Jan 2025 interim PR | verified |
 | 72 | ~58 | Dec 2025 PR | verified |
 | 78 | ~63 (11 May 2026) | Q1 2026 PR | verified |
-| 78–79 official status bound | ~66 (11 Aug 2026) | Q2 update: “approaching” 80 | verified |
+| Optional 78–79 interpretation | ~66 (11 Aug 2026) | Model assumption from Q2 phrase “approaching” 80; no numeric count/cutoff disclosed | model assumption (default on; toggle available) |
 | No trigger/topline announcement found | ~67.2 (16 Sep 2026) | Official IR/SEC/registry search | partial — announcement status only; reporting can lag |
 | 80 | TBD | protocol | verified |
+
+**Model implementation caveats:** the engine uses expected balanced allocation **63.5/arm** for N=127; the actual arm split is blinded. Censoring is an independent censor-survival sensitivity used in expected observed deaths and log-rank risk sets; informative/differential censoring is not identified. The transplant sensitivity moves survivors at a stylized month 6; actual post-randomization transplant timing and outcomes are unavailable. Poisson increments approximate a finite 127-participant event process. The log-rank information-efficiency factor approximates unavailable patient-level stratification. T80 is an event-time distribution; database lock and public announcement may occur later.
 
 ### Biology-first vs neutral ridge
 
@@ -92,7 +94,7 @@ u/neo2551 reported a reply attributed to the Van der Maas study group giving **m
 The app therefore includes two named, explicitly non-central sensitivities:
 
 - **VDM email — literal pair:** Weibull BAT calibrated to 16.8m/18.6% plus GPS Phase 2 CR2 16.3m/no plateau. It implies roughly 75/97/103 pooled deaths at m46/m58/m63 and readout HR ~0.92, materially overpredicting the announced events.
-- **VDM BAT + anchor-fit GPS:** holds the reported BAT curve fixed and fits the app’s GPS family to 60/72/78 plus official Aug status. The best grid point (~60/73/77 modeled events) requires an extreme ~61% GPS plateau with ~6.5m uncured median and gives HR ~0.33. This demonstrates structural tension/non-identifiability; it does not validate the email statistics.
+- **VDM BAT + anchor-fit GPS:** holds the reported BAT curve fixed and fits the app’s GPS family to 60/72/78 plus the optional Aug &lt;80 interpretation. The best grid point (~60/74/77 modeled events under the corrected engine) requires an extreme ~61% absolute GPS plateau with ~6.5m post-onset residual median and gives HR ~0.33. This demonstrates structural tension/non-identifiability; it does not validate the email statistics.
 
 Neither scenario changes the central BAT prior.
 

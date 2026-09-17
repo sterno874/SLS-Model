@@ -1,9 +1,10 @@
 import {
-  T4, ZFINAL, STRATF, ZFUT, Phi, lpois, poisLE, eventsAt, poolS,
-  medianOf, analyzeLR, t80Analysis, t80Quantile, condPow, monthToDate,
-  sBAT, passesVerdict
+  T4, E1, E2, E3, ZFINAL, STRATF, ZFUT, Phi, lpois, eventsAt, poolS,
+  medianOf, analyzeLR, t80Analysis, t80Quantile, interimContribution, monthToDate,
+  sBAT, passesVerdict, consistent, statusLogLikelihood
 } from "../js/math/survival.js";
 import { SHARE_P } from "../js/ui/state.js";
+import { truncatedNormal, weightedQuantile } from "../js/math/stats.js";
 
 const ranges = {
   bat: [6, 20], batc: [0, 0.30], gpsc: [0, 0.75], gpsu: [6, 55],
@@ -16,7 +17,7 @@ function params(q) {
   return {
     bat: q.bat, batc: q.batc / 100, batk: q.batk != null ? q.batk : 1, gpsc: q.gpsc / 100, gpsu: q.gpsu,
     delay: q.delay, xtx: q.xtx / 100, cens: q.cens / 100, mid: q.mid, k: q.k,
-    osmode: "itt", fh: false, stratF: STRATF, zfut: ZFUT
+    osmode: "itt", fh: false, assumeStatus: q.assumeStatus !== false, stratF: STRATF, zfut: ZFUT
   };
 }
 
@@ -29,19 +30,9 @@ function normal() {
   const u = uniform(), v = uniform();
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
-function clamp(field, value) {
+function truncated(field, center) {
   const [lo, hi] = ranges[field];
-  return Math.max(lo, Math.min(hi, value));
-}
-function weightedQuantile(rows, field, q) {
-  const sorted = [...rows].sort((a, b) => a[field] - b[field]);
-  const total = sorted.reduce((s, x) => s + x.w, 0);
-  let cumulative = 0;
-  for (const row of sorted) {
-    cumulative += row.w;
-    if (cumulative >= q * total) return row[field];
-  }
-  return sorted.at(-1)[field];
+  return truncatedNormal(center, sd[field], lo, hi, normal, uniform);
 }
 function calendar(month) {
   return monthToDate(month).toLocaleString("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
@@ -51,34 +42,25 @@ function run(name, preset, binding, draws) {
   const center = params(preset);
   const rows = [];
   for (let i = 0; i < draws; i++) {
-    const p = { osmode: "itt", batk: 1, fh: false, stratF: STRATF, zfut: ZFUT };
-    for (const field of fields) p[field] = clamp(field, center[field] + sd[field] * normal());
+    const p = { osmode: "itt", batk: center.batk, fh: false, assumeStatus: center.assumeStatus, stratF: STRATF, zfut: ZFUT };
+    for (const field of fields) p[field] = truncated(field, center[field]);
     const e58 = eventsAt(58, p, 80);
-    if (Math.abs(e58 - 72) > 15) continue;
-    const e46 = eventsAt(46, p, 80), e63 = eventsAt(63, p, 80), eStatus = eventsAt(T4, p, 80);
+    const e46 = eventsAt(46, p, 80), e63 = eventsAt(63, p, 80);
     const pooledMedian = medianOf(poolS, p);
-    if (pooledMedian !== null && pooledMedian < 13) continue;
+    if (pooledMedian !== null && pooledMedian < 13.5) continue;
     const logLikelihood =
       lpois(60, e46) +
       lpois(12, Math.max(0, e58 - e46)) +
       lpois(6, Math.max(0, e63 - e58)) +
-      Math.log(Math.max(1e-12, poisLE(1, Math.max(0, eStatus - e63))));
+      statusLogLikelihood(p, 80);
     const likelihood = Math.exp(logLikelihood);
-    if (likelihood < 1e-11) continue;
+    if (!(likelihood > 0)) continue;
     const interimZ = analyzeLR(46, p).z;
-    const { t80, Tan, Dan } = t80Analysis(p, 72, 80);
+    const { t80, Tan, Dan } = t80Analysis(p, 72, 80, uniform());
     const final = analyzeLR(Tan, p);
     if (!Number.isFinite(final.hr)) continue;
-    let w, pWin;
-    if (binding) {
-      const conditional = condPow(interimZ, final.z, Dan, p.zfut);
-      w = likelihood * conditional.Pc;
-      pWin = conditional.cp;
-    } else {
-      w = likelihood * Phi(interimZ - p.zfut);
-      pWin = Phi(final.z - ZFINAL);
-    }
-    if (w > 0) rows.push({ w, pWin, hr: final.hr, t80 });
+    const { w, pw: pWin } = interimContribution(binding, likelihood, interimZ, final.z, Dan, p.zfut);
+    if (w > 0) rows.push({ w, pWin, hr: final.hr, t80, fit: consistent(p, 80), fitErr: Math.sqrt(((e46-E1)**2+(e58-E2)**2+(e63-E3)**2)/3) });
   }
   const weight = rows.reduce((s, x) => s + x.w, 0);
   const weight2 = rows.reduce((s, x) => s + x.w * x.w, 0);
@@ -89,6 +71,8 @@ function run(name, preset, binding, draws) {
     interim: binding ? "binding" : "non-binding",
     usable: rows.length,
     effectiveN: Math.round(weight * weight / weight2),
+    strictFitWeightPct: +(100 * rows.reduce((s, x) => s + (x.fit ? x.w : 0), 0) / weight).toFixed(1),
+    anchorRmse: +(rows.reduce((s, x) => s + x.w * x.fitErr, 0) / weight).toFixed(2),
     successPct: +(100 * pWin).toFixed(1),
     failurePct: +(100 * (1 - pWin)).toFixed(1),
     hrMean: +(rows.reduce((s, x) => s + x.w * x.hr, 0) / weight).toFixed(3),

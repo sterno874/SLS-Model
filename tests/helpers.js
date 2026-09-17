@@ -23,7 +23,7 @@ export function mk(p = {}) {
       batc: 0,
       batk: 1,
       gpsc: 0.42,
-      gpsu: 47.5,
+      gpsu: 42.5,
       delay: 3,
       xtx: 0,
       cens: 0,
@@ -31,6 +31,7 @@ export function mk(p = {}) {
       mid: 25,
       k: 0.15,
       fh: false,
+      assumeStatus: true,
       stratF: STRATF,
       zfut: ZFUT
     },
@@ -53,6 +54,7 @@ export function paramsFromPresetQ(q) {
     mid: q.mid || 25,
     k: q.k || 0.15,
     fh: false,
+    assumeStatus: true,
     stratF: STRATF,
     zfut: ZFUT
   };

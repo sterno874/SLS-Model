@@ -3,7 +3,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { THRESH, hrGaugeState } from "../js/math/survival.js";
+import {
+  N_TOTAL, N_ARM, T4, ZFINAL, hrGaugeState, analyzeLR, eventsAt, sGPS,
+  sGPSbase, censorSurvival, t80ConditionalCdf, t80Quantile,
+  statusLogLikelihood, interimContribution
+} from "../js/math/survival.js";
+import { truncatedNormal, weightedQuantile } from "../js/math/stats.js";
 import {
   paramsFromPreset,
   computeValuationMetrics
@@ -52,29 +57,89 @@ test("renderMC uses a dynamic lower bound, not a hardcoded 0.30 marker scale", (
   assert.doesNotMatch(js, /for\(let b=0\.30;/);
 });
 
-// ---------- Finding 7: verdict uses the same readout HR as the final gauge ----------
-test("hrGaugeState.finalClears agrees with hrForFinal vs THRESH for every preset", () => {
+// ---------- Finding 7: verdict and significance use the same log-rank Z ----------
+test("hrGaugeState.finalClears agrees with final log-rank Z for every preset", () => {
   const cutoffs = [66, 72, 78, 84];
   for (const name of Object.keys(P)) {
     const p = paramsFromPresetQ(P[name]);
     for (const c of cutoffs) {
       const gs = hrGaugeState(p, c);
       if (gs.hrForFinal == null || Number.isNaN(gs.hrForFinal)) continue;
-      assert.equal(
-        gs.finalClears,
-        gs.hrForFinal < THRESH,
-        `${name}@${c}: finalClears must track hrForFinal<THRESH`
-      );
+      assert.equal(gs.finalClears, gs.zReadout > ZFINAL, `${name}@${c}: finalClears must track Z>ZFINAL`);
     }
   }
 });
 
-test("verdict branch is driven by gs.finalClears / readout HR, not the m58 snapshot", () => {
+test("verdict branch is driven by gs.finalClears / readout Z, not the m58 snapshot", () => {
   // The verdict must key off the same readout value the gauge shows.
   assert.match(js, /const vHr=hrFin,vClears=gs\.finalClears;/);
   assert.match(js, /else if\(vClears\)\{/);
   // The old m58-only verdict test must be gone.
   assert.doesNotMatch(js, /else if\(hr<THRESH\)\{v\.className="verdict v-win"/);
+});
+
+test("engine uses all 127 expected participants as 63.5 per arm", () => {
+  assert.equal(N_TOTAL, 127);
+  assert.equal(N_ARM, 63.5);
+});
+
+test("GPS plateau is absolute and curve is continuous at delay", () => {
+  const p = paramsFromPresetQ(P.best);
+  assert.ok(Math.abs(sGPS(10000, p) - p.gpsc) < 1e-10);
+  assert.ok(Math.abs(sGPSbase(p.delay - 1e-8, p) - sGPSbase(p.delay + 1e-8, p)) < 1e-7);
+});
+
+test("independent censoring lowers observed deaths and information consistently", () => {
+  const p0 = paramsFromPresetQ(P.best), p30 = { ...p0, cens: 0.3 };
+  assert.ok(Math.abs(censorSurvival(36, p30) - 0.7) < 1e-12);
+  assert.ok(eventsAt(66, p30) < eventsAt(66, p0));
+  assert.ok(analyzeLR(66, p30).z < analyzeLR(66, p0).z);
+  const r46 = eventsAt(46, p30) / eventsAt(46, p0), r66 = eventsAt(66, p30) / eventsAt(66, p0);
+  assert.notEqual(r46.toFixed(6), r66.toFixed(6), "censoring must not be a global count multiplier");
+});
+
+test("T80 CDF and quantile are inverse and path sampling integrates cutoff probability", () => {
+  const p = paramsFromPresetQ(P.best), cutoff = 72, expected = t80ConditionalCdf(cutoff, p);
+  for (const q of [0.1, 0.5, 0.9]) {
+    const t = t80Quantile(p, q);
+    assert.ok(Math.abs(t80ConditionalCdf(t, p) - q) < 2e-5);
+  }
+  const n = 2000;
+  let reached = 0;
+  for (let i = 0; i < n; i++) if (t80Quantile(p, (i + 0.5) / n) <= cutoff) reached++;
+  assert.ok(Math.abs(reached / n - expected) < 1 / n + 1e-6);
+});
+
+test("Aug status toggle changes only the optional conditioning term", () => {
+  const assumed = paramsFromPresetQ(P.best), confirmed = { ...assumed, assumeStatus: false };
+  assert.ok(statusLogLikelihood(assumed) < 0);
+  assert.equal(statusLogLikelihood(confirmed), 0);
+  assert.equal(t80ConditionalCdf(T4, assumed), 0);
+  assert.ok(t80ConditionalCdf(T4, confirmed) > 0);
+  assert.ok(t80Quantile(confirmed, 0.5) < t80Quantile(assumed, 0.5));
+});
+
+test("binding and informational interim contributions are coherent", () => {
+  const fit = 0.37, ia = 1.1, final = 2.4, Dan = 80;
+  const info = interimContribution(false, fit, ia, final, Dan, 0.4);
+  assert.equal(info.w, fit);
+  assert.equal(info.Pc, 1);
+  assert.equal(info.pw, interimContribution(false, fit, -5, final, Dan, 0.4).pw);
+  const binding = interimContribution(true, fit, ia, final, Dan, 0.4);
+  assert.ok(binding.Pc > 0 && binding.Pc < 1);
+  assert.ok(Math.abs(binding.w - fit * binding.Pc) < 1e-12);
+});
+
+test("truncated draws have no clamped boundary atoms and weighted quantiles use weights", () => {
+  let i = 0;
+  const normals = [-10, 10, -0.5, 0, 0.5];
+  const draw = () => normals[(i++) % normals.length];
+  for (let j = 0; j < 100; j++) {
+    const x = truncatedNormal(0.5, 0.2, 0, 1, draw, () => 0.37);
+    assert.ok(x > 0 && x < 1);
+  }
+  const rows = [{ x: 1, w: 1 }, { x: 2, w: 1 }, { x: 9, w: 20 }];
+  assert.equal(weightedQuantile(rows, "x", 0.5), 9);
 });
 
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------

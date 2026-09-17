@@ -38,14 +38,18 @@ import {
   eventsAt,
   eventsAtAnchored,
   eventsAtStatusConditioned,
+  t80ConditionalCdf,
+  statusLogLikelihood,
   T80PrPace,
   T80,
+  t80Quantile,
   t80Analysis,
   mcPathToT80,
   hazardRatio,
   analyzeLR,
   hrGaugeState,
   condPow,
+  interimContribution,
   medianOf,
   consistent,
   passesVerdict,
@@ -57,6 +61,7 @@ import {
   DEFAULT_IRM_LEAD,
   cr2OnsetFromIrm
 } from './math/survival.js';
+import { truncatedNormal, weightedQuantile } from './math/stats.js';
 import {
   parseEmbedMode,
   buildShareHash,
@@ -96,14 +101,14 @@ function updatePlausibilityUI(p,plausible,approxFit,bioReject){
     else if(bioReject){
       w.hidden=false;
       const bm=medianOf(sBAT,p);
-      w.innerHTML="<b>Event anchors fit (60/72/78)</b> — mandatory constraint satisfied — but BAT mOS "+(bm===null?">240":bm.toFixed(1))+" m exceeds biological priors (&gt;"+BAT_MED_CAP+" m; above QUAZAR CR1 placebo). HR≈1 null-effect worlds are <b>structurally possible on pooled counts, biologically rejected</b> — not a live clinical scenario.";
+      w.innerHTML="<b>Strict event-fit diagnostic passes (60/72/78)</b>, but BAT mOS "+(bm===null?">240":bm.toFixed(1))+" m exceeds biological priors (&gt;"+BAT_MED_CAP+" m; above QUAZAR CR1 placebo). HR≈1 null-effect worlds are <b>structurally possible on pooled counts, biologically rejected</b> — not a live clinical scenario.";
     }else if(approxFit){
       w.hidden=false;
       const pmv=medianOf(poolS,p);
       w.textContent="Fits the 60/72/78 event anchors, but pooled median OS "+(pmv===null?">240":pmv.toFixed(1))+" m is at/below the announced floor (must be >13.5 m per the Jan 2025 interim). Chart requires the full verdict; adjust sliders or enable auto-fit.";
     }else{
       w.hidden=false;
-      w.textContent="Current parameters do not fit blinded event counts (e46/e58/e63) — event anchors are the mandatory constraint. Adjust sliders, enable auto-fit, or switch to anchor-constrained inversion and sweep GPS cure fraction.";
+      w.textContent="Current parameters miss the strict blinded-event diagnostic (e46/e58/e63). Monte Carlo uses continuous Poisson weights; for the point display, adjust sliders, enable auto-fit, or use anchor-constrained inversion.";
     }
   }
   const wrap=$("chartWrap"),msg=$("chartStaleMsg"),out=$("outputCard");
@@ -255,8 +260,8 @@ function setRegalMode(mode){
   ["batDerivedTag","batcDerivedTag","gpsuDerivedTag"].forEach(id=>{const e=$(id);if(e)e.hidden=mode!=="inverse";});
   $("mcPanelTitle").textContent=mode==="inverse"?"Monte Carlo — implied HR distribution (anchor-constrained inversion)":"Monte Carlo — final-HR distribution";
   $("mcPanelHint").innerHTML=mode==="inverse"
-    ?'<b>Primary constraint:</b> blinded event anchors (60/72/78) — every draw re-solves to fit them. <b>Uncertainty axis:</b> sweeps <b>GPS cure fraction</b> (±1σ around slider) and BAT 3-yr cap, then histograms the <b>implied HR</b> — cure fraction is not a free pick; compare cw35/cw42/cw50 presets. Not a direct-parameterization posterior. Non-binding interim unless preset says otherwise. <span class="cite">CW framing: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM post</a></span>'
-    :'Samples the priors — <b>each slider = the prior CENTER, its blue 1σ band = the spread</b> — and <b>weights each draw by a Poisson likelihood</b> of the observed event increments (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60 @ m46</a>, <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">+12</a>, <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">+6</a>, still &lt;80) — <b>event fit is mandatory</b>; draws that miss anchors are discarded. "Win" is a <b>stratified log-rank significance test</b> (NPH-aware). Win threshold HR &lt; 0.636 from the <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>. Binding interim: soft-weight P(continue) via OBF Z=2.34 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">source</a>). <span class="tag m">Model output</span> — only as good as the priors.';
+    ?'<b>Inverse posterior:</b> sweep the absolute GPS plateau and BAT 3-year cap, re-solve hidden medians, then weight fit continuously. Binding mode also weights P(continue); informational mode applies no selection. Parameter quantiles are weighted. <span class="cite">CW framing: <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM post</a></span>'
+    :'Samples truncated-normal priors and <b>weights continuously by Poisson event-increment likelihood</b> at 60/72/78. The optional Aug interpretation adds P(≤1 subsequent event); it is not an official numeric fact. T80 is sampled per draw. Binding mode weights P(continue) and uses conditional power; informational mode applies neither continuation nor futility selection. Win uses modeled log-rank Z, with HR 0.636 retained only as the PH design reference. <span class="tag m">Model output</span>';
   refreshRegalPresetHighlight();
   update();
 }
@@ -264,7 +269,7 @@ onClick("modeForward",()=>setRegalMode("forward"));
 onClick("modeInverse",()=>setRegalMode("inverse"));
 
 // ---------- slider config ----------
-const DATA_WHY="GREEN = values that still reproduce the announced pooled events — 60 @ m46, 72 @ m58, 78 @ m63 — and assign non-negligible probability to fewer than 80 events at the official Aug 11 Q2 update (m66), holding your OTHER sliders fixed. September announcement silence is shown separately because reporting can lag the event. Move another slider and this window shifts: that coupling is the identification problem.";
+const DATA_WHY="GREEN = values that pass strict diagnostics around announced pooled events 60/72/78. When enabled, the explicit Aug sensitivity also favors worlds with fewer than 80 events at m66; SELLAS disclosed only the word “approaching,” not a count or cutoff. Monte Carlo uses continuous likelihood weights rather than this strict window.";
 const CFG=[
  {id:"bat", field:"bat", min:6,max:20,step:0.1,sc:1,   sig:{b3:[6,16],b2:[7,14],b1:[8.5,12.5],mu:10.5}, imp:[15,20],
    why:"PRIOR (blue): median of the non-tail BAT component — a FROM-RANDOMIZATION quantity. REGAL design assumes 8.0m [1]; ven-era CR2/R-R salvage ~8–12m by mutation [10]; Kurosawa CR2 transplant-INELIGIBLE supports the low end [9]. NOTE: the ≤6-mo CR2→randomization window + &gt;6-mo life-expectancy entry criterion positively select the cohort, lifting this ~1–3mo above from-CR2 literature (left-truncation / lead-time) — this shifts the ABSOLUTE median, NOT the HR. 1σ 8.5–12.5m, 3σ to 16m.",
@@ -416,12 +421,11 @@ applyEmbedMode();
 function getCurrentPwin(){
   if(lastMcPwin!=null&&!isNaN(lastMcPwin))return{pw:lastMcPwin,src:'Monte Carlo posterior (binding interim if checked)'};
   const p=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value;
-  const{t80,Tan,Dan}=t80Analysis(p,cutoff);
-  const thIA=analyzeLR(46,p).z,th80=analyzeLR(Tan,p).z;
-  const pw=binding?condPow(thIA,th80,Dan,p.zfut).cp:Phi(th80-ZFINAL);
+  const pw=integratedPointPwin(p,binding,cutoff);
   lastPointPwin=pw;
-  return{pw:pw,src:'Point-estimate P(win) from current sliders (analyzeLR @ cutoff m'+cutoff+')'};
+  return{pw:pw,src:'T80-integrated point P(win) from current sliders (cutoff m'+cutoff+')'};
 }
+function integratedPointPwin(p,binding,cutoff,n){n=n||9;const thIA=analyzeLR(46,p).z;let total=0;for(let i=0;i<n;i++){const{Tan,Dan}=t80Analysis(p,cutoff,80,(i+0.5)/n),th=analyzeLR(Tan,p).z;total+=interimContribution(binding,1,thIA,th,Dan,p.zfut).pw;}return total/n;}
 const PWIN_VALUATION_CONFIRM_MSG=
   "Tab 1 P(win) measures statistical significance at the REGAL readout — not FDA approval probability.\n\n" +
   "P(GPS) in Valuation is a separate user prior for risk-adjusting peak sales. Copy anyway?";
@@ -462,11 +466,11 @@ function updateReadoutTracker(){
   const p=readParams(),t80=T80(p);
   if($("reDate"))$("reDate").textContent=fmtCalMonth(t80);
   if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80';
-  const times=[];for(let i=0;i<2000;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;times.push(mcPathToT80(q,110,Math.random()));}
+  const times=[];for(let i=0;i<250;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;times.push(mcPathToT80(q,110,Math.random()));}
   times.sort((a,b)=>a-b);
   const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
   const p10=qf(0.05),p90=qf(0.95);
-  if($("reCI"))$("reCI").textContent='90% event-time interval: '+fmtCalRange(p10,p90)+' · conditioned on official <80 status Aug 11; no announcement found through '+CURRENT_PUBLIC_SEARCH.date;
+  if($("reCI"))$("reCI").textContent='90% event-time interval: '+fmtCalRange(p10,p90)+' · '+(p.assumeStatus?'uses optional Aug <80 interpretation':'confirmed 78-only mode')+'; no announcement found through '+CURRENT_PUBLIC_SEARCH.date;
   const paceEl=$("rePace");
   if(paceEl)paceEl.hidden=true;
 }
@@ -488,7 +492,7 @@ function gpsParamsFromShareState(s){
   const g=s.gps;
   return{osmode:'itt',bat:g.bat,batc:g.batc/100,batk:g.batk||1,gpsc:g.gpsc/100,gpsu:g.gpsu,
     delay:g.delay,xtx:g.xtx/100,cens:g.cens/100,mid:g.mid,k:g.k,fh:!!g.fhTest,
-    stratF:g.stratF!=null?g.stratF:STRATF,zfut:g.zfut!=null?g.zfut:ZFUT,binding:!!g.mcFloor};
+    assumeStatus:g.assumeStatus!==false,stratF:g.stratF!=null?g.stratF:STRATF,zfut:g.zfut!=null?g.zfut:ZFUT,binding:!!g.mcFloor};
 }
 function paramsFromShareHash(hash){
   if(!hash||!hash.trim())return null;
@@ -661,7 +665,7 @@ function badge(el,ok,mid){el.textContent=ok?'OK':(mid?'close':'off');el.classNam
 
 function hrMarkLeft(hr){return "calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"% - 1.5px)";}
 
-function readParams(){return{bat:+$("bat").value,batc:+$("batc").value/100,batk:+$("batk").value,gpsc:+$("gpsc").value/100,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value/100,cens:+$("cens").value/100,osmode:"itt",mid:+$("mid").value,k:+$("k").value,fh:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value};}
+function readParams(){return{bat:+$("bat").value,batc:+$("batc").value/100,batk:+$("batk").value,gpsc:+$("gpsc").value/100,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value/100,cens:+$("cens").value/100,osmode:"itt",mid:+$("mid").value,k:+$("k").value,fh:$("fhTest").checked,assumeStatus:$("assumeStatus").checked,stratF:+$("stratF").value,zfut:+$("zfut").value};}
 
 function update(full){
   const light=!full&&sliderDragging;
@@ -713,25 +717,26 @@ function update(full){
   const binding=$("mcFloor").checked;
   const gs=hrGaugeState(p,cutoff);
   const{t80,Tan,Dan}=gs;
-  $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(1)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small> <span class="tag m" style="font-size:9px;vertical-align:1px">conditional median · public status '+CURRENT_EVENT_STATUS.date+'</span>';
+  const t10=t80Quantile(p,0.1),t90=t80Quantile(p,0.9),statusMode=p.assumeStatus?'Aug phrase interpreted as &lt;80':'confirmed 78 only';
+  $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(1)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small> <span class="tag m" style="font-size:9px;vertical-align:1px">predictive median · 80% interval '+fmtCalRange(t10,t90)+' · '+statusMode+'</span>';
   if(!light){
     const thIA=analyzeLR(46,p).z, th80=analyzeLR(Tan,p).z;
     const pStop=1-Phi(ZEFF-thIA);
-    const pWin= binding? condPow(thIA,th80,Dan,p.zfut).cp : Phi(th80-ZFINAL);
+    const pWin=integratedPointPwin(p,binding,cutoff);
     lastPointPwin=pWin;
     const aFin=analyzeLR(Tan,p);
-    $("oPower").innerHTML="<b>Readout power check</b> (cutoff m"+cutoff+"): "+(t80<=cutoff?("reaches 80 events ~m"+t80.toFixed(0)):("<b style='color:var(--bad)'>80th not reached</b> — reads at m"+cutoff+", "+Dan.toFixed(0)+" events"))+" · readout HR "+aFin.hr.toFixed(2)+" · log-rank Z="+th80.toFixed(2)+" · interim Z="+thIA.toFixed(2)+" (would stop early "+(100*pStop).toFixed(0)+"% of the time) · <b style='color:"+(pWin>0.5?'var(--good)':'var(--bad)')+"'>P(significant win) = "+(100*pWin).toFixed(0)+"%</b> "+(binding?"<small>(given no early stop)</small>":"<small>(non-binding)</small>");
+    $("oPower").innerHTML="<b>Readout power check</b> (cutoff m"+cutoff+"): predictive median path "+(t80<=cutoff?("reaches 80 events ~m"+t80.toFixed(0)):("<b style='color:var(--bad)'>has not reached 80</b> — reads at m"+cutoff+", "+Dan.toFixed(0)+" events"))+" · median-path HR "+aFin.hr.toFixed(2)+" · log-rank Z="+th80.toFixed(2)+" · interim Z="+thIA.toFixed(2)+" (early-efficacy probability "+(100*pStop).toFixed(0)+"%) · <b style='color:"+(pWin>0.5?'var(--good)':'var(--bad)')+"'>T80-integrated P(significant win) = "+(100*pWin).toFixed(0)+"%</b> "+(binding?"<small>(conditioned on continuation)</small>":"<small>(informational IA; no continuation selection)</small>");
   }
   if(chartPinMonth!=null)showChartTip(chartPinMonth,p,true);
   if(!light)scheduleReadoutUpdate();
   const hrFin=gs.hrForFinal;
-  // interim IA row (@ m46) — zoned like the final gauge: green ≤0.547 early-stop region + labeled 0.547 threshold line
+  // Interim HR line is a PH-equivalent translation of the modeled Z boundary.
   const hrIA=gs.hrInterim;
   $("oIAstatus").innerHTML=isNaN(hrIA)
     ?"—"
-    :("<b>Model estimate differs from the actual blinded interim.</b> Model-implied HR <b>"+hrIA.toFixed(2)+"</b> @ m46 — "+(gs.interimClearsFloor
-      ?'<span class="ia-pass">above the OBF efficacy floor (≈0.547)</span>, consistent with the IDMC\'s Jan 2025 decision to continue'
-      :'<span class="ia-warn">below the model\'s OBF floor (≈0.547)</span>; the real blinded interim did NOT stop for efficacy (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 PR</a>) — so either the IA was non-binding, the model overstates effect at IA, or both (actual stratified HR sat above 0.547; arm split unknown)')+' <span class="tag m">model</span>');
+    :("<b>Model-implied interim HR <b>"+hrIA.toFixed(2)+"</b>.</b> The ≈0.547 line is a PH translation of the app’s assumed OBF Z boundary, not a disclosed HR. "+(gs.interimClearsFloor
+      ?'<span class="ia-pass">This scenario does not cross the translated efficacy line.</span>'
+      :'<span class="ia-warn">This scenario crosses the translated line despite the verified IDMC continuation</span>; the stopping implementation may have been non-binding or this scenario may overstate the interim effect (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 PR</a>).')+' <span class="tag m">interpretation</span>');
   $("hrInterim").style.left=(IFLOOR/HRMAX*100)+"%"; // 0.547 early-stop floor line
   $("hrInterimMark").style.left=isNaN(hrIA)?"-99px":hrMarkLeft(hrIA);
   // final readout row — 0.636 threshold only, no red hatch
@@ -739,13 +744,13 @@ function update(full){
   $("oHRnum").innerHTML=isNaN(hrFin)
     ?"—"
     :("HR <b>"+hrFin.toFixed(2)+"</b> — "+(gs.finalClears
-      ?'<span class="ia-pass">clears final 0.636</span>'
-      :'<span class="ia-fail">misses final 0.636</span>'));
+      ?'<span class="ia-pass">log-rank Z clears final boundary</span>'
+      :'<span class="ia-fail">log-rank Z misses final boundary</span>'));
   $("hrThresh").style.left=(THRESH/HRMAX*100)+"%";
   $("hrReadoutMark").style.left=isNaN(hrFin)?"-99px":hrMarkLeft(hrFin);
   const foot=$("oHRfootnote");
   if(foot){
-    let ft="Final win threshold 0.636 @ 80 events (Z=2.01; <a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/\" target=\"_blank\" rel=\"noopener\">Jamy &amp; Cicic 2025</a>). <span class=\"tag m\">Model output</span>";
+    let ft="Final verdict uses modeled log-rank Z &gt;2.01. HR 0.636 @ 80 events is the proportional-hazards design reference (<a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/\" target=\"_blank\" rel=\"noopener\">Jamy &amp; Cicic 2025</a>). <span class=\"tag m\">Model output</span>";
     if(!isNaN(gs.hrM58)&&!gs.readoutSameAsM58){
       ft+=" For context: HR @ m58 was <b>"+gs.hrM58.toFixed(2)+"</b> — effect can strengthen after the interim.";
     }
@@ -754,7 +759,7 @@ function update(full){
   const gn=$("hrGaugeNote");
   if(gn){
     gn.style.display="block";
-    gn.innerHTML="<b>Two different bars:</b> interim OBF efficacy floor ≈0.547 (@ 60 events; <a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/\" target=\"_blank\" rel=\"noopener\">Jamy &amp; Cicic 2025</a>) vs final win 0.636 (@ 80 events). "
+    gn.innerHTML="<b>Two model translations:</b> interim OBF Z boundary translated to a PH-equivalent HR ≈0.547 (@ 60 events) vs final Z=2.01, with PH-equivalent HR 0.636 (@ 80 events; <a href=\"https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/\" target=\"_blank\" rel=\"noopener\">Jamy &amp; Cicic 2025</a>). "
       +(binding
         ?"Monte Carlo below uses <b>binding</b> interim — weights scenarios by P(IDMC continues)."
         :"Monte Carlo below uses <b>non-binding</b> interim — IA is informational only.");
@@ -763,10 +768,10 @@ function update(full){
   if(!light){
   const ev1=eventsAt(T1,p),ev2=eventsAt(T2,p),ev3=eventsAt(T3,p),ev4=eventsAt(T4,p);
   const ev4Conditioned=eventsAtStatusConditioned(T4,p);
-  const statusLike=poisLE(1,Math.max(0,ev4-ev3));
+  const statusLike=p.assumeStatus?poisLE(1,Math.max(0,ev4-ev3)):1;
   $("e1").textContent=ev1.toFixed(1);$("e2").textContent=ev2.toFixed(1);
   $("e3").innerHTML=ev3.toFixed(1)+' <span class="tag m" style="font-size:9px">model</span> · confirmed <b>78</b>';
-  $("e4").innerHTML=ev4Conditioned.toFixed(1)+' <span class="tag m" style="font-size:9px">E[count | no trigger]</span>';
+  $("e4").innerHTML=p.assumeStatus?(ev4Conditioned.toFixed(1)+' <span class="tag m" style="font-size:9px">E[count | interpreted &lt;80]</span>'):'<span class="tag m" style="font-size:9px">assumption disabled · raw model '+ev4.toFixed(1)+'</span>';
   const ok1=Math.abs(ev1-E1)<=4,mid1=Math.abs(ev1-E1)<=8;
   const ok2=Math.abs(ev2-E2)<=3,mid2=Math.abs(ev2-E2)<=7;
   const ok3=Math.abs(ev3-E3)<=3,mid3=Math.abs(ev3-E3)<=7;
@@ -781,22 +786,26 @@ function update(full){
   // Verdict uses the SAME readout HR (gs.hrForFinal) as the final gauge above, so "clears/misses" never contradicts the gauge.
   const vHr=hrFin,vClears=gs.finalClears;
   const iaTension=gs.interimWouldStop
-    ?" Model-implied interim HR "+hrIA.toFixed(2)+" is below the early-stop floor (≈0.547), but the actual trial continued — so either the IA was non-binding, the model overstates effect at IA, or both."
+    ?" Model-implied interim HR "+hrIA.toFixed(2)+" crosses the app’s PH-translated efficacy line despite the verified continuation; the binding status and actual interim HR are not public."
     :"";
-  if(!cons){v.className="verdict v-none";v.textContent=regalMode==="inverse"?"Implied scenario does NOT match the mandatory event anchors (60/72/78 plus official <80 on Aug 11) — adjust GPS cure sweep point or BAT cap. Event fit is required before any HR/mOS readout.":"Does NOT match the event trajectory (60/72/78 plus official <80 on Aug 11). Check which badge is off. September announcement silence is not encoded as an event count.";}
-  else if(!bioOk){v.className="verdict v-ridge";v.textContent="Fits the mandatory 60/72/78 event anchors, but BAT mOS "+(bm===null?">240":bm.toFixed(1))+" m exceeds biological priors (>"+BAT_MED_CAP+" m — above QUAZAR CR1 placebo). HR "+vHr.toFixed(2)+" on this ridge is structurally possible on pooled counts but biologically rejected — not a credible null-effect clinical scenario (see Ridge preset: ~24 m BAT mOS with shared ~28% tail)."+iaTension;}
-  else if(vClears){v.className="verdict v-win";v.textContent=(regalMode==="inverse"?"Anchor-constrained inversion: fits mandatory event anchors; projected readout HR "+vHr.toFixed(2)+" < 0.636 → derived mOS/tails consistent with a win at this GPS cure point on the sweep. (Other cure fractions also fit — see inversion MC.)":"Consistent with all announced event anchors AND projected readout HR "+vHr.toFixed(2)+" < 0.636 → this world clears the threshold. (Other green worlds below also fit — that's the identification problem.)")+iaTension;}
-  else{v.className="verdict v-lose";v.textContent=(regalMode==="inverse"?"Anchor-constrained inversion: fits the mandatory event anchors but projected readout HR "+vHr.toFixed(2)+" > 0.636 → derived parameters predict a miss at this cure-fraction point. Sweep cw35/cw42/cw50 or check BAT cap.":"Consistent with the announced event anchors but projected readout HR "+vHr.toFixed(2)+" > 0.636 → this world MISSES. Note what it took: check the BAT median / long-survivor sliders — failure needs near-unprecedented BAT.")+iaTension;}
+  const fitLabel=p.assumeStatus?"60/72/78 plus the optional Aug <80 interpretation":"confirmed 60/72/78 only";
+  if(!cons){v.className="verdict v-none";v.textContent="Scenario does NOT adequately match "+fitLabel+". Poisson likelihood weighting in Monte Carlo is continuous; these badges are strict diagnostics, not hard posterior gates.";}
+  else if(!bioOk){v.className="verdict v-ridge";v.textContent="Fits "+fitLabel+", but BAT mOS "+(bm===null?">240":bm.toFixed(1))+" m exceeds biological priors (>"+BAT_MED_CAP+" m). Median-path HR "+vHr.toFixed(2)+" is structurally possible on pooled counts but biologically rejected."+iaTension;}
+  else if(vClears){v.className="verdict v-win";v.textContent="Fits "+fitLabel+"; projected median-path log-rank Z "+gs.zReadout.toFixed(2)+" clears the final Z="+ZFINAL.toFixed(2)+" boundary. HR "+vHr.toFixed(2)+" is descriptive; 0.636 is the proportional-hazards design reference, not the implemented verdict rule."+iaTension;}
+  else{v.className="verdict v-lose";v.textContent="Fits "+fitLabel+" but projected median-path log-rank Z "+gs.zReadout.toFixed(2)+" misses the final Z="+ZFINAL.toFixed(2)+" boundary. HR "+vHr.toFixed(2)+" is descriptive; 0.636 is the proportional-hazards design reference."+iaTension;}
   $("note").innerHTML=noteText();
   }
 }
 
 function noteText(){
+  return "<b>How to read this:</b> green strips show strict point-scenario fit diagnostics around the announced 60/72/78 milestones; Monte Carlo weights usable draws continuously by Poisson likelihood. Blue strips show literature priors. The expected balanced allocation is 63.5/arm (N=127), while the actual split is undisclosed. A pooled trajectory cannot identify the arm split. The optional Aug constraint interprets “approaching” as &lt;80; it is not a disclosed count. Independent censor survival enters observed deaths and risk sets. The transplant sensitivity transitions survivors at month 6; actual post-randomization transplant timing is unknown. HR is descriptive; the verdict uses modeled log-rank Z.";
+  /*
   return "Reading the strips: the <b>green lower strip</b> is the answer to ‘where does the timeline limit this input?’ — it's the set of values for this slider that still fit 60/72/78 events (<a href=\"https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html\" target=\"_blank\" rel=\"noopener\">60</a>, <a href=\"https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html\" target=\"_blank\" rel=\"noopener\">72</a>, <a href=\"https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html\" target=\"_blank\" rel=\"noopener\">78</a>), holding your other sliders fixed — <b>event fit is mandatory</b>; GPS cure fraction is swept (inverse MC, cw35/cw42/cw50), not a free pick. Move one slider and watch the others' green windows shift: that coupling <em>is</em> the identification problem. The <b>blue upper strip</b> is the prior (1σ/2σ/3σ) from published data. "+
   "What the trajectory pins down: to yield only ~72–78 deaths of 126 by now, pooled survival runs well above historical CR2 (~8–11m, <a href=\"https://pubmed.ncbi.nlm.nih.gov/33661271/\" target=\"_blank\" rel=\"noopener\">Stahl 2021</a>). What it does NOT pin down: a no-effect world can still fit if BOTH arms share a ~28% long-survivor tail — try the ‘Ridge: null effect’ preset (HR≈1.00): it fits the anchors but requires BAT mOS ~24 m, above biological priors (&gt;15 m). That is <b>structurally possible on pooled counts, biologically rejected</b> — not equally plausible with biology-first worlds. The data span runs from HR 1.0 (non-credible null on the ridge) to ~0.15 (big effect); the arm split is unidentifiable (drag BAT with auto-fit on, watch HR swing). "+
   "Transplant &amp; censoring: eligibility is judged only at entry (<a href=\"https://clinicaltrials.gov/study/NCT04229979\" target=\"_blank\" rel=\"noopener\">NCT04229979</a>), so patients can be transplanted afterward. ‘Transplant after enrollment’ (ITT mode) adds a ~45%-cure tail to BOTH arms (<a href=\"https://pubmed.ncbi.nlm.nih.gov/?term=Forman+Rowe+myth+second+remission+acute+leukemia+adult\" target=\"_blank\" rel=\"noopener\">Forman &amp; Rowe 2013</a>) — it lifts BAT's 3-yr OS and pulls the HR toward 1.0. ‘Censoring/dropout’ lowers observed events, so true survival is worse than the raw counts imply (~15% in Ph2 GPS, <a href=\"https://www.onclive.com/view/maintenance-galinpepimut-s-appears-effective-and-safe-in-aml-in-second-cr\" target=\"_blank\" rel=\"noopener\">Brayer/OncLive</a>). "+
   "Red hatched zones = biologically IMPLAUSIBLE BAT profiles: median &gt;15m (above QUAZAR's CR1 placebo of 14.8m, <a href=\"https://www.nejm.org/doi/full/10.1056/NEJMoa2001094\" target=\"_blank\" rel=\"noopener\">QUAZAR NEJM</a>) or chemo-only tail &gt;18% (vs ~5–15% historical, <a href=\"https://haematologica.org/article/view/5781\" target=\"_blank\" rel=\"noopener\">Kurosawa</a>). Implausible, not impossible — transplant crossover can legitimately create a BAT tail. "+
   "Caveats: HR is an approximate log-rank/Pike estimate, not the stratified Cox; 3-yr OS is <span class=\"tag m\">model output</span> but only ~40% of patients have 36-mo follow-up; transplant-censoring's HR effect and differential dropout are not fully modeled.";
+  */
 }
 
 // ---------- Monte Carlo (posterior over final HR) ----------
@@ -808,29 +817,27 @@ function mcDrawLimit(defaultN,key){
   return Number.isFinite(n)&&n>0?Math.floor(n):defaultN;
 }
 const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
-function clampf(f,v){const c=CFG.find(x=>x.field===f);return Math.max(c.min*c.sc,Math.min(c.max*c.sc,v));}
+function sampleField(f,mu){const c=CFG.find(x=>x.field===f);return truncatedNormal(mu,SD[f],c.min*c.sc,c.max*c.sc,rn,Math.random);}
 const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
 function runMC(){
   if(regalMode==="inverse"){runMCInverse();return;}
   const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=mcDrawLimit(220000,"regal"),t0=performance.now();
   for(let i=0;i<MAX;i++){ if(performance.now()-t0>3600)break; tried++;
-    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
-    for(const f of MCFIELDS) p[f]=clampf(f,ctr[f]+SD[f]*rn());
-    const e58=eventsAt(58,p,80); if(Math.abs(e58-72)>15)continue;   // loose cull; Poisson likelihood does the real work
-    const e46=eventsAt(46,p,80), e63=eventsAt(63,p,80), eStatus=eventsAt(T4,p,80);
-    const pm=medianOf(poolS,p); if(pm!==null&&pm<13)continue;
+    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,assumeStatus:ctr.assumeStatus,stratF:ctr.stratF,zfut:ctr.zfut}; // method/structure assumptions fixed from controls
+    for(const f of MCFIELDS) p[f]=sampleField(f,ctr[f]);
+    const e58=eventsAt(58,p,80);
+    const e46=eventsAt(46,p,80), e63=eventsAt(63,p,80);
+    const pm=medianOf(poolS,p); if(pm!==null&&pm<13.5)continue;
     // likelihood: 60 by m46, +12 to m58, +6 to m63, then <=1 more
     // through the official Aug 11 Q2 status ("approaching" 80).
-    const l1=e46,l2=Math.max(0,e58-e46),l3=Math.max(0,e63-e58),l4=Math.max(0,eStatus-e63);
-    const logL=lpois(60,l1)+lpois(12,l2)+lpois(6,l3)+Math.log(Math.max(1e-12,poisLE(1,l4)));
-    const Lev=Math.exp(logL); if(Lev<1e-11)continue;
+    const l1=e46,l2=Math.max(0,e58-e46),l3=Math.max(0,e63-e58);
+    const logL=lpois(60,l1)+lpois(12,l2)+lpois(6,l3)+statusLogLikelihood(p,80);
+    const Lev=Math.exp(logL); if(!(Lev>0))continue;
     const thIA=analyzeLR(46,p).z;                                   // proper interim log-rank z (~60 events @ m46)
-    const{t80,Tan,Dan}=t80Analysis(p,cutoff,80);
+    const{t80,Tan,Dan}=t80Analysis(p,cutoff,80,Math.random());
     const aFin=analyzeLR(Tan,p); if(isNaN(aFin.hr))continue; const th80=aFin.z;
-    let w,pw;
-    if(binding){ const r=condPow(thIA,th80,Dan,p.zfut); w=Lev*r.Pc; pw=r.cp; }   // weight by P(continue); win = conditional power (banks early wins, power-neutral)
-    else { w=Lev*Phi(thIA-p.zfut); pw=Phi(th80-ZFINAL); }                        // non-binding: futility-pass weight; marginal significance
-    acc.push({hr:aFin.hr, w:w, pw:pw, reached:t80<=cutoff});
+    const{w,pw}=interimContribution(binding,Lev,thIA,th80,Dan,p.zfut);
+    acc.push({hr:aFin.hr,w,pw,reached:t80<=cutoff,fit:consistent(p,80),fitErr:Math.sqrt(((e46-E1)**2+(e58-E2)**2+(e63-E3)**2)/3)});
   }
   renderMC(acc,tried);
 }
@@ -838,37 +845,35 @@ function runMCInverse(){
   const ctr=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value,acc=[];let tried=0;const MAX=mcDrawLimit(80000,"inverse"),t0=performance.now();
   const sdG=SD.gpsc||0.08,sdCap=1.5,baseCap=+$("batcap").value;
   for(let i=0;i<MAX;i++){if(performance.now()-t0>4000)break;tried++;
-    const cap=Math.round(Math.max(12,Math.min(22,baseCap+sdCap*rn())));
-    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut,delay:ctr.delay,xtx:ctr.xtx,cens:ctr.cens,mid:ctr.mid,k:ctr.k,
-      gpsc:Math.max(0.05,Math.min(0.75,ctr.gpsc+sdG*rn())),bat:8};
+    const cap=truncatedNormal(baseCap,sdCap,12,22,rn,Math.random);
+    const p={osmode:"itt",batk:ctr.batk,fh:ctr.fh,assumeStatus:ctr.assumeStatus,stratF:ctr.stratF,zfut:ctr.zfut,delay:ctr.delay,xtx:ctr.xtx,cens:ctr.cens,mid:ctr.mid,k:ctr.k,
+      gpsc:truncatedNormal(ctr.gpsc,sdG,0.05,0.75,rn,Math.random),bat:8};
     const ir=solveInverse(p,cap);
-    if(!ir.sol||ir.err>25)continue;
+    if(!ir.sol)continue;
     const s=ir.sol;
-    const{t80,Tan,Dan}=t80Analysis(s,cutoff,80);
+    const{t80,Tan,Dan}=t80Analysis(s,cutoff,80,Math.random());
     const aFin=analyzeLR(Tan,s);if(isNaN(aFin.hr))continue;
     const thIA=analyzeLR(46,s).z,th80=aFin.z;
-    let pw;
-    if(binding){const r=condPow(thIA,th80,Dan,ctr.zfut);pw=r.cp*Math.exp(-ir.err*0.05);}else{pw=Phi(th80-ZFINAL);}
-    acc.push({hr:aFin.hr,w:Math.exp(-ir.err*0.08),pw:pw,reached:t80<=cutoff,gpsu:s.gpsu,bat:s.bat});
+    const fitWeight=Math.exp(-ir.err*0.08),{w,pw}=interimContribution(binding,fitWeight,thIA,th80,Dan,ctr.zfut);
+    acc.push({hr:aFin.hr,w,pw,reached:t80<=cutoff,gpsu:s.gpsu,bat:s.bat,fit:consistent(s,80),fitErr:Math.sqrt(ir.err/3)});
   }
   renderMC(acc,tried);
   if(acc.length>=80){
-    const gpsu=acc.map(x=>x.gpsu).sort((a,b)=>a-b);
-    const qf=(a,q)=>a[Math.min(a.length-1,Math.floor(q*a.length))];
-    $("mcStats").innerHTML+=' &nbsp;·&nbsp; implied GPS uncured mOS median '+qf(gpsu,0.5).toFixed(1)+'m ['+qf(gpsu,0.05).toFixed(1)+', '+qf(gpsu,0.95).toFixed(1)+']';
+    const qf=(field,q)=>weightedQuantile(acc,field,q);
+    $("mcStats").innerHTML+=' &nbsp;·&nbsp; implied GPS residual median '+qf("gpsu",0.5).toFixed(1)+'m ['+qf("gpsu",0.05).toFixed(1)+', '+qf("gpsu",0.95).toFixed(1)+']';
   }
 }
 function renderMC(acc,tried){
   acc.sort((a,b)=>a.hr-b.hr);const n=acc.length;
   if(n<80){$("mcStatus").textContent=n+" usable draws — widen priors or loosen the floor";$("mcStats").textContent="";$("mcHist").innerHTML="";return;}
-  let W=0,W2=0,WP=0,W35=0,Wreach=0;
-  for(const x of acc){W+=x.w;W2+=x.w*x.w;WP+=x.w*x.pw;if(x.hr<0.35)W35+=x.w;if(x.reached)Wreach+=x.w;}
+  let W=0,W2=0,WP=0,W35=0,Wreach=0,Wfit=0,Werr=0;
+  for(const x of acc){W+=x.w;W2+=x.w*x.w;WP+=x.w*x.pw;if(x.hr<0.35)W35+=x.w;if(x.reached)Wreach+=x.w;if(x.fit)Wfit+=x.w;Werr+=x.w*(x.fitErr||0);}
   const ESS=W*W/W2, win=WP/W;
   function wq(q){let c=0;const t=q*W;for(let i=0;i<n;i++){c+=acc[i].w;if(c>=t)return acc[i].hr;}return acc[n-1].hr;}
   const med=wq(0.5),lo=wq(0.05),hi=wq(0.95);
   lastMcPwin=win;
   $("mcStatus").textContent=tried.toLocaleString()+" draws · effective N ≈ "+Math.round(ESS).toLocaleString()+" · "+(100*Wreach/W).toFixed(0)+"% reach 80th event by cutoff";
-  $("mcStats").innerHTML="P(win — significant log-rank) = <span style='color:"+(win>0.5?"var(--good)":"var(--bad)")+"'>"+(100*win).toFixed(0)+"%</span> &nbsp;·&nbsp; median HR "+med.toFixed(2)+" &nbsp;·&nbsp; 90% CrI ["+lo.toFixed(2)+", "+hi.toFixed(2)+"] &nbsp;·&nbsp; P(HR&lt;0.35)="+(100*W35/W).toFixed(1)+"% &nbsp;<span style='color:var(--muted);font-weight:400'>(likelihood-weighted; NPH-aware significance)</span>";
+  $("mcStats").innerHTML="P(win — significant log-rank) = <span style='color:"+(win>0.5?"var(--good)":"var(--bad)")+"'>"+(100*win).toFixed(0)+"%</span> &nbsp;·&nbsp; median HR "+med.toFixed(2)+" &nbsp;·&nbsp; 90% CrI ["+lo.toFixed(2)+", "+hi.toFixed(2)+"] &nbsp;·&nbsp; P(HR&lt;0.35)="+(100*W35/W).toFixed(1)+"% &nbsp;·&nbsp; strict-fit weight "+(100*Wfit/W).toFixed(0)+"% · weighted anchor RMSE "+(Werr/W).toFixed(1)+" events &nbsp;<span style='color:var(--muted);font-weight:400'>(Poisson-likelihood weighted; NPH-aware significance)</span>";
   // Dynamic lower bound so bullish/cw/high-cure scenarios (HR well below 0.30) still render full bars & on-screen markers.
   const HIST_HI=1.05;
   const loBound=Math.min(0.10,Math.floor(Math.min(lo,acc[0].hr)*20)/20);
@@ -893,14 +898,14 @@ function renderMC(acc,tried){
 // Best Available Guess: biology-first (42% GPS cure, cw42) → inverseSolve(batcap 14%) → forward verify.
 // gpsu is step-aligned (0.1); default also retains non-negligible likelihood for official <80 @ m66.
 const P={
- best:    {bat:13,batc:0,gpsc:42,gpsu:47.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true,irm_lead:3},
+ best:    {bat:13,batc:0,gpsc:42,gpsu:42.5,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true,irm_lead:3},
  moderate:{bat:11,batc:13,gpsc:28,gpsu:34,delay:2,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true,irm_lead:3},
- critique:{bat:10.5,batc:12,gpsc:18,gpsu:30.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:12,mcFloor:true,irm_lead:3},
+ critique:{bat:10.5,batc:12,gpsc:18,gpsu:30.5,delay:2,mid:25,k:0.15,auto:false,xtx:6,cens:18,mcFloor:true,irm_lead:3},
  bull:    {bat:10, batc:1, gpsc:40,gpsu:38,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false,irm_lead:3},
- bear:    {bat:10, batc:16,gpsc:14,gpsu:29,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true,irm_lead:3},
+ bear:    {bat:10, batc:16,gpsc:14,gpsu:29,delay:2,  mid:25,k:0.15,auto:false,xtx:8,cens:18,mcFloor:true,irm_lead:3},
  cw:      {bat:10.5,batc:1, gpsc:41,gpsu:35.5,delay:0, mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:false,irm_lead:3},
  noeffect:{bat:14,batc:28,gpsc:28,gpsu:14,delay:0,  mid:25,k:0.15,auto:false,xtx:0,cens:0, mcFloor:true,irm_lead:3},
- capbreach:{bat:10.5,batc:21,gpsc:12,gpsu:25.5,delay:2,mid:25,k:0.15,auto:false,xtx:8,cens:10,mcFloor:true,irm_lead:3},
+ capbreach:{bat:10.5,batc:21,gpsc:12,gpsu:25.5,delay:2,mid:25,k:0.15,auto:false,xtx:8,cens:15,mcFloor:true,irm_lead:3},
  vdm:     {bat:16.8,batc:0,batk:1.16,gpsc:0,gpsu:16.3,delay:3,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true,irm_lead:0},
  vdmfit:  {bat:16.8,batc:0,batk:1.16,gpsc:61,gpsu:6.5,delay:0,mid:25,k:0.15,auto:false,xtx:0,cens:0,mcFloor:true,irm_lead:0}
 };
@@ -997,7 +1002,7 @@ on("mcNeutral","click",function(){applyRegalPreset("best");$("mcStatus").textCon
 function captureState(){
   if(regalMode==="forward")syncRegalPresetMarker();
   return{v:1,tab:activeTab,regalMode,activeRegalPreset,activeInvPreset,activeSlsPreset,activeValPreset,
-    gps:{bat:+$("bat").value,batc:+$("batc").value,batk:+$("batk").value,gpsc:+$("gpsc").value,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value,cens:+$("cens").value,mid:+$("mid").value,k:+$("k").value,batcap:+$("batcap").value,autofit:$("autofit").checked,fhTest:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value,mcFloor:$("mcFloor").checked,cutoff:+$("cutoff").value},
+    gps:{bat:+$("bat").value,batc:+$("batc").value,batk:+$("batk").value,gpsc:+$("gpsc").value,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value,cens:+$("cens").value,mid:+$("mid").value,k:+$("k").value,batcap:+$("batcap").value,autofit:$("autofit").checked,fhTest:$("fhTest").checked,stratF:+$("stratF").value,zfut:+$("zfut").value,mcFloor:$("mcFloor").checked,assumeStatus:$("assumeStatus").checked,cutoff:+$("cutoff").value},
     sls:{sls_os:+$("sls_os").value,sls_bench:+$("sls_bench").value,sls_orr:+$("sls_orr").value,fl_base:+$("fl_base").value,fl_sls:+$("fl_sls").value,tp_base:+$("tp_base").value,tp_sls:+$("tp_sls").value,sls_flev:+$("sls_flev").value},
     val:{v_cr2:+$("v_cr2").value,v_cr1:+$("v_cr1").value,v_gpen:+$("v_gpen").value,v_gprice:+$("v_gprice").value,v_gyears:+$("v_gyears").value,v_flpool:+$("v_flpool").value,v_rrpool:+$("v_rrpool").value,v_spen:+$("v_spen").value,v_sprice:+$("v_sprice").value,v_syears:+$("v_syears").value,v_platform:+$("v_platform").value,v_mult:+$("v_mult").value,v_shares:+$("v_shares").value,v_cash:+$("v_cash").value,v_riskadj:$("v_riskadj").checked,v_pgps:+$("v_pgps").value,v_psls:+$("v_psls").value},
     ui:{showUncertainty,irm_lead:+$("irm_lead").value,bf_e58:+$("bf_e58").value,bf_cure:+$("bf_cure").value,explainLvl:curLvl}};
@@ -1018,7 +1023,7 @@ function applyState(s){
     activeRegalPreset=s.activeRegalPreset||activeRegalPreset;activeInvPreset=s.activeInvPreset||activeInvPreset;
     activeSlsPreset=s.activeSlsPreset||activeSlsPreset;activeValPreset=s.activeValPreset||activeValPreset;
     applySliderValues(GPS_SHARE_KEYS,s.gps);
-    if(s.gps){if(s.gps.autofit!=null)$("autofit").checked=s.gps.autofit;if(s.gps.fhTest!=null)$("fhTest").checked=s.gps.fhTest;if(s.gps.mcFloor!=null)$("mcFloor").checked=s.gps.mcFloor;}
+    if(s.gps){if(s.gps.autofit!=null)$("autofit").checked=s.gps.autofit;if(s.gps.fhTest!=null)$("fhTest").checked=s.gps.fhTest;if(s.gps.mcFloor!=null)$("mcFloor").checked=s.gps.mcFloor;if(s.gps.assumeStatus!=null)$("assumeStatus").checked=s.gps.assumeStatus;}
     applySliderValues(SLS_SHARE_KEYS,s.sls);
     applySliderValues(VAL_SHARE_KEYS,s.val);
     if(s.val&&s.val.v_riskadj!=null&&$("v_riskadj"))$("v_riskadj").checked=!!s.val.v_riskadj;
@@ -1069,24 +1074,23 @@ onChange("showUncertainty",function(){showUncertainty=this.checked;deferWithLoad
 
 // ================= FAST P(WIN) APPROX =================
 function poisLogLThrough(p,throughMonth){
-  const e46v=eventsAt(46,p,100),e58v=eventsAt(58,p,100),e63v=eventsAt(63,p,100),eStatus=eventsAt(T4,p,100);
+  const e46v=eventsAt(46,p,100),e58v=eventsAt(58,p,100),e63v=eventsAt(63,p,100);
   let ll=0;
   if(throughMonth>=46)ll+=lpois(60,e46v);
   if(throughMonth>=58)ll+=lpois(12,Math.max(0,e58v-e46v));
   if(throughMonth>=63)ll+=lpois(6,Math.max(0,e63v-e58v));
-  if(throughMonth>=T4)ll+=Math.log(Math.max(1e-12,poisLE(1,Math.max(0,eStatus-e63v))));
+  if(throughMonth>=T4)ll+=statusLogLikelihood(p,100);
   return ll;
 }
 function fastPwin(p,binding,cutoff,nDraws,dataThrough){
   nDraws=nDraws||3000;const ctr=Object.assign({},p);const thru=dataThrough!=null?dataThrough:T4;let W=0,WP=0;
-  for(let i=0;i<nDraws;i++){const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut};
-    for(const f of MCFIELDS) q[f]=clampf(f,ctr[f]+SD[f]*rn());
-    if(thru>=58){const e58=eventsAt(58,q,80);if(Math.abs(e58-72)>15)continue;}
+  for(let i=0;i<nDraws;i++){const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,assumeStatus:ctr.assumeStatus,stratF:ctr.stratF,zfut:ctr.zfut};
+    for(const f of MCFIELDS) q[f]=sampleField(f,ctr[f]);
     const Lev=Math.exp(poisLogLThrough(q,thru));
-    if(Lev<1e-11)continue;
-    const thIA=analyzeLR(46,q).z;const{t80,Tan,Dan}=t80Analysis(q,cutoff,80);
+    if(!(Lev>0))continue;
+    const thIA=analyzeLR(46,q).z;const{Tan,Dan}=t80Analysis(q,cutoff,80,Math.random());
     const aFin=analyzeLR(Tan,q);if(isNaN(aFin.hr))continue;
-    let w,pw;if(binding){const r=condPow(thIA,aFin.z,Dan,q.zfut);w=Lev*r.Pc;pw=r.cp;}else{w=Lev*Phi(thIA-q.zfut);pw=Phi(aFin.z-ZFINAL);}
+    const{w,pw}=interimContribution(binding,Lev,thIA,aFin.z,Dan,q.zfut);
     W+=w;WP+=w*pw;}
   return W>0?WP/W:NaN;
 }
@@ -1268,7 +1272,7 @@ const MILESTONES=[
   {label:"Interim",month:46,events:60,dataThrough:46,src:'<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 PR</a>'},
   {label:"72-event update",month:58,events:72,dataThrough:58,src:'<a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">Dec 2025 PR</a>'},
   {label:"78-event update",month:63,events:78,dataThrough:63,src:'<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">May 2026 PR</a>'},
-  {label:"Official Q2 status",month:T4,events:"<80",dataThrough:T4,src:'<a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">Aug 11 Q2 update</a>; later announcement silence is not treated as an event-count bound'}
+  {label:"Optional Aug interpretation",month:T4,events:"≤79 assumed",dataThrough:T4,src:'<a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">Aug 11 Q2 wording</a>; model assumption, not disclosed numeric status'}
 ];
 function renderBacktest(){
   const p=readParams(),binding=$("mcFloor").checked;
@@ -1314,12 +1318,12 @@ function communityDDHtml(){
   '<p><b>Core thesis:</b> Blinded event deceleration (72 @ m58, 78 @ m63) fits a GPS cure-fraction better than a homogeneous BAT null; anchor-constrained inversion yields BAT mOS ~11 mo after biology caps.</p>'+
   '<ul>'+
   '<li><span class="val-ok">✅</span> Event anchors 60 / 72 / 78 and final trigger 80 — <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank">SELLAS PRs</a></li>'+
-  '<li><span class="val-ok">✅</span> Win bar HR &lt; 0.636 (~BAT 8.0 vs GPS 12.6 mo design) — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">Jamy/Cicic 2025</a></li>'+
+  '<li><span class="val-ok">✅</span> PH design reference HR 0.636 (~BAT 8.0 vs GPS 12.6 mo); app verdict uses modeled log-rank Z — <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">Jamy/Cicic 2025</a></li>'+
   '<li><span class="val-ok">✅</span> IRM / lead-time inflation logic (Suissa left-truncation) — <a href="https://academic.oup.com/aje/article/167/4/492/233064" target="_blank">Suissa 2008</a></li>'+
   '<li><span class="val-ok">✅</span> Kurosawa CR2/no-HCT 3-yr OS by cyto: inv(16) 78% n=14, t(8;21) 53% n=18, intermediate 19% n=82, unfavorable 35% n=18 — <a href="https://haematologica.org/article/view/5781" target="_blank">Haematologica 2010 Fig. 4</a></li>'+
   '<li><span class="val-part">⚠️</span> BAT 3-yr OS cap ~13–19% (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1uoc6ug/what_we_can_learn_from_fatima_2026_the_most/" target="_blank">Jul 2026 Fatima post</a>) — Kurosawa whole-cohort no-HCT 14% <span class="val-ok">✅</span>; QUAZAR placebo 27.9% <span class="val-ok">✅</span>; app default batcap 14% mid-band</li>'+
   '<li><span class="val-ok">✅</span> Fatima et al. 2026 is now indexed: n=356 after frontline Ven-HMA failure, mOS 4.0m and 3-yr OS 5%; active Ven-containing salvage mOS 6.0m. It supports the SLS-009 benchmark update, <b>not</b> REGAL CR2 BAT because patients had active relapsed/refractory disease (<a href="https://doi.org/10.1038/s41408-026-01612-w" target="_blank">Blood Cancer J</a>)</li>'+
-  '<li><span class="val-part">⚠️</span> REGAL N=126 &amp; EU CTR ~57% ≥65 <span class="val-ok">✅</span>; median age 67 — <span class="val-no">❌</span> not in REGAL disclosure</li>'+
+  '<li><span class="val-part">⚠️</span> REGAL enrolled N=127 <span class="val-ok">✅</span>; the engine uses expected 63.5/arm. EU CTR age-mix estimates and median age 67 are <span class="val-no">❌</span> not disclosed REGAL outcomes.</li>'+
   '<li><span class="val-no">❌</span> Tsirigotis Apr 30 email — private, unverified</li>'+
   '<li><span class="val-model">🔬</span> Bayes ~62× vs no-cure null — <span class="val-no">❌</span> not robust if BAT has long tail (<a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank">uhdisj41</a>)</li>'+
   '<li><span class="val-model">🔬</span> Part 2 P(success) 99.9%, BAT mOS 11.4 mo — model outputs; not disclosed trial data</li>'+
@@ -1414,7 +1418,7 @@ let slsCommunityDDLoaded=false;
 function slsCommunityDDHtml(){
   return '<p class="cw-note">Synthesis of high-signal r/sellaslifesciences threads on SLS-009 / tambiciclib. Reddit supplies framing and sentiment; clinical numbers checked against SELLAS IR, ASH abstracts, SEC, and peer-reviewed benchmarks.</p>'+
   '<div class="contrib"><h4>Community bull thesis</h4>'+
-  '<p>Recurring themes: post-Ven r/r AML is a graveyard (~2.5 mo mOS); SLS-009+AZA/VEN shows ~3–4× OS vs historical and strong ORR in AML-MR / ASXL1+ subsets; frontline optionality (80-pt Ph2) adds commercial upside alongside GPS.</p>'+
+  '<p>Recurring themes: post-Ven r/r AML remains poor, but benchmark choice matters—Fatima 2026 reports 4.0m overall and 6.0m with active salvage, versus the older sponsor ~2.4–2.6m comparator. SLS-009+AZA/VEN shows favorable single-arm OS/ORR; frontline optionality (80-pt randomized Ph2) adds upside alongside GPS.</p>'+
   '<ul>'+
   '<li><span class="val-ok">✅</span> ORR 46%, mOS 8.9 mo, 58% ORR in 1-prior-line — <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx" target="_blank">ASH 2025</a></li>'+
   '<li><span class="val-part">⚠️</span> "3×+ OS vs 2.5 mo life expectancy" — arithmetic ~3.6× at 8.9/2.5; benchmark choice matters (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1j2vjc1/the_promise_of_sls009/" target="_blank">Promise post</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1haptk2/300_overall_survival_compared_to_historical/" target="_blank">300% OS post</a>)</li>'+
@@ -1438,7 +1442,7 @@ function slsCommunityDDHtml(){
   '</ul></div>'+
   '<table class="valtbl"><thead><tr><th>Reddit claim</th><th>Validation</th><th>Thread</th></tr></thead><tbody>'+
   '<tr><td>8.9 mo mOS in post-Ven r/r</td><td><span class="val-ok">✅</span> ASH 2025</td><td><a href="https://www.reddit.com/r/sellaslifesciences/comments/1haptk2/300_overall_survival_compared_to_historical/" target="_blank">300% OS</a></td></tr>'+
-  '<tr><td>~2.5 mo historical control</td><td><span class="val-ok">✅</span> Zainaldin 2022 / ASH PR</td><td><a href="https://www.reddit.com/r/sellaslifesciences/comments/1j2vjc1/the_promise_of_sls009/" target="_blank">Promise</a></td></tr>'+
+  '<tr><td>~2.4–2.6m sponsor historical comparator</td><td><span class="val-part">⚠️</span> older Zainaldin/ASH comparator; app central is Fatima 4.0m</td><td><a href="https://doi.org/10.1038/s41408-026-01612-w" target="_blank">Fatima 2026</a></td></tr>'+
   '<tr><td>No serious side effects</td><td><span class="val-part">⚠️</span> no DLTs/deaths; not zero AEs</td><td><a href="https://www.reddit.com/r/sellaslifesciences/comments/1hfnphz/009_p2a_data_updated_at_ash_is_a_grand_slam_home/" target="_blank">Grand slam</a></td></tr>'+
   '<tr><td>SLS-009 alone worth 15–20× mcap</td><td><span class="val-model">🔬</span> valuation opinion</td><td><a href="https://www.reddit.com/r/sellaslifesciences/comments/1haptk2/300_overall_survival_compared_to_historical/" target="_blank">300% OS</a></td></tr>'+
   '</tbody></table>'+
@@ -1570,6 +1574,7 @@ function initApp(){
     b.onclick=()=>applyDilutionStress(Number(b.dataset.dilutionStress));
   });
   on("mcFloor","change",function(){syncRegalPresetMarker();lastMcPwin=null;scheduleUpdate();});
+  on("assumeStatus","change",function(){lastMcPwin=null;clearRegalMCOutput("status assumption changed — click Run");scheduleUpdate();});
   onClick("scmpRun",runScenarioDiff);
   ["ev79","ev80"].forEach(id=>{const el=$(id);if(el)el.addEventListener("input",updateEventSensitivity);});
   ["panelScmp","panelEvtSens"].forEach(id=>{const el=$(id);if(el)el.addEventListener("toggle",()=>{if(el.open&&id==="panelEvtSens")updateEventSensitivity();});});
@@ -1682,7 +1687,7 @@ function updateBestEstStrip(){
   const presetEl=$("bePresetLabel");
   if(presetEl){
     presetEl.textContent=label;
-    presetEl.title="Biology-first clinical scenario (fixed). Risk-adj uses valuation P(GPS)="+pgps+"% — a user prior, not Tab 1 neutral-prior MC P(win) (~50–78%) and not biology-first point P(win). "+neutralRidgeHrNote+" (identifiability ridge; biology-first readout HR is primary)";
+    presetEl.title="Biology-first clinical scenario (fixed). Risk-adj uses valuation P(GPS)="+pgps+"% — a judgmental user prior, not Tab 1 clinical P(win). "+neutralRidgeHrNote+" (identifiability ridge; biology-first readout is scenario-dependent)";
   }
   const gpsEl=$("beGpsHr");
   if(gpsEl){
@@ -2011,7 +2016,20 @@ const EXPL={
   "<p><b>Primary refs:</b> Cox 1972; Schoenfeld 1981/83; O'Brien &amp; Fleming 1979; Lan &amp; DeMets 1983; Fleming-Harrington 1991; Jennison-Turnbull 2000; Uno 2014 (RMST); Boag 1949 (cure); Suissa 2008 (lead-time); Kurosawa 2010; DiNardo 2020 (VIALE-A); Beaumont 2002 (ABC). Full citation lists in Tabs 1–3 References.</p>"
 };
 function refreshExplainFacts(html){
-  return ('<div class="callout-note"><b>Sep 16, 2026 update:</b> 78 events were announced in May; Aug 11 still said “approaching” 80 and no later trigger announcement was found. Event timing is conditioned only through the official Aug 11 status because reporting can lag. Fatima 2026 supports a 4.0m central SLS-009 historical benchmark (6.0m active-salvage stress). Q2 cash was $138.3M; basic/FD shares are ~201.9M/~217.6M.</div>'+html)
+  const sls='<p><b>SLS-009 evidence.</b> The open-label, single-arm r/r AML-MR cohort reported ORR 46% and mOS 8.9 months in the least-pretreated group. The sponsor cited older ~2.4–2.6-month comparators, while Fatima et al. 2026 (n=356) supports the model’s more conservative <b>4.0-month central external benchmark</b> and 6.0-month active-salvage stress. These are not randomized controls; selection and historical drift remain material. The randomized ~80-patient frontline Phase 2 is enrolling. <a href="https://doi.org/10.1038/s41408-026-01612-w" target="_blank">Fatima 2026</a> · <a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank">NCT04588922</a></p>';
+  const valuation='<p><b>Valuation limits.</b> The peak-sales model uses judgmental pricing, penetration, duration, multiples, and P(approval) inputs—not regulatory forecasts or outputs of Tab 1. Q2 cash was <b>$138.3M</b>; basic shares were ~201.9M and modeled fully diluted shares are ~217.6M. The unused $150M ATM is a possible dilution sensitivity, not issued stock. <a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000012/sls-20260630.htm" target="_blank">Q2 2026 10-Q</a></p>';
+  const interim='<p><b>Interim interpretation.</b> The verified fact is that the IDMC recommended continuation at 60 events. HR ≈0.547 is the model’s proportional-hazards translation of an assumed O’Brien–Fleming efficacy boundary; the actual interim HR and detailed stopping implementation are not public. Binding mode conditions on continuation; informational mode applies no continuation/futility selection.</p>';
+  const endpoint='<p><b>REGAL endpoint implementation.</b> REGAL is a 127-participant, 1:1 randomized, event-driven OS trial with final analysis at 80 deaths. The app models an expected balanced allocation of 63.5/arm. Its verdict uses expected log-rank Z &gt;2.01; HR 0.636 is retained as the proportional-hazards design reference. Because patient-level strata are unavailable, the stratification control is an information-efficiency approximation rather than a reconstruction of the SAP analysis.</p>';
+  const posterior='<p><b>Posterior summary.</b> The app reports reproducible, preset-centered Poisson-likelihood-weighted Monte Carlo results with sampled T80 paths and fit diagnostics. It does not claim a separate “neutral-prior 50–78%” result. Blinded pooled counts do not identify the treatment-arm HR; every PoS remains conditional on displayed priors and the selected interim/status assumptions.</p>';
+  const likelihood='<p><b>Likelihood and timing.</b> Expected event increments are weighted continuously with Poisson likelihoods at 60, 72, and 78 events. If enabled, the Aug sensitivity interprets “approaching 80” as fewer than 80 events on Aug 11 and adds P(Δ≤1); disabling it uses confirmed milestones only. Each Monte Carlo draw samples a T80 path. Independent censor survival enters observed deaths, risk sets, HR, and Z. The expected balanced allocation is 63.5/arm for N=127.</p>';
+  html=html
+    .replace(/<p><b>SLS-009[^<]*?<\/b>[\s\S]*?<\/p>/g,sls)
+    .replace(/<p><b>(?:The key number — hazard ratio \(HR\)\.|Survival curves &amp; the hazard ratio\.|REGAL design &amp; estimand\.|REGAL — trial architecture\.)<\/b>[\s\S]*?<\/p>/g,endpoint)
+    .replace(/<p><b>(?:How much is the company worth\?|Money \/ valuation\.|Valuation\.|Valuation framework\.|Valuation — comps &amp; caveats\.|Valuation — epistemic limits\.)<\/b>[\s\S]*?<\/p>/g,valuation)
+    .replace(/<p><b>(?:Interim analysis &amp; what it implies\.|Interim inference &amp; power arithmetic\.)<\/b>[\s\S]*?<\/p>/g,interim)
+    .replace(/<p><b>(?:Posterior &amp; sensitivity\.|Posterior summary &amp; calibration\.)<\/b>[\s\S]*?<\/p>/g,posterior)
+    .replace(/<p><b>(?:Monte Carlo \/ likelihood\.|Likelihood, ABC, &amp; interim\.)<\/b>[\s\S]*?<\/p>/g,likelihood);
+  return ('<div class="callout-note"><b>Sep 16, 2026 update:</b> 78 events were announced in May. On Aug 11 SELLAS said “approaching” 80 but disclosed no count or data cutoff; treating that phrase as 78–79 is an explicit default-on assumption, with confirmed-only mode available. T80 is a predictive event distribution, distinct from announcement timing.</div>'+html)
     .replace(/78 recorded as of May 2026/g,'78 announced in May 2026; still “approaching” 80 on Aug 11')
     .replace(/78 as of 11 May 2026/g,'78 announced 11 May 2026; still “approaching” 80 on Aug 11')
     .replace(/t ∈ \{m46, m58, m63, m65\}/g,'t ∈ {m46, m58, m63, m66}')

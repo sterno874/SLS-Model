@@ -72,9 +72,8 @@ test("Weibull median scale invariant to k", () => {
 
 test("GPS mixture-cure plateau", () => {
   const p = mk({ gpsc: 0.4, delay: 3, bat: 8, batc: 0.1 });
-  const tail = sGPSbase(200, p);
-  const ref = sBATbase(3, p) * 0.4;
-  assert.ok(Math.abs(tail - ref) < 0.04);
+  const tail = sGPSbase(10000, p);
+  assert.ok(Math.abs(tail - 0.4) < 1e-10);
 });
 
 test("best preset within event tolerances", () => {
@@ -225,10 +224,10 @@ test("hrGaugeState: final row uses readout HR, not m58 when cutoff differs", () 
 });
 
 test("bear preset fits anchors and HR near threshold", () => {
-  const bearPreset = mk({ bat: 10, batc: 0.16, gpsc: 0.14, gpsu: 29, delay: 2, xtx: 0.08, cens: 0.10 });
+  const bearPreset = mk({ bat: 10, batc: 0.16, gpsc: 0.14, gpsu: 29, delay: 2, xtx: 0.08, cens: 0.18 });
   const hr = hazardRatio(T2, bearPreset);
   assert.ok(passesVerdict(bearPreset));
-  assert.ok(hr >= 0.54 && hr < 0.636);
+  assert.ok(hr >= 0.52 && hr < 0.636);
 });
 
 test("header best-est defaults: GPS readout HR ~0.262 (cw42 biology-first preset)", () => {

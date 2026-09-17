@@ -9,10 +9,12 @@ A primary-sourced, open-source interactive model of SELLAS's pipeline and valuat
 
 ## Tabs
 
-1. **REGAL / GPS (Phase 3)** — survival & HR explorer with sensitivity tornado, Bayes-factor panel, interactive IRM table, time-to-80th-event simulator, preset comparison dashboard, milestone backtest, uncertainty bands on KM curves, and shareable scenario URLs. Checked against every announced blinded event count (60/72/78) and the official Aug 11, 2026 “approaching 80” status.
+1. **REGAL / GPS (Phase 3)** — survival & HR explorer with sensitivity tornado, Bayes-factor panel, interactive IRM table, time-to-80th-event simulator, preset comparison dashboard, milestone backtest, uncertainty bands on KM curves, and shareable scenario URLs. Checked against every announced blinded event count (60/72/78); an optional default-on sensitivity interprets the Aug 11, 2026 phrase “approaching 80” as fewer than 80 events.
 2. **SLS-009 (Phase 2)** — single-arm-vs-historical model for the CDK9 inhibitor (r/r + frontline AML), with a Monte-Carlo of the r/r effect and a hypothetical frontline Phase-3 power calc.
 3. **Valuation & WT1 platform** — a transparent peak-sales × multiple model with a **survival-driven prevalence pool** (longer survival ⇒ more years on therapy ⇒ bigger pool), risk-adjusted by probability of approval, plus a Monte-Carlo over the enterprise value.
 4. **Explain (ELI5 → PhD)** — the same three models explained at six depths, sources named/linked.
+5. **Statistics** — visual explanations of the survival, event, likelihood, log-rank, and valuation equations.
+6. **Biology** — sourced GPS/WT1 and SLS-009/CDK9 mechanism explainers with evidence-strength labels.
 
 ## Methodology
 
@@ -23,6 +25,8 @@ Click the **📐 Methodology** button on each tab. The statistical toolkit (all 
 - RMST (Uno 2014); Fleming-Harrington weighted log-rank (1991) for late-effect penalty
 - Mixture-cure models (Boag 1949); left-truncation / immortal-time bias (Suissa 2008)
 - Approximate Bayesian Computation likelihood-weighting (Beaumont 2002)
+
+The event engine uses the expected balanced allocation of 127 participants (63.5 per arm), an independent censor-survival curve, and a stylized month-6 transplant-transition sensitivity. The actual arm split, censoring, and post-randomization transplant timing are undisclosed.
 
 ## Research memo
 
@@ -43,12 +47,12 @@ Confirmed PR milestones are **locked** where forward projection applies:
 | 60 | ~46 | Jan 2025 interim PR |
 | 72 | ~58 | Dec 2025 PR |
 | 78 | ~63 (11 May 2026) | Q1 2026 PR |
-| <80 official status | ~66 (11 Aug 2026) | Q2 update: “approaching” 80 |
+| Optional <80 interpretation | ~66 (11 Aug 2026) | Model assumption based on Q2 phrase “approaching” 80; no numeric count/cutoff disclosed |
 | Announcement search | ~67.2 (16 Sep 2026) | No event-80/topline announcement found; not an event-count bound |
 | 80 | TBD | protocol |
 
-- **Forward projection** (80th-event timing, readout power, MC conditional power): conditions on 78 or 79 events at the official Aug 11 cutoff using a Poisson waiting-time model.
-- **Consistency scoring** (`consistent`, `eventErr`, inverse solver, Poisson likelihood): exact milestones use Poisson increments; the official Q2 status contributes `P(increment ≤ 1)` after 78 @ m63. Later announcement silence is not converted into an event count because lock/review/reporting can lag.
+- **Forward projection** (80th-event timing, readout power, MC conditional power): by default, conditionally models 78 or 79 events on Aug 11; the UI toggle provides a confirmed-only sensitivity based on 78 events in May.
+- **Consistency scoring** (`consistent`, `eventErr`, inverse solver, Poisson likelihood): exact milestones use Poisson increments. When the optional Aug interpretation is enabled, it contributes `P(increment ≤ 1)` after 78 @ m63. Later announcement silence is not converted into an event count because lock/review/reporting can lag.
 - **Milestone backtest**: truncated Poisson likelihood through each historical `dataThrough` month — does not re-fit with hindsight.
 
 Regression checks for anchoring live in `tests/math.test.js` (`T80`, `t80Analysis`, `Tfor`, `eventsAtAnchored`).
@@ -76,7 +80,7 @@ SLS-Model/
 ├── index.html          # HTML shell, meta/OG tags, analytics snippet, AGPL footer
 ├── RESEARCH.md         # Tagged DD memo (verified / partial / community / rejected)
 ├── css/
-│   └── main.css        # All styles (~340 lines)
+│   └── main.css        # All styles (~100 compact lines)
 ├── js/
 │   ├── main.js         # App init, tabs, REGAL/SLS-009/valuation/explain UI, MC, share URL
 │   ├── ui/state.js     # Share encoding, valuation metrics, header-strip helpers

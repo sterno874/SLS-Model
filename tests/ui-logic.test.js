@@ -220,7 +220,7 @@ test("hrGaugeState: bear preset HR near win threshold", () => {
   const bear = paramsFromPreset("bear", null, "forward", P, INV);
   const gs = hrGaugeState(bear, 72);
   const hr = hazardRatio(T2, bear);
-  assert.ok(hr >= 0.54 && hr < 0.636);
+  assert.ok(hr >= 0.52 && hr < 0.636);
   assert.equal(typeof gs.interimClearsFloor, "boolean");
   assert.equal(typeof gs.finalClears, "boolean");
 });

@@ -47,9 +47,9 @@ export const DEFAULT_STATE = {
   activeValPreset: "best",
   embed: false,
   gps: {
-    bat: 13, batc: 0, batk: 1, gpsc: 42, gpsu: 47.5, delay: 3, xtx: 0,
+    bat: 13, batc: 0, batk: 1, gpsc: 42, gpsu: 42.5, delay: 3, xtx: 0,
     cens: 0, mid: 25, k: 0.15, batcap: 14, autofit: false, fhTest: false,
-    stratF: 0.9, zfut: 0.4, mcFloor: true, cutoff: 72
+    stratF: 0.9, zfut: 0.4, mcFloor: true, assumeStatus: true, cutoff: 72
   },
   sls: {
     sls_os: 8.9, sls_bench: 4.0, sls_orr: 46, fl_base: 14.7, fl_sls: 20,
@@ -68,15 +68,15 @@ export const DEFAULT_STATE = {
 // build the encode/decode baseline; drift only lengthens links, never corrupts
 // them (both sides use these same tables).
 export const SHARE_P = {
-  best:    { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  bind:    { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  nonbind: { bat: 13, batc: 0, gpsc: 42, gpsu: 47.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false },
+  best:    { bat: 13, batc: 0, gpsc: 42, gpsu: 42.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
+  bind:    { bat: 13, batc: 0, gpsc: 42, gpsu: 42.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
+  nonbind: { bat: 13, batc: 0, gpsc: 42, gpsu: 42.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false },
   moderate:{ bat: 11, batc: 13, gpsc: 28, gpsu: 34, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  critique:{ bat: 10.5, batc: 12, gpsc: 18, gpsu: 30.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 6, cens: 12, mcFloor: true },
+  critique:{ bat: 10.5, batc: 12, gpsc: 18, gpsu: 30.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 6, cens: 18, mcFloor: true },
   bull:    { bat: 10,  batc: 1,  gpsc: 40, gpsu: 38,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
-  bear:    { bat: 10,  batc: 16, gpsc: 14, gpsu: 29,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
+  bear:    { bat: 10,  batc: 16, gpsc: 14, gpsu: 29,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 18, mcFloor: true },
   cw:      { bat: 10.5,batc: 1,  gpsc: 41, gpsu: 35.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
-  capbreach:{ bat: 10.5, batc: 21, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 10, mcFloor: true },
+  capbreach:{ bat: 10.5, batc: 21, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 15, mcFloor: true },
   noeffect:{ bat: 14,  batc: 28, gpsc: 28, gpsu: 14,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: true },
   vdm:     { bat: 16.8, batc: 0, batk: 1.16, gpsc: 0,  gpsu: 16.3, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
   vdmfit:  { bat: 16.8, batc: 0, batk: 1.16, gpsc: 61, gpsu: 6.5,  delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true }
@@ -128,7 +128,7 @@ export const SHARE_FIELD_DEFS = [
   ["ba", "gps", "bat"], ["bc", "gps", "batc"], ["bk", "gps", "batk"], ["gc", "gps", "gpsc"],
   ["gu", "gps", "gpsu"], ["dl", "gps", "delay"], ["xt", "gps", "xtx"], ["ce", "gps", "cens"],
   ["md", "gps", "mid"], ["kk", "gps", "k"], ["bp", "gps", "batcap"], ["af", "gps", "autofit"],
-  ["fh", "gps", "fhTest"], ["sf", "gps", "stratF"], ["zf", "gps", "zfut"], ["mf", "gps", "mcFloor"],
+  ["fh", "gps", "fhTest"], ["sf", "gps", "stratF"], ["zf", "gps", "zfut"], ["mf", "gps", "mcFloor"], ["as", "gps", "assumeStatus"],
   ["co", "gps", "cutoff"],
   ["so", "sls", "sls_os"], ["sb", "sls", "sls_bench"], ["sr", "sls", "sls_orr"], ["fb", "sls", "fl_base"],
   ["fs", "sls", "fl_sls"], ["tb", "sls", "tp_base"], ["ts", "sls", "tp_sls"], ["sl", "sls", "sls_flev"],
@@ -294,6 +294,7 @@ export function paramsFromPresetQ(q) {
     mid: q.mid || 25,
     k: q.k || 0.15,
     fh: false,
+    assumeStatus: q.assumeStatus !== false,
     stratF: STRATF,
     zfut: ZFUT
   };
@@ -302,7 +303,7 @@ export function paramsFromPresetQ(q) {
 export function paramsFromPreset(name, q, mode, P, INV) {
   q = q || (mode === "inverse" ? INV[name] : P[name]);
   if (!q) return null;
-  const base = { osmode: "itt", batk: q.batk != null ? q.batk : 1, fh: false, stratF: STRATF, zfut: ZFUT };
+  const base = { osmode: "itt", batk: q.batk != null ? q.batk : 1, fh: false, assumeStatus: q.assumeStatus !== false, stratF: STRATF, zfut: ZFUT };
   if (mode === "inverse") {
     const ir = inverseSolve(
       Object.assign({}, base, {

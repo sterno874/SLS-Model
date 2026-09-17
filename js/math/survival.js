@@ -1,8 +1,8 @@
 const LN2 = Math.log(2);
-const N_ARM = 63, LMAX = 38;
+const N_TOTAL = 127, N_ARM = N_TOTAL/2, LMAX = 38;
 const T1=46,T2=58,T3=63,T4=66, E1=60,E2=72,E3=78, THRESH=0.636, IFLOOR=0.547; // T4 = official Q2 status cutoff (11 Aug 2026); IFLOOR = OBF interim efficacy HR at 60 deaths
 const CURRENT_EVENT_ANCHOR={count:78,date:'2026-05-11',month:63,src:'https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html',label:'Q1 2026 PR'};
-const CURRENT_EVENT_STATUS={countLower:78,countUpper:79,date:'2026-08-11',month:T4,src:'https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx',label:'officially “approaching” the 80th event',caveat:'Confirms fewer than 80 events as of the Q2 update; does not disclose whether the count was 78 or 79.'};
+const CURRENT_EVENT_STATUS={countLower:78,countUpper:79,date:'2026-08-11',month:T4,src:'https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx',label:'model interpretation of “approaching” the 80th event',caveat:'SELLAS did not disclose a numeric count or data cutoff. Treating the phrase as 78–79 events on Aug 11 is an explicit, optional model assumption.'};
 const CURRENT_PUBLIC_SEARCH={date:'2026-09-16',month:67.2,label:'no 80th-event or topline announcement found',caveat:'Announcement-status observation only. It is not encoded as an event-count bound because database lock and reporting can lag the event.'};
 const PR_SOURCES={60:{date:'2025-01-23',src:'https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html',label:'Jan 2025 interim'},
   72:{date:'2025-12-29',src:'https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html',label:'Dec 2025 72-event'},
@@ -33,11 +33,13 @@ function enrollCDF(x,m,k){if(x<=0)return 0;if(x>=LMAX)return 1;const c0=rawC(0,m
 // ---------- survival ----------
 function Stx(t){return 0.45+0.55*Math.exp(-LN2*t/16);} // OS after allo-transplant in CR2 (~45% cured)
 function sBATbase(t,p){if(t<=0)return 1;const kk=p.batk||1;const lam=p.bat/Math.pow(LN2,1/kk);return p.batc+(1-p.batc)*Math.exp(-Math.pow(t/lam,kk));} // Weibull (k=1 => exponential)
-function sGPSbase(t,p){if(t<=0)return 1;const d=p.delay;if(t<=d)return sBATbase(t,p);const b=sBATbase(d,p);return b*(p.gpsc+(1-p.gpsc)*Math.exp(-LN2*(t-d)/p.gpsu));}
-// ITT: transplanted patients (a fraction of each arm) contribute their better survival
-function txMix(t,p,base){return (p.xtx>0 && p.osmode!=='censor') ? p.xtx*Stx(t)+(1-p.xtx)*base : base;}
-function sBAT(t,p){if(t<=0)return 1;return txMix(t,p,sBATbase(t,p));}
-function sGPS(t,p){if(t<=0)return 1;return txMix(t,p,sGPSbase(t,p));}
+function sGPSbase(t,p){if(t<=0)return 1;const d=p.delay;if(t<=d)return sBATbase(t,p);const b=sBATbase(d,p),c=Math.max(0,Math.min(p.gpsc,b));return c+(b-c)*Math.exp(-LN2*(t-d)/p.gpsu);}
+// Stylized planned transition at month 6: pre-transition deaths remain counted,
+// and post-transition survival starts among those alive at transition.
+const TX_MONTH=6;
+function txMix(t,p,base,baseAtTx){if(!(p.xtx>0)||p.osmode==='censor'||t<=TX_MONTH)return base;const atTx=baseAtTx!=null?baseAtTx:base;return (1-p.xtx)*base+p.xtx*atTx*Stx(t-TX_MONTH);}
+function sBAT(t,p){if(t<=0)return 1;return txMix(t,p,sBATbase(t,p),sBATbase(TX_MONTH,p));}
+function sGPS(t,p){if(t<=0)return 1;return txMix(t,p,sGPSbase(t,p),sGPSbase(TX_MONTH,p));}
 function poolS(t,p){return 0.5*sBAT(t,p)+0.5*sGPS(t,p);}
 
 /** Default CR2→randomization lead-time (months) for IRM ↔ CR2-onset display.
@@ -51,24 +53,28 @@ function cr2OnsetFromIrm(irmMedian, leadMonths){
   return Math.max(0, irmMedian-lead);
 }
 
-// ---------- events (with transplant handling + dropout censoring) ----------
-function armDeaths(T,p,baseFn,bins){bins=bins||180;let d=0;for(let i=0;i<bins;i++){const e0=LMAX*i/bins,e1=LMAX*(i+1)/bins,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);if(em>=T)continue;const f=T-em;let pd;
-    if(p.xtx>0 && p.osmode==='censor'){ // transplanted pts censored ~month 6 post-enrollment
-      pd=(1-p.xtx)*(1-baseFn(f,p)) + p.xtx*(1-baseFn(Math.min(f,6),p));
-    } else { pd = 1 - txMix(f,p,baseFn(f,p)); }
-    d+=N_ARM*w*pd;}
-  return d;}
-function eventsAt(T,p,bins){const raw=armDeaths(T,p,sBATbase,bins)+armDeaths(T,p,sGPSbase,bins);return raw*(1-p.cens*0.5);}
+// ---------- events (with transplant handling + independent censoring) ----------
+// `cens` is the probability of independent loss to follow-up by month 36.
+function censorSurvival(t,p){const c=Math.max(0,Math.min(0.95,p.cens||0));return Math.pow(1-c,Math.max(0,t)/36);}
+function hctRetention(t,p){return p.osmode==='censor'&&p.xtx>0&&t>TX_MONTH?1-p.xtx:1;}
+function armEventSurvival(t,p,baseFn){const base=baseFn(t,p),atTx=baseFn(TX_MONTH,p);return txMix(t,p,base,atTx);}
+function observedDeathCurve(maxF,p,baseFn,step){
+  step=step||0.5;const vals=[0],times=[0];let d=0;
+  for(let t=0;t<maxF;t+=step){const t1=Math.min(maxF,t+step),mid=(t+t1)/2;const s0=armEventSurvival(t,p,baseFn),s1=armEventSurvival(t1,p,baseFn);d+=Math.max(0,s0-s1)*censorSurvival(mid,p)*hctRetention(mid,p);vals.push(d);times.push(t1);}
+  return{step,vals,at(f){if(f<=0)return 0;if(f>=maxF)return vals[vals.length-1];const i=Math.min(vals.length-2,Math.floor(f/step)),r=(f-times[i])/Math.max(1e-12,times[i+1]-times[i]);return vals[i]+(vals[i+1]-vals[i])*r;}};
+}
+function armDeaths(T,p,baseFn,bins){bins=bins||180;let d=0;const curve=observedDeathCurve(Math.max(0,T),p,baseFn,0.5);for(let i=0;i<bins;i++){const e0=LMAX*i/bins,e1=LMAX*(i+1)/bins,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);if(em>=T)continue;d+=N_ARM*w*curve.at(T-em);}return d;}
+function eventsAt(T,p,bins){return armDeaths(T,p,sBATbase,bins)+armDeaths(T,p,sGPSbase,bins);}
 // Forward projection locked to confirmed PR anchors (78 @ m63); model increments only beyond anchor
 function eventsAtAnchored(T,p,bins){bins=bins||110;if(T<T3)return eventsAt(T,p,bins);const modelAtAnchor=eventsAt(T3,p,bins);return E3+(eventsAt(T,p,bins)-modelAtAnchor);}
 function T80PrPace(){const rate=(E3-E2)/(T3-T2);return T3+(80-E3)/rate;}
-// Conditional time-to-trigger after the official Q2 update confirmed <80 through T4.
-// From 78 @ T3, the unknown status count is 78 or 79. Under a Poisson increment
-// model, P(79 | increment <=1)=lambda/(1+lambda); future time then requires one
-// or two additional events. This preserves event-time noise instead of treating
-// the expected cumulative count crossing 80 as an observed event date.
+// Optional interpretation of the Aug 11 phrase "approaching 80" as <80 at T4.
+// If disabled, only the confirmed 78 @ T3 anchor is used.
+function usesStatusAssumption(p){return p.assumeStatus!==false;}
+function statusLogLikelihood(p,bins){if(!usesStatusAssumption(p))return 0;bins=bins||110;const atAnchor=eventsAt(T3,p,bins),atStatus=eventsAt(T4,p,bins);return Math.log(Math.max(1e-12,poisLE(1,Math.max(0,atStatus-atAnchor))));}
 function t80ConditionalCdf(T,p,statusMonth,bins){
-  bins=bins||110;statusMonth=statusMonth!=null?statusMonth:T4;
+  bins=bins||110;const useStatus=usesStatusAssumption(p);statusMonth=statusMonth!=null?statusMonth:T4;
+  if(!useStatus){if(T<=T3)return 0;const lambda=Math.max(0,eventsAt(T,p,bins)-eventsAt(T3,p,bins)),e=Math.exp(-lambda);return 1-e*(1+lambda);}
   if(T<=statusMonth)return 0;
   const atAnchor=eventsAt(T3,p,bins),atStatus=eventsAt(statusMonth,p,bins);
   const lambdaPast=Math.max(0,atStatus-atAnchor);
@@ -80,7 +86,7 @@ function t80ConditionalCdf(T,p,statusMonth,bins){
 function t80Quantile(p,q,statusMonth,bins){
   bins=bins||110;q=Math.min(0.999999,Math.max(0.000001,q==null?0.5:q));
   statusMonth=statusMonth!=null?statusMonth:T4;
-  let lo=statusMonth,hi=130;
+  let lo=usesStatusAssumption(p)?statusMonth:T3,hi=130;
   if(t80ConditionalCdf(hi,p,statusMonth,bins)<q)return hi;
   for(let i=0;i<28;i++){const m=(lo+hi)/2;if(t80ConditionalCdf(m,p,statusMonth,bins)<q)lo=m;else hi=m;}
   return (lo+hi)/2;
@@ -88,6 +94,7 @@ function t80Quantile(p,q,statusMonth,bins){
 function eventsAtStatusConditioned(T,p,bins){
   bins=bins||110;
   if(T<T3)return eventsAt(T,p,bins);
+  if(!usesStatusAssumption(p))return Math.min(79.999,E3+Math.max(0,eventsAt(T,p,bins)-eventsAt(T3,p,bins)));
   const atAnchor=eventsAt(T3,p,bins),atStatus=eventsAt(T4,p,bins);
   const lambdaStatus=Math.max(0,atStatus-atAnchor);
   if(T<=T4){
@@ -97,18 +104,28 @@ function eventsAtStatusConditioned(T,p,bins){
   const expectedAtStatus=E3+lambdaStatus/(1+lambdaStatus);
   return Math.min(79.999,expectedAtStatus+Math.max(0,eventsAt(T,p,bins)-atStatus));
 }
+function eventsBeforeT80(T,p,bins){
+  bins=bins||110;if(T<=T3)return Math.min(E3,eventsAt(T,p,bins));
+  if(!usesStatusAssumption(p)){const lambda=Math.max(0,eventsAt(T,p,bins)-eventsAt(T3,p,bins));return E3+lambda/(1+lambda);}
+  const atAnchor=eventsAt(T3,p,bins),atStatus=eventsAt(T4,p,bins),past=Math.max(0,atStatus-atAnchor),p0=1/(1+past),p1=past/(1+past);
+  if(T<=T4){const lambda=Math.max(0,eventsAt(T,p,bins)-atAnchor);return E3+lambda/(1+lambda);}
+  const future=Math.max(0,eventsAt(T,p,bins)-atStatus),e=Math.exp(-future),w0=p0*e,w1=p0*future*e+p1*e;return E3+w1/Math.max(1e-12,w0+w1);
+}
 function T80(p){return t80Quantile(p,0.5,T4,110);}
-function t80Analysis(p,cutoff,bins){bins=bins||110;const t80=T80(p);if(t80<=cutoff)return{t80,Tan:t80,Dan:80};return{t80,Tan:cutoff,Dan:eventsAtStatusConditioned(cutoff,p,bins)};}
+function t80Analysis(p,cutoff,bins,u){bins=bins||110;const q=u==null?0.5:u,t80=t80Quantile(p,q,T4,bins),reached=t80<=cutoff;return reached?{t80,Tan:t80,Dan:80,reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)}:{t80,Tan:cutoff,Dan:eventsBeforeT80(cutoff,p,bins),reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)};}
 function mcPathToT80(q,bins,u){return t80Quantile(q,u==null?0.5:u,T4,bins||110);}
 
 // ---------- HR (Pike) ----------
-function hazardRatio(T,p){const h=0.5;let Ob=0,Og=0,Eb=0,Eg=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;}if(Eb<1e-6||Eg<1e-6)return NaN;return (Og/Eg)/(Ob/Eb);}
+function scoreParts(T,p,h){h=h||1;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh;for(let t=0;t<T;t+=h){const t1=Math.min(T,t+h),mid=(t+t1)/2,av=enrollCDF(T-t,p.mid,p.k),ret=censorSurvival(t,p)*hctRetention(t,p),retMid=censorSurvival(mid,p)*hctRetention(mid,p),sb=sBAT(t,p),sg=sGPS(t,p),nb=N_ARM*av*sb*ret,ng=N_ARM*av*sg*ret,nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*Math.max(0,sb-sBAT(t1,p))*retMid,dg=N_ARM*av*Math.max(0,sg-sGPS(t1,p))*retMid,dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;const wt=fh?(1-poolS(t,p)):1;U+=wt*(db-dt*nb/nt);V+=wt*wt*dt*(nb/nt)*(ng/nt);}const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb),z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);return{hr,z,events:Ob+Og};}
+function hazardRatio(T,p){return scoreParts(T,p,0.5).hr;}
 // HR gauge display state: separates interim IA floor (@ m46) from final readout threshold
-function hrGaugeState(p,cutoff,bins){bins=bins||110;const hrInterim=hazardRatio(T1,p),hrM58=hazardRatio(T2,p);const{t80,Tan,Dan}=t80Analysis(p,cutoff,bins);const aFin=analyzeLR(Tan,p);const hrReadout=isNaN(aFin.hr)?null:aFin.hr;const hrForFinal=hrReadout!=null?hrReadout:hrM58;return{hrInterim,hrM58,hrReadout,Tan,Dan,t80,readoutSameAsM58:Tan===T2,interimClearsFloor:!isNaN(hrInterim)&&hrInterim>IFLOOR,interimWouldStop:!isNaN(hrInterim)&&hrInterim<=IFLOOR,hrForFinal,finalClears:!isNaN(hrForFinal)&&hrForFinal<THRESH};}
-// combined point-HR (Pike) + proper stratified log-rank expected z at analysis time T
-function analyzeLR(T,p){const h=1;const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;for(let t=0;t<T;t+=h){const av=enrollCDF(T-t,p.mid,p.k);const nb=N_ARM*av*sBAT(t,p),ng=N_ARM*av*sGPS(t,p),nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*(sBAT(t,p)-sBAT(t+h,p)),dg=N_ARM*av*(sGPS(t,p)-sGPS(t+h,p)),dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;const wt=fh?(1-poolS(t,p)):1;U+=wt*(db-dt*nb/nt);V+=wt*wt*dt*(nb/nt)*(ng/nt);}const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb);const z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);return{hr:hr,z:z};}
+function hrGaugeState(p,cutoff,bins){bins=bins||110;const hrInterim=hazardRatio(T1,p),hrM58=hazardRatio(T2,p);const{t80,Tan,Dan}=t80Analysis(p,cutoff,bins);const aFin=analyzeLR(Tan,p);const hrReadout=isNaN(aFin.hr)?null:aFin.hr,hrForFinal=hrReadout!=null?hrReadout:hrM58;return{hrInterim,hrM58,hrReadout,zReadout:aFin.z,Tan,Dan,t80,readoutSameAsM58:Tan===T2,interimClearsFloor:!isNaN(hrInterim)&&hrInterim>IFLOOR,interimWouldStop:!isNaN(hrInterim)&&hrInterim<=IFLOOR,hrForFinal,finalClears:Number.isFinite(aFin.z)&&aFin.z>ZFINAL};}
+// Expected unstratified score with an information-efficiency multiplier.
+// Actual REGAL strata are unavailable, so this is not a patient-level stratified analysis.
+function analyzeLR(T,p){return scoreParts(T,p,1);}
 // conditional power given the interim landed in the CONTINUE zone [zfut,ZEFF]; returns P(continue) & conditional power
 function condPow(thIA,th80,Dan,zfut){const zf=(zfut!=null?zfut:ZFUT);const rho=Math.sqrt(60/Dan),s=Math.sqrt(Math.max(1e-6,1-rho*rho));let num=0,den=0;const M=24,lo=zf,hi=ZEFF,h=(hi-lo)/M;for(let i=0;i<=M;i++){const z=lo+i*h,wt=(i===0||i===M)?1:(i%2?4:2),f=phi(z-thIA);den+=wt*f;num+=wt*f*Phi((th80+rho*(z-thIA)-ZFINAL)/s);}den*=h/3;num*=h/3;return{Pc:den, cp:den>1e-12?num/den:0};}
+function interimContribution(binding,fitWeight,thIA,thFinal,Dan,zfut){if(!binding)return{w:fitWeight,pw:Phi(thFinal-ZFINAL),Pc:1};const r=condPow(thIA,thFinal,Dan,zfut);return{w:fitWeight*r.Pc,pw:r.cp,Pc:r.Pc};}
 function Tfor(events,p){
   if(events===80)return T80(p);
   const evAt=(T,b)=>events>=E3?eventsAtStatusConditioned(T,p,b):eventsAt(T,p,b);
@@ -128,8 +145,8 @@ function consistent(p,bins){
   const e2=eventsAt(T2,p,bins);if(!Number.isFinite(e2)||Math.abs(e2-E2)>3)return false;
   const e3=eventsAt(T3,p,bins);if(!Number.isFinite(e3)||Math.abs(e3-E3)>3)return false;
   const e4=eventsAt(T4,p,bins);
-  const statusLike=poisLE(1,Math.max(0,e4-e3));
-  if(!Number.isFinite(e4)||statusLike<0.05)return false;
+  if(!Number.isFinite(e4))return false;
+  if(usesStatusAssumption(p)&&Math.exp(statusLogLikelihood(p,bins))<0.05)return false;
   return true;
 }
 function passesVerdict(p,bins){
@@ -152,8 +169,7 @@ function eventErr(p){
   const pm=medianOf(poolS,p);
   // Exact-count anchors use squared residuals; current no-trigger status contributes
   // a right-censored Poisson deviance for <=1 event since 78 @ m63.
-  const statusLike=Math.max(1e-12,poisLE(1,Math.max(0,e4-e3)));
-  let err=Math.pow(e1-E1,2)+Math.pow(e2-E2,2)+Math.pow(e3-E3,2)-2*Math.log(statusLike);
+  let err=Math.pow(e1-E1,2)+Math.pow(e2-E2,2)+Math.pow(e3-E3,2)-2*statusLogLikelihood(p,110);
   if(pm!==null&&pm<13.5)err+=Math.pow(13.5-pm,2)*8;
   return err;
 }
@@ -192,13 +208,13 @@ function inverseSolve(base, cap3){
 }
 
 export {
-  LN2, N_ARM, LMAX, T1, T2, T3, T4, E1, E2, E3, THRESH, IFLOOR,
+  LN2, N_TOTAL, N_ARM, LMAX, T1, T2, T3, T4, E1, E2, E3, THRESH, IFLOOR, TX_MONTH,
   CURRENT_EVENT_ANCHOR, CURRENT_EVENT_STATUS, CURRENT_PUBLIC_SEARCH, PR_SOURCES, HRMAX, ZFINAL, rmst, ZEFF, ZFUT, STRATF,
   Phi, phi, monthLabel, monthToDate, fmtCalMonth, fmtCalRange,
-  lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix,
+  lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix, censorSurvival, hctRetention, armEventSurvival,
   sBAT, sGPS, poolS, armDeaths, eventsAt, eventsAtAnchored, eventsAtStatusConditioned,
-  T80PrPace, T80, t80Analysis, mcPathToT80, t80ConditionalCdf, t80Quantile,
-  hazardRatio, analyzeLR, hrGaugeState, condPow, Tfor, medianOf, consistent, passesVerdict, BAT_MED_CAP, isBiologicallyPlausible, autofitCure,
+  T80PrPace, T80, t80Analysis, mcPathToT80, t80ConditionalCdf, t80Quantile, eventsBeforeT80, usesStatusAssumption, statusLogLikelihood,
+  hazardRatio, analyzeLR, hrGaugeState, condPow, interimContribution, Tfor, medianOf, consistent, passesVerdict, BAT_MED_CAP, isBiologicallyPlausible, autofitCure,
   eventErr, bisectField, batcFor3yrCap, inverseSolve,
   DEFAULT_IRM_LEAD, cr2OnsetFromIrm
 };
