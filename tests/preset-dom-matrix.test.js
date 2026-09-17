@@ -104,6 +104,41 @@ function installDom() {
     postMessage(data) {
       setTimeout(() => {
         if (this.terminated || !this.onmessage) return;
+        if (data.mode === "inverseSolve") {
+          this.onmessage({ data: { type: "done", mode: data.mode, sol: { ...data.base, bat: 10, batc: 0.05, gpsu: 30 }, err: 1 } });
+          return;
+        }
+        if (data.mode === "t80Paths") {
+          const times = Array.from({ length: data.draws }, (_, i) => 66 + (i % 20) / 4);
+          this.onmessage({ data: { type: "done", mode: data.mode, times } });
+          return;
+        }
+        if (data.mode === "slsMonteCarlo") {
+          const folds = Array.from({ length: data.draws }, (_, i) => 1.5 + (i % 20) / 10);
+          const flhrs = Array.from({ length: data.draws }, (_, i) => 0.55 + (i % 20) / 100);
+          this.onmessage({ data: { type: "done", mode: data.mode, folds, flhrs, pwSum: data.draws * 0.7, big: Math.round(data.draws * 0.6), draws: data.draws } });
+          return;
+        }
+        if (data.mode === "valMonteCarlo") {
+          const evs = Array.from({ length: data.draws }, (_, i) => 5 + (i % 20) / 2);
+          const pss = Array.from({ length: data.draws }, (_, i) => 20 + (i % 20));
+          this.onmessage({ data: { type: "done", mode: data.mode, evs, pss, draws: data.draws, riskAdjusted: data.riskAdjusted } });
+          return;
+        }
+        if (data.mode === "pwinBatch") {
+          this.onmessage({ data: { type: "done", mode: data.mode, results: data.tasks.map((task) => ({ id: task.id, pw: 0.7 })) } });
+          return;
+        }
+        if (data.mode === "scenarioBatch") {
+          const rows = data.items.map((item, i) => ({
+            id: item.id, name: item.name, mode: item.mode, label: item.label,
+            fit: true, fitEvents: true, hr: 0.4 + i * 0.05, clears: true,
+            e46: 60, e58: 72, e63: 78, pw: 0.7 - i * 0.05,
+            bat3: 14, gpsc: 40, batMed: 11
+          }));
+          this.onmessage({ data: { type: "done", mode: data.mode, rows } });
+          return;
+        }
         const acc = Array.from({ length: 100 }, (_, i) => ({
           hr: 0.4 + i / 500, w: 1, pw: 0.7, reached: true, fit: true,
           fitErr: 1, gpsu: 30 + i / 20
@@ -270,7 +305,7 @@ async function runSlsMC(document, label) {
   click(document, "#mcSlsRun");
   try {
     await waitFor(
-      () => document.getElementById("mcSlsStatus").textContent !== "running…",
+      () => !document.getElementById("mcSlsRun").disabled,
       `${label} SLS MC`,
       20000
     );
@@ -293,7 +328,7 @@ async function runValMC(document, label) {
   click(document, "#mcValRun");
   try {
     await waitFor(
-      () => document.getElementById("mcValStatus").textContent !== "running…",
+      () => !document.getElementById("mcValRun").disabled,
       `${label} valuation MC`,
       20000
     );

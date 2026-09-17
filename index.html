@@ -486,8 +486,8 @@
 <details class="feat-panel" id="panelT80">
   <summary>Time-to-80th-event simulator <span class="tag m">model</span></summary>
   <div class="panel-body">
-    <p class="cw-note">Conditional Poisson waiting-time simulation from confirmed <b>78 @ m63</b> and official <b>&lt;80 @ m66</b> on Aug 11. The hidden Aug 11 count is modeled as 78 or 79, then each path waits for two or one deaths. No announcement was found through Sep 16, but event time may precede announcement after database lock and review.</p>
-    <button class="p p-run" id="t80Run">▶ Simulate 10k paths</button>
+    <p class="cw-note">Conditional Poisson waiting-time simulation from confirmed <b>78 @ m63</b> and official <b>&lt;80 @ m66</b> on Aug 11. The hidden Aug 11 count is modeled as 78 or 79, then each path waits for two or one deaths. Runs 2,000 reduced-precision paths in a background worker. No announcement was found through Sep 16, but event time may precede announcement after database lock and review.</p>
+    <button class="p p-run" id="t80Run">▶ Simulate 2k paths</button>
     <span id="t80Status" class="run-status"></span>
     <div id="t80Stats" class="stats-line"></div>
     <div id="t80Hist" class="t80-hist"></div>
@@ -498,7 +498,7 @@
 <details class="feat-panel" id="panelScmp">
   <summary>Compare scenarios <span class="tag m">model</span></summary>
   <div class="panel-body">
-    <p class="cw-note">Side-by-side comparison of two presets or share-URL states. Green/red deltas favor higher P(win) / lower HR (GPS bull case). Uses <code>paramsFromPreset()</code> for forward and inverse presets.</p>
+    <p class="cw-note">Side-by-side comparison of two presets or share-URL states. Green/red deltas favor higher P(win) / lower HR (GPS bull case). Uses <code>paramsFromPreset()</code> for forward and inverse presets and computes approximate P(win) in a background worker.</p>
     <div class="scmp-grid">
       <div><label>Scenario A</label><select id="scmpA" class="scmp-select"></select></div>
       <div><label>Scenario B</label><select id="scmpB" class="scmp-select"></select></div>
@@ -531,7 +531,7 @@
 <details class="feat-panel" id="panelPresetCmp">
   <summary>Preset comparison dashboard <span class="tag m">model</span></summary>
   <div class="panel-body">
-    <p class="cw-note">All REGAL forward and inverse presets computed side-by-side — no clicking through one by one. P(win) uses the same fast approximate MC as the tornado panel (3k draws per preset). May take a few seconds.</p>
+    <p class="cw-note">All REGAL forward and inverse presets computed side-by-side — no clicking through one by one. Inverse fitting and approximate P(win) run in a background worker; progress is reported preset by preset.</p>
     <button class="p p-run" id="presetCmpRun">▶ Compute all presets</button>
     <span id="presetCmpStatus" class="run-status"></span>
     <label class="chk presetCmp-filter"><input type="checkbox" id="presetCmpPlausible" checked/> Show only presets that fit 60/72/78 anchors + biological BAT caps</label>
@@ -2128,7 +2128,7 @@
   </div>
 </footer>
 
-<script type="module" src="js/main.js?v=20260916c"></script>
+<script type="module" src="js/main.js?v=20260916d"></script>
 <script>
   (function(){
     var h=location.hostname;

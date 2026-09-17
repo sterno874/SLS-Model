@@ -57,7 +57,6 @@ import {
   BAT_MED_CAP,
   autofitCure,
   batcFor3yrCap,
-  inverseSolve,
   DEFAULT_IRM_LEAD,
   cr2OnsetFromIrm
 } from './math/survival.js';
@@ -204,6 +203,9 @@ function scheduleUpdate(){
   lastMcPwin=null; // params changed → any prior MC P(win) is stale until MC is re-run
   clearRegalMCOutput();
   cancelTornado("inputs changed — recompute");
+  cancelReadoutWorker();
+  cancelAnalysisWorkers();
+  cancelInverseSolve();
   if(restoringState){updateNow();return;}
   // Throttle the light gauge/event/verdict update to one run per animation frame so the
   // readouts track the slider live; heavy work (band windows, readout MC, open panels)
@@ -230,9 +232,27 @@ function refreshRegalPresetHighlight(){
   if(regalMode==="inverse"){highlightPresets("button[data-inv]","inv",activeInvPreset);document.querySelectorAll("button[data-preset]").forEach(b=>b.classList.remove("p-def"));}
   else{highlightPresets("button[data-preset]","preset",activeRegalPreset);document.querySelectorAll("button[data-inv]").forEach(b=>b.classList.remove("p-def"));}
 }
-function solveInverse(base, capOverride){
-  const cap3=capOverride!=null?capOverride:+$("batcap").value;
-  return inverseSolve(base,cap3);
+let inverseSolveWorker=null,inverseSolveApplying=false;
+function cancelInverseSolve(){
+  if(inverseSolveWorker){inverseSolveWorker.terminate();inverseSolveWorker=null;}
+}
+function requestInverseSolve(base){
+  cancelInverseSolve();
+  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  inverseSolveWorker=worker;
+  if($("invStatus"))$("invStatus").textContent="Solving anchors in background…";
+  worker.onmessage=event=>{
+    if(inverseSolveWorker!==worker)return;
+    if(event.data?.type==="error"){inverseSolveWorker=null;worker.terminate();$("invStatus").textContent="Inverse solve failed: "+event.data.message;return;}
+    if(event.data?.type!=="done")return;
+    inverseSolveWorker=null;worker.terminate();
+    if(!event.data.sol){$("invStatus").textContent=event.data.reason||"inverse solve failed";return;}
+    applyInverseResult(event.data);
+    inverseSolveApplying=true;
+    try{updateNow(true);}finally{inverseSolveApplying=false;}
+  };
+  worker.onerror=event=>{if(inverseSolveWorker!==worker)return;inverseSolveWorker=null;worker.terminate();if($("invStatus"))$("invStatus").textContent="Inverse solve failed: "+(event.message||"worker error");};
+  worker.postMessage({mode:"inverseSolve",base,cap:+$("batcap").value});
 }
 function applyInverseResult(r){
   if(!r||!r.sol){$("invStatus").textContent=r&&r.reason?r.reason:"";return false;}
@@ -249,6 +269,7 @@ function applyInverseResult(r){
 }
 function setRegalMode(mode){
   lastMcPwin=null; // mode switch changes the effective params → invalidate cached MC P(win)
+  cancelInverseSolve();
   clearRegalMCOutput("mode changed — click Run");
   regalMode=mode;
   $("modeForward").classList.toggle("active",mode==="forward");
@@ -458,31 +479,35 @@ function applyDilutionStress(sharesM){
   if(!restoringState)updateHashQuiet();
 }
 function scheduleReadoutUpdate(){if(sliderDragging)return;clearTimeout(readoutTimer);readoutTimer=setTimeout(updateReadoutTracker,400);}
+let readoutWorker=null;
+function cancelReadoutWorker(){if(readoutWorker){readoutWorker.terminate();readoutWorker=null;}}
 function updateReadoutVisibility(){
   const el=$("readoutEstimate");
   if(el)el.hidden=(activeTab!=='gps'||embedMode);
 }
 function updateReadoutTracker(){
+  cancelReadoutWorker();
   updateReadoutVisibility();
   if(activeTab!=='gps'||embedMode)return; // skip the expensive path MC when the readout panel is hidden
   const p=readParams(),t80=T80(p);
   if($("reDate"))$("reDate").textContent=fmtCalMonth(t80);
   if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80';
-  const times=[];for(let i=0;i<250;i++){const q=Object.assign({},p);q.bat+=rn()*0.4;times.push(mcPathToT80(q,110,Math.random()));}
-  times.sort((a,b)=>a-b);
-  const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
-  const p10=qf(0.05),p90=qf(0.95);
-  if($("reCI"))$("reCI").textContent='90% event-time interval: '+fmtCalRange(p10,p90)+' · '+(p.assumeStatus?'uses optional Aug <80 interpretation':'confirmed 78-only mode')+'; no announcement found through '+CURRENT_PUBLIC_SEARCH.date;
+  if($("reCI"))$("reCI").textContent="90% event-time interval: computing in background…";
+  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  readoutWorker=worker;
+  worker.onmessage=event=>{
+    if(readoutWorker!==worker)return;
+    if(event.data?.type==="error"){readoutWorker=null;worker.terminate();if($("reCI"))$("reCI").textContent="90% event-time interval unavailable";return;}
+    if(event.data?.type!=="done")return;
+    readoutWorker=null;worker.terminate();
+    const times=event.data.times,qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
+    const p10=qf(0.05),p90=qf(0.95);
+    if($("reCI"))$("reCI").textContent='90% event-time interval: '+fmtCalRange(p10,p90)+' · '+(p.assumeStatus?'uses optional Aug <80 interpretation':'confirmed 78-only mode')+'; no announcement found through '+CURRENT_PUBLIC_SEARCH.date;
+  };
+  worker.onerror=()=>{if(readoutWorker===worker){readoutWorker=null;worker.terminate();if($("reCI"))$("reCI").textContent="90% event-time interval unavailable";}};
+  worker.postMessage({mode:"t80Paths",ctr:p,draws:120,bins:60,iterations:12,batSd:0.4,gpscSd:0});
   const paceEl=$("rePace");
   if(paceEl)paceEl.hidden=true;
-}
-function scenarioMetrics(p,binding){
-  if(!p)return null;
-  const b=binding!=null?binding:!!$("mcFloor").checked;
-  const cutoff=+($("cutoff")&&$("cutoff").value)||72;
-  return{hr:readoutHr(p,cutoff),hrM58:hazardRatio(T2,p),e46:eventsAt(T1,p),e58:eventsAt(T2,p),e63:eventsAt(T3,p),
-    pw:fastPwin(p,b,+$("cutoff").value,2500),bat3:sBAT(36,p)*100,gpsc:p.gpsc*100,
-    batMed:medianOf(sBAT,p),gpsCure:p.gpsc*100};
 }
 function hasShareHash(hash){
   if(!hash||!hash.trim())return false;
@@ -514,50 +539,77 @@ function resolveScmpScenario(selId,hashId){
   const v=$(selId).value;if(!v)return null;
   const mode=v.startsWith('i:')?'inverse':'forward',name=v.slice(2);
   const q=mode==='inverse'?INV[name]:P[name];
-  const pr=paramsFromPreset(name,q,mode);
-  return pr?{params:pr,binding:q&&q.mcFloor!=null?q.mcFloor:true,label:PRESET_NAMES[name]||name}:null;
+  return q?{name,q,mode,binding:q.mcFloor!=null?q.mcFloor:true,label:PRESET_NAMES[name]||name}:null;
 }
 function runScenarioDiff(){
-  $("scmpStatus").textContent='computing…';
+  stopAnalysisWorker("scenario");
   const a=resolveScmpScenario('scmpA','scmpHashA'),b=resolveScmpScenario('scmpB','scmpHashB');
-  if(!a||!b||!a.params||!b.params){$("scmpStatus").textContent='Could not resolve both scenarios';return;}
-  const ma=scenarioMetrics(a.params,a.binding),mb=scenarioMetrics(b.params,b.binding);
-  $("scmpHdrA").textContent=a.label;$("scmpHdrB").textContent=b.label;
-  const rows=[
-    ['Readout HR (final gauge)',ma.hr,mb.hr,false],    ['Events @ m46 (model)',ma.e46,mb.e46,null],['Events @ m58 (model)',ma.e58,mb.e58,null],
-    ['Events @ m63 (model; PR=78)',ma.e63,mb.e63,null],['P(win)',ma.pw*100,mb.pw*100,true],['BAT 3-yr OS %',ma.bat3,mb.bat3,true],
-    ['GPS cure %',ma.gpsc,mb.gpsc,true],['BAT median mOS',ma.batMed,mb.batMed,true]
-  ];
-  $("scmpBody").innerHTML=rows.map(r=>{
-    const fmt=v=>isNaN(v)?'—':(r[0].includes('%')||r[0]==='P(win)'?v.toFixed(0)+(r[0]==='P(win)'?'%':'%'):v.toFixed(2));
-    const d=r[1]!=null&&r[2]!=null&&!isNaN(r[1])&&!isNaN(r[2])?r[2]-r[1]:NaN;
-    let dcls='',ds='—';
-    if(!isNaN(d)){const good=r[3]===null?null:(r[0].startsWith('Readout HR')?d<0:d>0);
-      dcls=good===null?'':(good?'scmp-delta-pos':'scmp-delta-neg');
-      ds=(d>0?'+':'')+(r[0]==='P(win)'?d.toFixed(0)+'pp':d.toFixed(2));}
-    return '<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td><td>'+fmt(r[2])+'</td><td class="'+dcls+'">'+ds+'</td></tr>';
-  }).join('');
-  $("scmpStatus").textContent='done';
+  if(!a||!b){$("scmpStatus").textContent='Could not resolve both scenarios';return;}
+  const cutoff=+($("cutoff")&&$("cutoff").value)||72,worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  analysisWorkers.scenario=worker;$("scmpRun").disabled=true;$("scmpStatus").textContent="starting background comparison…";
+  worker.onmessage=event=>{
+    if(analysisWorkers.scenario!==worker)return;
+    const data=event.data||{};
+    if(data.type==="scenarioProgress"){$("scmpStatus").textContent=data.completed+"/2 scenarios · running in background…";return;}
+    if(data.type==="error"){stopAnalysisWorker("scenario");$("scmpRun").disabled=false;$("scmpStatus").textContent="Comparison failed: "+data.message;return;}
+    if(data.type!=="done")return;
+    stopAnalysisWorker("scenario");$("scmpRun").disabled=false;
+    const [ma,mb]=data.rows;if(!ma||!mb||ma.error||mb.error){$("scmpStatus").textContent="Could not resolve both scenarios";return;}
+    $("scmpHdrA").textContent=a.label;$("scmpHdrB").textContent=b.label;
+    const rows=[
+      ['Readout HR (final gauge)',ma.hr,mb.hr,false],['Events @ m46 (model)',ma.e46,mb.e46,null],['Events @ m58 (model)',ma.e58,mb.e58,null],
+      ['Events @ m63 (model; PR=78)',ma.e63,mb.e63,null],['P(win)',ma.pw*100,mb.pw*100,true],['BAT 3-yr OS %',ma.bat3,mb.bat3,true],
+      ['GPS cure %',ma.gpsc,mb.gpsc,true],['BAT median mOS',ma.batMed,mb.batMed,true]
+    ];
+    $("scmpBody").innerHTML=rows.map(r=>{
+      const fmt=v=>isNaN(v)?'—':(r[0].includes('%')||r[0]==='P(win)'?v.toFixed(0)+'%':v.toFixed(2));
+      const d=r[1]!=null&&r[2]!=null&&!isNaN(r[1])&&!isNaN(r[2])?r[2]-r[1]:NaN;
+      let dcls='',ds='—';
+      if(!isNaN(d)){const good=r[3]===null?null:(r[0].startsWith('Readout HR')?d<0:d>0);dcls=good===null?'':(good?'scmp-delta-pos':'scmp-delta-neg');ds=(d>0?'+':'')+(r[0]==='P(win)'?d.toFixed(0)+'pp':d.toFixed(2));}
+      return '<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td><td>'+fmt(r[2])+'</td><td class="'+dcls+'">'+ds+'</td></tr>';
+    }).join('');
+    $("scmpStatus").textContent='done';
+  };
+  worker.onerror=event=>{if(analysisWorkers.scenario!==worker)return;stopAnalysisWorker("scenario");$("scmpRun").disabled=false;$("scmpStatus").textContent="Comparison failed: "+(event.message||"worker error");};
+  const items=[a,b].map((item,i)=>({...item,id:i===0?"a":"b",cutoff,draws:120}));
+  worker.postMessage({mode:"scenarioBatch",items,P,INV,specs:mcFieldSpecs(),draws:120});
 }
 function updateEventSensitivity(){
+  stopAnalysisWorker("event");
   const m79=+$("ev79").value,m80=+$("ev80").value;
   $("vEv79").textContent='m'+m79+' ('+fmtCalMonth(m79)+')';$("vEv80").textContent='m'+m80+' ('+fmtCalMonth(m80)+')';
   if(m79<T3){$("evSensOut").innerHTML='<span style="color:var(--bad)">79th event must be at or after confirmed anchor m'+T3+' (78 events).</span>';return;}
   if(m80<=m79){$("evSensOut").innerHTML='<span style="color:var(--bad)">80th event month must be after 79th.</span>';return;}
   const p=readParams(),binding=$("mcFloor").checked,cutoff=Math.max(m80,+$("cutoff").value);
-  const baseHr=hazardRatio(T2,p),basePw=fastPwin(p,binding,cutoff,2500);
+  const baseHr=hazardRatio(T2,p);
   const pace79=m79-T3,pace80=m80-m79;
   const prDec='Company PR pace after 72 @ m58: ~12 deaths in 12 mo (<a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">Dec 2025</a>); +6 in ~5 mo to 78 (<a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">May 2026</a>) ≈ slower.';
   const slowFactor=pace80>pace79?1.05:0.98;
   const adj=Object.assign({},p,{gpsc:Math.min(0.75,p.gpsc*slowFactor),batc:Math.max(0,p.batc*(2-slowFactor))});
-  const adjHr=hazardRatio(T2,adj),adjPw=fastPwin(adj,binding,cutoff,2000);
+  const adjHr=hazardRatio(T2,adj);
   const t80=T80(p),tPace=T80PrPace();
   const aAt80=analyzeLR(m80,p),thIA=analyzeLR(46,p).z;
   const pwAt80=binding?condPow(thIA,aAt80.z,80,p.zfut).cp:Phi(aAt80.z-ZFINAL);
-  $("evSensOut").innerHTML='<b>Scenario (78 locked @ m'+T3+'):</b> 79th @ m'+m79+' ('+fmtCalMonth(m79)+', +'+pace79.toFixed(0)+' mo) · 80th @ m'+m80+' ('+fmtCalMonth(m80)+', +'+pace80.toFixed(0)+' mo after 79th)<br>'+
-    prDec+'<br><b>Baseline</b> (anchored projection): HR '+baseHr.toFixed(2)+' · P(win) '+(100*basePw).toFixed(0)+'% · model 80th ~m'+t80.toFixed(0)+' ('+fmtCalMonth(t80)+') · PR pace m'+tPace.toFixed(1)+'<br>'+
-    '<b>If 80th @ m'+m80+'</b> (80 events, anchored): readout HR '+aAt80.hr.toFixed(2)+' · P(win) '+(100*pwAt80).toFixed(0)+'% · vs baseline '+( (pwAt80-basePw)*100).toFixed(0)+'pp<br>'+
-    '<b>Deceleration-adjusted curves</b> (±GPS cure / BAT tail heuristic): HR '+adjHr.toFixed(2)+' ('+(adjHr-baseHr>0?'+':'')+(adjHr-baseHr).toFixed(2)+') · P(win) '+(100*adjPw).toFixed(0)+'% · fit quality '+(consistent(adj)?'<span style="color:var(--good)">OK</span>':'<span style="color:var(--warn)">relaxed</span>');
+  $("evSensOut").innerHTML="Computing P(win) scenarios in background…";
+  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  analysisWorkers.event=worker;
+  worker.onmessage=event=>{
+    if(analysisWorkers.event!==worker)return;
+    const data=event.data||{};
+    if(data.type==="error"){stopAnalysisWorker("event");$("evSensOut").textContent="Event sensitivity calculation failed: "+data.message;return;}
+    if(data.type!=="done")return;
+    stopAnalysisWorker("event");
+    const byId=Object.fromEntries(data.results.map(r=>[r.id,r.pw])),basePw=byId.base,adjPw=byId.adjusted;
+    $("evSensOut").innerHTML='<b>Scenario (78 locked @ m'+T3+'):</b> 79th @ m'+m79+' ('+fmtCalMonth(m79)+', +'+pace79.toFixed(0)+' mo) · 80th @ m'+m80+' ('+fmtCalMonth(m80)+', +'+pace80.toFixed(0)+' mo after 79th)<br>'+
+      prDec+'<br><b>Baseline</b> (anchored projection): HR '+baseHr.toFixed(2)+' · P(win) '+(100*basePw).toFixed(0)+'% · model 80th ~m'+t80.toFixed(0)+' ('+fmtCalMonth(t80)+') · PR pace m'+tPace.toFixed(1)+'<br>'+
+      '<b>If 80th @ m'+m80+'</b> (80 events, anchored): readout HR '+aAt80.hr.toFixed(2)+' · P(win) '+(100*pwAt80).toFixed(0)+'% · vs baseline '+((pwAt80-basePw)*100).toFixed(0)+'pp<br>'+
+      '<b>Deceleration-adjusted curves</b> (±GPS cure / BAT tail heuristic): HR '+adjHr.toFixed(2)+' ('+(adjHr-baseHr>0?'+':'')+(adjHr-baseHr).toFixed(2)+') · P(win) '+(100*adjPw).toFixed(0)+'% · fit quality '+(consistent(adj)?'<span style="color:var(--good)">OK</span>':'<span style="color:var(--warn)">relaxed</span>');
+  };
+  worker.onerror=()=>{if(analysisWorkers.event===worker){stopAnalysisWorker("event");$("evSensOut").textContent="Event sensitivity calculation failed";}};
+  worker.postMessage({mode:"pwinBatch",specs:mcFieldSpecs(),draws:120,tasks:[
+    {id:"base",ctr:p,binding,cutoff,seed:0xE7E47},
+    {id:"adjusted",ctr:adj,binding,cutoff,seed:0xE7E47}
+  ]});
 }
 function chartMonthFromEvent(cx,cy){
   if(!chartLayout)return null;
@@ -676,9 +728,8 @@ function update(full){
   if(regalMode==="inverse"){
     $("vBatCap").textContent=$("batcap").value+"%";
     if(!light){
-      const ir=solveInverse(p);
-      if(!applyInverseResult(ir)){noSol=ir.reason||"inverse solve failed";}
-      else p=readParams();
+      if(!inverseSolveApplying){requestInverseSolve(p);return;}
+      p=readParams();
     }
   } else {
     const auto=$("autofit").checked;$("gpscWrap").classList.toggle("disabled",auto);
@@ -821,6 +872,7 @@ function mcDrawLimit(defaultN,key){
 const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
 function sampleField(f,mu,sdScale){const c=CFG.find(x=>x.field===f);const scale=sdScale==null?1:sdScale;return truncatedNormal(mu,SD[f]*scale,c.min*c.sc,c.max*c.sc,rn,Math.random);}
 const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
+function mcFieldSpecs(){return MCFIELDS.map(field=>{const c=CFG.find(x=>x.field===field);return{field,sd:SD[field],min:c.min*c.sc,max:c.max*c.sc};});}
 let regalMcWorker=null;
 function cancelRegalMC(){
   if(regalMcWorker){regalMcWorker.terminate();regalMcWorker=null;}
@@ -857,7 +909,7 @@ function runMC(){
   worker.onerror=event=>{
     if(finishRegalMC(worker))$("mcStatus").textContent="Monte Carlo failed: "+(event.message||"worker error");
   };
-  const specs=MCFIELDS.map(field=>{const c=CFG.find(x=>x.field===field);return{field,sd:SD[field],min:c.min*c.sc,max:c.max*c.sc};});
+  const specs=mcFieldSpecs();
   worker.postMessage({
     mode,ctr,binding:$("mcFloor").checked,cutoff:+$("cutoff").value,specs,
     maxDraws:mcDrawLimit(mode==="inverse"?80000:220000,mode==="inverse"?"inverse":"regal"),
@@ -1073,28 +1125,6 @@ onClick("btnShare",()=>{const url=location.origin+location.pathname+encodeStateT
 onClick("btnPrint",()=>{updatePrintSummary();window.print();});
 onChange("showUncertainty",function(){showUncertainty=this.checked;deferWithLoading(()=>updateNow(true),"Computing uncertainty bands…");});
 
-// ================= FAST P(WIN) APPROX =================
-function poisLogLThrough(p,throughMonth){
-  const e46v=eventsAt(46,p,100),e58v=eventsAt(58,p,100),e63v=eventsAt(63,p,100);
-  let ll=0;
-  if(throughMonth>=46)ll+=lpois(60,e46v);
-  if(throughMonth>=58)ll+=lpois(12,Math.max(0,e58v-e46v));
-  if(throughMonth>=63)ll+=lpois(6,Math.max(0,e63v-e58v));
-  if(throughMonth>=T4)ll+=statusLogLikelihood(p,100);
-  return ll;
-}
-function fastPwin(p,binding,cutoff,nDraws,dataThrough){
-  nDraws=nDraws||3000;const ctr=Object.assign({},p);const thru=dataThrough!=null?dataThrough:T4;let W=0,WP=0;
-  for(let i=0;i<nDraws;i++){const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,assumeStatus:ctr.assumeStatus,stratF:ctr.stratF,zfut:ctr.zfut};
-    for(const f of MCFIELDS) q[f]=sampleField(f,ctr[f]);
-    const Lev=Math.exp(poisLogLThrough(q,thru));
-    if(!(Lev>0))continue;
-    const thIA=analyzeLR(46,q).z;const{Tan,Dan}=t80Analysis(q,cutoff,80,Math.random());
-    const aFin=analyzeLR(Tan,q);if(isNaN(aFin.hr))continue;
-    const{w,pw}=interimContribution(binding,Lev,thIA,aFin.z,Dan,q.zfut);
-    W+=w;WP+=w*pw;}
-  return W>0?WP/W:NaN;
-}
 function paramsFromPreset(name,q,mode){
   return paramsFromPresetPure(name,q,mode,P,INV);
 }
@@ -1139,7 +1169,7 @@ function runTornado(){
     renderTornado(data.basePw,data.baseHr,data.results);$("tornadoStatus").textContent="done";
   };
   worker.onerror=event=>{if(tornadoWorker!==worker)return;cancelTornado();$("tornadoStatus").textContent="Tornado failed: "+(event.message||"worker error");};
-  const specs=MCFIELDS.map(field=>{const c=CFG.find(x=>x.field===field);return{field,sd:SD[field],min:c.min*c.sc,max:c.max*c.sc};});
+  const specs=mcFieldSpecs();
   const tornadoSpecs=[
     {lbl:"GPS cure",field:"gpsc",pct:0.20},
     {lbl:"BAT tail",field:"batc",pct:0.20},
@@ -1235,51 +1265,75 @@ on("irm_lead","input",()=>{
 });
 
 // ================= T80 SIMULATOR (#5) =================
+const analysisWorkers={t80:null,preset:null,scenario:null,event:null,backtest:null,inverse:null};
+function stopAnalysisWorker(key){
+  const worker=analysisWorkers[key];
+  if(worker){worker.terminate();analysisWorkers[key]=null;}
+}
+function cancelAnalysisWorkers(){
+  ["t80","preset","scenario","event","backtest"].forEach(stopAnalysisWorker);
+  [["t80Run","t80Status"],["presetCmpRun","presetCmpStatus"],["scmpRun","scmpStatus"]].forEach(([button,status])=>{
+    if($(button))$(button).disabled=false;
+    if($(status)&&$(status).textContent.includes("background"))$(status).textContent="inputs changed — recompute";
+  });
+}
 function runT80Sim(){
-  $("t80Status").textContent="simulating…";$("t80Run").disabled=true;
-  deferWithLoading(function(){
-    const p=readParams(),N=10000,times=[];
-    for(let i=0;i<N;i++){
-      const q=Object.assign({},p);q.bat+=rn()*0.5;q.gpsc=Math.max(0,Math.min(0.75,q.gpsc+rn()*0.03));
-      times.push(mcPathToT80(q,110,Math.random()));
-    }
-    times.sort((a,b)=>a-b);
+  stopAnalysisWorker("t80");
+  const p=readParams(),N=mcDrawLimit(2000,"t80"),worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  analysisWorkers.t80=worker;$("t80Status").textContent="starting background simulation…";$("t80Run").disabled=true;
+  worker.onmessage=event=>{
+    if(analysisWorkers.t80!==worker)return;
+    const data=event.data||{};
+    if(data.type==="pathProgress"){$("t80Status").textContent=data.completed.toLocaleString()+"/"+data.total.toLocaleString()+" paths · running in background…";return;}
+    if(data.type==="error"){stopAnalysisWorker("t80");$("t80Run").disabled=false;$("t80Status").textContent="Simulation failed: "+data.message;return;}
+    if(data.type!=="done")return;
+    stopAnalysisWorker("t80");
+    const times=data.times;
     const qf=q=>times[Math.min(times.length-1,Math.floor(q*times.length))];
     const med=qf(0.5),p90=qf(0.9),p10=qf(0.1);
     $("t80Stats").innerHTML="Conditional event median <b>m"+med.toFixed(1)+"</b> ("+fmtCalMonth(med)+") · 80% interval <b>"+fmtCalRange(p10,p90)+"</b> · official &lt;80 status through <b>"+CURRENT_EVENT_STATUS.date+"</b>; no announcement found through <b>"+CURRENT_PUBLIC_SEARCH.date+"</b>";
     const bins=[];for(let b=Math.floor(T4);b<90;b+=1){let c=0;for(const t of times)if(t>=b&&t<b+1)c++;bins.push([b,100*c/N]);}
     const mx=Math.max(...bins.map(x=>x[1]),1);
     $("t80Hist").innerHTML=bins.map(bp=>'<div title="m'+bp[0]+': '+bp[1].toFixed(1)+'%" style="height:'+(bp[1]/mx*100).toFixed(1)+'%"></div>').join("");
-    $("t80Status").textContent="10k paths";$("t80Run").disabled=false;
-  },"Simulating paths…");
+    $("t80Status").textContent=N.toLocaleString()+" paths";$("t80Run").disabled=false;
+  };
+  worker.onerror=event=>{if(analysisWorkers.t80!==worker)return;stopAnalysisWorker("t80");$("t80Run").disabled=false;$("t80Status").textContent="Simulation failed: "+(event.message||"worker error");};
+  worker.postMessage({mode:"t80Paths",ctr:p,draws:N,bins:60,iterations:12,batSd:0.5,gpscSd:0.03});
 }
 onClick("t80Run",runT80Sim);
 
 // ================= PRESET COMPARISON (#6) =================
 const PRESET_NAMES={best:"Best Available Guess",bear:"BAT tail holds survivors",bull:"Bull: strong GPS cure",critique:"Critique: ~⅔ coin flip",cw:"CW published point (~85%)",capbreach:"Implausible BAT cap (stress)",noeffect:"Ridge: null effect (biology rejected)",vdm:"VDM email literal pair",vdmfit:"VDM BAT + anchor-fit GPS",cw42:"GPS 42% cure (CW inverse)",cw35:"GPS 35% cure (conservative)",cw50:"GPS 50% cure (high sweep)",cwbind:"42% cure + binding IA"};
+let lastPresetCmpRows=null;
+function renderPresetCmpRows(rows){
+  const onlyFit=$("presetCmpPlausible")&&$("presetCmpPlausible").checked;
+  const valid=rows.filter(r=>!r.error),shown=onlyFit?valid.filter(r=>r.fit):valid;
+  $("presetCmpBody").innerHTML=shown.map(r=>{
+    const win=r.clears?"win":"lose";
+    return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td>"+(r.fit?"✓":"✗")+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
+  }).join("")||"<tr><td colspan='10' style='text-align:center;color:var(--muted)'>No presets fit the 60/72/78 anchors</td></tr>";
+  $("presetCmpStatus").textContent=shown.length+(onlyFit?" of "+valid.length:"")+" presets";
+}
 function runPresetCmp(){
-  $("presetCmpStatus").textContent="computing…";$("presetCmpRun").disabled=true;
-  deferWithLoading(function(){
-    const cutoff=+$("cutoff").value;
-    const rows=[];
-    for(const name in P){const pr=paramsFromPreset(name,P[name],"forward");if(!pr)continue;
-      const binding=P[name].mcFloor!=null?P[name].mcFloor:true;
-      const gs=hrGaugeState(pr,cutoff);
-      rows.push({name,mode:"forward",fit:isPlausible(pr),fitEvents:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,binding,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
-    for(const name in INV){const pr=paramsFromPreset(name,INV[name],"inverse");if(!pr)continue;
-      const gs=hrGaugeState(pr,cutoff);
-      rows.push({name,mode:"inverse",fit:isPlausible(pr),fitEvents:passesVerdict(pr),hr:gs.hrForFinal,clears:gs.finalClears,e46:eventsAt(T1,pr),e58:eventsAt(T2,pr),e63:eventsAt(T3,pr),pw:fastPwin(pr,!!INV[name].mcFloor,cutoff,3000),bat3:sBAT(36,pr)*100,gpsc:pr.gpsc*100});}
-    const onlyFit=$("presetCmpPlausible")&&$("presetCmpPlausible").checked;
-    const shown=onlyFit?rows.filter(r=>r.fit):rows;
-    $("presetCmpBody").innerHTML=shown.map(r=>{
-      const win=r.clears?"win":"lose";
-      return "<tr><td>"+(PRESET_NAMES[r.name]||r.name)+"</td><td>"+r.mode+"</td><td>"+(r.fit?"✓":"✗")+"</td><td class='"+win+"'>"+(isNaN(r.hr)?"—":r.hr.toFixed(2))+"</td><td>"+r.e46.toFixed(0)+"</td><td>"+r.e58.toFixed(0)+"</td><td>"+r.e63.toFixed(0)+"</td><td>"+(isNaN(r.pw)?"—":(100*r.pw).toFixed(0)+"%")+"</td><td>"+r.bat3.toFixed(0)+"%</td><td>"+r.gpsc.toFixed(0)+"%</td></tr>";
-    }).join("")||"<tr><td colspan='10' style='text-align:center;color:var(--muted)'>No presets fit the 60/72/78 anchors</td></tr>";
-    $("presetCmpStatus").textContent=shown.length+(onlyFit?" of "+rows.length:"")+" presets";$("presetCmpRun").disabled=false;
-  },"Computing all presets…");
+  stopAnalysisWorker("preset");lastPresetCmpRows=null;
+  const cutoff=+$("cutoff").value,items=[];
+  for(const name in P)items.push({id:"f:"+name,name,q:P[name],mode:"forward",binding:P[name].mcFloor!=null?P[name].mcFloor:true,cutoff,draws:120});
+  for(const name in INV)items.push({id:"i:"+name,name,q:INV[name],mode:"inverse",binding:!!INV[name].mcFloor,cutoff,draws:120});
+  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  analysisWorkers.preset=worker;$("presetCmpStatus").textContent="starting background comparison…";$("presetCmpRun").disabled=true;
+  worker.onmessage=event=>{
+    if(analysisWorkers.preset!==worker)return;
+    const data=event.data||{};
+    if(data.type==="scenarioProgress"){$("presetCmpStatus").textContent=data.completed+"/"+data.total+" presets · running in background…";return;}
+    if(data.type==="error"){stopAnalysisWorker("preset");$("presetCmpRun").disabled=false;$("presetCmpStatus").textContent="Comparison failed: "+data.message;return;}
+    if(data.type!=="done")return;
+    stopAnalysisWorker("preset");lastPresetCmpRows=data.rows;renderPresetCmpRows(data.rows);$("presetCmpRun").disabled=false;
+  };
+  worker.onerror=event=>{if(analysisWorkers.preset!==worker)return;stopAnalysisWorker("preset");$("presetCmpRun").disabled=false;$("presetCmpStatus").textContent="Comparison failed: "+(event.message||"worker error");};
+  worker.postMessage({mode:"scenarioBatch",items,P,INV,specs:mcFieldSpecs(),draws:120});
 }
 onClick("presetCmpRun",runPresetCmp);
-onChange("presetCmpPlausible",runPresetCmp);
+onChange("presetCmpPlausible",()=>{if(lastPresetCmpRows)renderPresetCmpRows(lastPresetCmpRows);});
 
 // ================= MILESTONE BACKTEST (#7) =================
 const MILESTONES=[
@@ -1289,11 +1343,24 @@ const MILESTONES=[
   {label:"Optional Aug interpretation",month:T4,events:"≤79 assumed",dataThrough:T4,src:'<a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">Aug 11 Q2 wording</a>; model assumption, not disclosed numeric status'}
 ];
 function renderBacktest(){
+  stopAnalysisWorker("backtest");
   const p=readParams(),binding=$("mcFloor").checked;
-  $("backtestCards").innerHTML=MILESTONES.map(m=>{
-    const hr=hazardRatio(m.month,p),pw=fastPwin(p,binding,Math.max(72,m.month+6),3000,m.dataThrough);
-    return '<div class="mcard"><div class="mt">'+m.label+' — '+m.events+' @ m'+m.month+'</div><div class="mv">'+(isNaN(hr)?"—":'HR @ m'+m.month+' '+hr.toFixed(2))+'</div><div style="font-size:12px;color:var(--muted)">Pike snapshot — differs from projected readout HR on the gauge</div><div style="font-size:13px">P(win|data then) ≈ <b>'+(isNaN(pw)?"—":(100*pw).toFixed(0)+"%")+'</b> <span class="tag m">approx MC</span></div><div style="font-size:10px;color:var(--muted);margin-top:4px">'+m.src+' · Poisson likelihood truncated to milestones then known · same survival sliders as now (not re-fit)</div></div>';
-  }).join("");
+  $("backtestCards").innerHTML='<div class="mcard">Computing milestone backtest in background…</div>';
+  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  analysisWorkers.backtest=worker;
+  worker.onmessage=event=>{
+    if(analysisWorkers.backtest!==worker)return;
+    if(event.data?.type==="error"){stopAnalysisWorker("backtest");$("backtestCards").innerHTML='<div class="mcard">Backtest calculation failed: '+event.data.message+'</div>';return;}
+    if(event.data?.type!=="done")return;
+    stopAnalysisWorker("backtest");
+    const byId=Object.fromEntries(event.data.results.map(r=>[r.id,r.pw]));
+    $("backtestCards").innerHTML=MILESTONES.map((m,i)=>{
+      const hr=hazardRatio(m.month,p),pw=byId[String(i)];
+      return '<div class="mcard"><div class="mt">'+m.label+' — '+m.events+' @ m'+m.month+'</div><div class="mv">'+(isNaN(hr)?"—":'HR @ m'+m.month+' '+hr.toFixed(2))+'</div><div style="font-size:12px;color:var(--muted)">Pike snapshot — differs from projected readout HR on the gauge</div><div style="font-size:13px">P(win|data then) ≈ <b>'+(isNaN(pw)?"—":(100*pw).toFixed(0)+"%")+'</b> <span class="tag m">approx MC</span></div><div style="font-size:10px;color:var(--muted);margin-top:4px">'+m.src+' · Poisson likelihood truncated to milestones then known · same survival sliders as now (not re-fit)</div></div>';
+    }).join("");
+  };
+  worker.onerror=()=>{if(analysisWorkers.backtest===worker){stopAnalysisWorker("backtest");$("backtestCards").innerHTML='<div class="mcard">Backtest calculation failed</div>';}};
+  worker.postMessage({mode:"pwinBatch",specs:mcFieldSpecs(),draws:120,tasks:MILESTONES.map((m,i)=>({id:String(i),ctr:p,binding,cutoff:Math.max(72,m.month+6),dataThrough:m.dataThrough,seed:0xBAC7E57}))});
 }
 
 // ================= PRINT SUMMARY (#9) =================
@@ -1885,13 +1952,21 @@ const SLSP={
  bear:{sls_os:6.5,sls_bench:6.0,sls_orr:35,fl_base:14.7,fl_sls:17,tp_base:5.3,tp_sls:10},
  bull:{sls_os:11, sls_bench:2.2,sls_orr:55,fl_base:14.7,fl_sls:24,tp_base:5.3,tp_sls:16}
 };
+const secondaryWorkers={sls:null,val:null};
+function stopSecondaryWorker(key){
+  const worker=secondaryWorkers[key];
+  if(worker){worker.terminate();secondaryWorkers[key]=null;}
+  const btn=$(key==="sls"?"mcSlsRun":"mcValRun");if(btn)btn.disabled=false;
+}
 function clearSlsMCOutput(msg){
+  stopSecondaryWorker("sls");
   const status=$("mcSlsStatus"),stats=$("mcSlsStats"),hist=$("mcSlsHist");
   if(status)status.textContent=msg||"inputs changed — click Run";
   if(stats)stats.textContent="";
   if(hist)hist.innerHTML="";
 }
 function clearValMCOutput(msg){
+  stopSecondaryWorker("val");
   const status=$("mcValStatus"),stats=$("mcValStats"),hist=$("mcValHist");
   if(status)status.textContent=msg||"inputs changed — click Run";
   if(stats)stats.textContent="";
@@ -1932,49 +2007,55 @@ function drawHist(hostId,vals,lo,hi,bin,thr,greenBelow){
   $(hostId).innerHTML=h;
 }
 function sd2(id){const c=CFG2.find(x=>x.id===id);return (c.sig.b1[1]-c.sig.b1[0])/2;}
-function samp2(id){const c=CFG2.find(x=>x.id===id);return Math.max(c.min,Math.min(c.max,(+$(id).value)+sd2(id)*rn()));}
 function qtl(a,q){const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(q*s.length))];}
+function secondarySpecs(ids){return ids.map(id=>{const c=CFG2.find(x=>x.id===id);return{id,sd:sd2(id),min:c.min,max:c.max};});}
 
 function mcSLS(){
-  const N=mcDrawLimit(20000,"sls"),flev=+$("sls_flev").value;$("v_slsflev").textContent=flev;
-  let folds=[],flhrs=[],pwSum=0,big=0;
-  for(let i=0;i<N;i++){
-    const os=samp2("sls_os"),bench=samp2("sls_bench"),flb=samp2("fl_base"),fls=samp2("fl_sls");
-    const fold=os/Math.max(0.5,bench);folds.push(fold);if(fold>=2)big++;
-    const flhr=flb/Math.max(1,fls);flhrs.push(flhr);
-    const z=-Math.log(flhr)*Math.sqrt(flev)/2;pwSum+=Phi(z-1.96);
-  }
-  const pFL=100*pwSum/N;
-  $("mcSlsStatus").textContent=N.toLocaleString()+" draws";
-  $("mcSlsStats").innerHTML="r/r: median OS fold <b>"+qtl(folds,.5).toFixed(1)+"×</b> (90% CrI "+qtl(folds,.05).toFixed(1)+"–"+qtl(folds,.95).toFixed(1)+"×), P(≥2× vs benchmark) <b>"+(100*big/N).toFixed(0)+"%</b> &nbsp;·&nbsp; frontline: median OS ratio <b>"+qtl(flhrs,.5).toFixed(2)+"</b>, <b style='color:"+(pFL>50?'var(--good)':'var(--bad)')+"'>P(Phase-3 significant) "+pFL.toFixed(0)+"%</b> <span style='color:var(--muted);font-size:11px'>(proxy from median ratio, not SAP log-rank)</span>";
-  drawHist("mcSlsHist",flhrs,0.4,1.0,0.05,0.75,true);
+  stopSecondaryWorker("sls");
+  const ids=["sls_os","sls_bench","fl_base","fl_sls"],N=mcDrawLimit(20000,"sls"),flev=+$("sls_flev").value;
+  $("v_slsflev").textContent=flev;$("mcSlsStatus").textContent="running in background…";$("mcSlsRun").disabled=true;
+  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});secondaryWorkers.sls=worker;
+  worker.onmessage=event=>{
+    if(secondaryWorkers.sls!==worker)return;
+    if(event.data?.type==="error"){stopSecondaryWorker("sls");$("mcSlsStatus").textContent="Simulation failed: "+event.data.message;return;}
+    if(event.data?.type!=="done")return;
+    stopSecondaryWorker("sls");
+    const{folds,flhrs,pwSum,big,draws}=event.data,pFL=100*pwSum/draws;
+    $("mcSlsStatus").textContent=draws.toLocaleString()+" draws";
+    $("mcSlsStats").innerHTML="r/r: median OS fold <b>"+qtl(folds,.5).toFixed(1)+"×</b> (90% CrI "+qtl(folds,.05).toFixed(1)+"–"+qtl(folds,.95).toFixed(1)+"×), P(≥2× vs benchmark) <b>"+(100*big/draws).toFixed(0)+"%</b> &nbsp;·&nbsp; frontline: median OS ratio <b>"+qtl(flhrs,.5).toFixed(2)+"</b>, <b style='color:"+(pFL>50?'var(--good)':'var(--bad)')+"'>P(Phase-3 significant) "+pFL.toFixed(0)+"%</b> <span style='color:var(--muted);font-size:11px'>(proxy from median ratio, not SAP log-rank)</span>";
+    drawHist("mcSlsHist",flhrs,0.4,1.0,0.05,0.75,true);
+  };
+  worker.onerror=event=>{if(secondaryWorkers.sls!==worker)return;stopSecondaryWorker("sls");$("mcSlsStatus").textContent="Simulation failed: "+(event.message||"worker error");};
+  worker.postMessage({mode:"slsMonteCarlo",draws:N,flev,specs:secondarySpecs(ids),centers:Object.fromEntries(ids.map(id=>[id,+$(id).value]))});
 }
 on("mcSlsRun","click",function(){
-  $("mcSlsStatus").textContent="running…";
-  deferWithLoading(mcSLS,"Running Monte Carlo…");
+  mcSLS();
 });
 on("sls_flev","input",function(){$("v_slsflev").textContent=$("sls_flev").value;});
 
 function mcVal(){
+  stopSecondaryWorker("val");
+  const ids=["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares","v_cash"];
   const N=mcDrawLimit(20000,"val"),ra=$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
-  let evs=[],pss=[];
-  for(let i=0;i<N;i++){
-    const cr2=samp2("v_cr2"),cr1=samp2("v_cr1"),gpen=samp2("v_gpen")/100,gprice=samp2("v_gprice"),gyears=samp2("v_gyears");
-    const flpool=samp2("v_flpool"),rrpool=samp2("v_rrpool"),spen=samp2("v_spen")/100,sprice=samp2("v_sprice"),syears=samp2("v_syears");
-    const platform=samp2("v_platform"),mult=samp2("v_mult"),shares=samp2("v_shares"),cash=samp2("v_cash");
-    let gp=(cr2+cr1)*gpen*gyears*gprice/1000, sp=(flpool+rrpool)*spen*syears*sprice/1000;
-    if(ra){gp*=pG;sp*=pS;}
-    const EV=(gp+sp)*mult+platform*1000; evs.push(EV/1000); pss.push((EV+cash)/shares);
-  }
+  $("mcValStatus").textContent="running in background…";$("mcValRun").disabled=true;
+  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});secondaryWorkers.val=worker;
+  worker.onmessage=event=>{
+    if(secondaryWorkers.val!==worker)return;
+    if(event.data?.type==="error"){stopSecondaryWorker("val");$("mcValStatus").textContent="Simulation failed: "+event.data.message;return;}
+    if(event.data?.type!=="done")return;
+    stopSecondaryWorker("val");
+    const{evs,pss,draws,riskAdjusted}=event.data;
   const over10=100*evs.filter(v=>v>10).length/N;
-  $("mcValStatus").textContent=N.toLocaleString()+" draws"+(ra?" (risk-adjusted)":" (unadjusted)");
+  $("mcValStatus").textContent=draws.toLocaleString()+" draws"+(riskAdjusted?" (risk-adjusted)":" (unadjusted)");
   $("mcValStats").innerHTML="median EV <b>$"+qtl(evs,.5).toFixed(1)+"B</b> (90% CrI $"+qtl(evs,.05).toFixed(1)+"–$"+qtl(evs,.95).toFixed(1)+"B) &nbsp;·&nbsp; median equity <b>$"+qtl(pss,.5).toFixed(0)+"/share</b> ($"+qtl(pss,.05).toFixed(0)+"–$"+qtl(pss,.95).toFixed(0)+") &nbsp;·&nbsp; P(EV &gt; $10B) <b>"+over10.toFixed(0)+"%</b>";
   const hi=Math.max(10,Math.min(70,Math.ceil(qtl(evs,.97)/5)*5));
   drawHist("mcValHist",evs,0,hi,hi/24,null,true);
+  };
+  worker.onerror=event=>{if(secondaryWorkers.val!==worker)return;stopSecondaryWorker("val");$("mcValStatus").textContent="Simulation failed: "+(event.message||"worker error");};
+  worker.postMessage({mode:"valMonteCarlo",draws:N,riskAdjusted:ra,pG,pS,specs:secondarySpecs(ids),centers:Object.fromEntries(ids.map(id=>[id,+$(id).value]))});
 }
 on("mcValRun","click",function(){
-  $("mcValStatus").textContent="running…";
-  deferWithLoading(mcVal,"Running Monte Carlo…");
+  mcVal();
 });
 ["v_pgps","v_psls"].forEach(id=>on(id,"input",function(){$("v_vpgps").textContent=$("v_pgps").value+"%";$("v_vpsls").textContent=$("v_psls").value+"%";onValInput();}));
 

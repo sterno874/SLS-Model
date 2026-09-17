@@ -180,6 +180,23 @@ test("sensitivity tornado runs in the worker with progress and common draws", ()
   assert.match(regalMcWorker, /type: "tornadoProgress"/);
 });
 
+test("all remaining heavy interactive analyses are worker-backed", () => {
+  for (const mode of ["t80Paths", "pwinBatch", "scenarioBatch", "inverseSolve", "slsMonteCarlo", "valMonteCarlo"]) {
+    assert.match(regalMcWorker, new RegExp(`data\\.mode === "${mode}"`), `${mode} must run in the calculation worker`);
+  }
+  assert.match(js, /function updateReadoutTracker\(\)[\s\S]*mode:"t80Paths"/);
+  assert.match(js, /function runT80Sim\(\)[\s\S]*mode:"t80Paths"/);
+  assert.match(js, /function runScenarioDiff\(\)[\s\S]*mode:"scenarioBatch"/);
+  assert.match(js, /function runPresetCmp\(\)[\s\S]*mode:"scenarioBatch"/);
+  assert.match(js, /function renderBacktest\(\)[\s\S]*mode:"pwinBatch"/);
+  assert.match(js, /function mcSLS\(\)[\s\S]*mode:"slsMonteCarlo"/);
+  assert.match(js, /function mcVal\(\)[\s\S]*mode:"valMonteCarlo"/);
+  assert.match(js, /function requestInverseSolve\(base\)[\s\S]*mode:"inverseSolve"/);
+  assert.doesNotMatch(js, /function runT80Sim\(\)[\s\S]{0,500}deferWithLoading/);
+  assert.doesNotMatch(js, /function mcSLS\(\)[\s\S]{0,500}for\(let i=0;i<N;i\+\+\)/);
+  assert.doesNotMatch(js, /function mcVal\(\)[\s\S]{0,500}for\(let i=0;i<N;i\+\+\)/);
+});
+
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------
 test("approx-fit warning cites the pooled-median floor, not e63", () => {
   assert.match(js, /pooled median OS/);

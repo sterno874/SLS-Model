@@ -114,7 +114,7 @@ function eventsBeforeT80(T,p,bins){
 }
 function T80(p){return t80Quantile(p,0.5,T4,110);}
 function t80Analysis(p,cutoff,bins,u,iterations){bins=bins||110;const q=u==null?0.5:u,t80=t80Quantile(p,q,T4,bins,iterations),reached=t80<=cutoff;return reached?{t80,Tan:t80,Dan:80,reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)}:{t80,Tan:cutoff,Dan:eventsBeforeT80(cutoff,p,bins),reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)};}
-function mcPathToT80(q,bins,u){return t80Quantile(q,u==null?0.5:u,T4,bins||110);}
+function mcPathToT80(q,bins,u,iterations){return t80Quantile(q,u==null?0.5:u,T4,bins||110,iterations);}
 
 // ---------- HR (Pike) ----------
 function scoreParts(T,p,h){h=h||1;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh;for(let t=0;t<T;t+=h){const t1=Math.min(T,t+h),mid=(t+t1)/2,av=enrollCDF(T-t,p.mid,p.k),ret=censorSurvival(t,p)*hctRetention(t,p),retMid=censorSurvival(mid,p)*hctRetention(mid,p),sb=sBAT(t,p),sg=sGPS(t,p),nb=N_ARM*av*sb*ret,ng=N_ARM*av*sg*ret,nt=nb+ng;if(nt<1e-9)continue;const db=N_ARM*av*Math.max(0,sb-sBAT(t1,p))*retMid,dg=N_ARM*av*Math.max(0,sg-sGPS(t1,p))*retMid,dt=db+dg;Ob+=db;Og+=dg;Eb+=dt*nb/nt;Eg+=dt*ng/nt;const wt=fh?(1-poolS(t,p)):1;U+=wt*(db-dt*nb/nt);V+=wt*wt*dt*(nb/nt)*(ng/nt);}const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb),z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);return{hr,z,events:Ob+Og};}
