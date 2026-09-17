@@ -216,6 +216,27 @@ function runPwinBatch(data) {
   return { results };
 }
 
+function runBandSegments(data) {
+  const bands = [];
+  for (const config of data.configs) {
+    const runs = [];
+    let inRun = false, start = 0;
+    for (let i = 0; i <= config.steps; i++) {
+      const value = config.min + (config.max - config.min) * i / config.steps;
+      const q = { ...data.ctr, [config.field]: value * config.scale };
+      const ok = consistent(q, data.bins);
+      if (ok && !inRun) { inRun = true; start = value; }
+      if ((!ok || i === config.steps) && inRun) {
+        inRun = false;
+        const end = ok ? value : config.min + (config.max - config.min) * (i - 1) / config.steps;
+        runs.push([start, end]);
+      }
+    }
+    bands.push({ id: config.id, runs });
+  }
+  return { bands };
+}
+
 function metricsForScenario(item, data, index) {
   const p = item.params || paramsFromPreset(item.name, item.q, item.mode, data.P, data.INV);
   if (!p) return { id: item.id, name: item.name, mode: item.mode, error: "No solution" };
@@ -296,6 +317,7 @@ self.onmessage = (event) => {
     else if (data.mode === "inverseSolve") result = inverseSolve(data.base, data.cap);
     else if (data.mode === "t80Paths") result = runT80Paths(data);
     else if (data.mode === "pwinBatch") result = runPwinBatch(data);
+    else if (data.mode === "bandSegments") result = runBandSegments(data);
     else if (data.mode === "scenarioBatch") result = runScenarioBatch(data);
     else if (data.mode === "slsMonteCarlo") result = runSlsMonteCarlo(data);
     else if (data.mode === "valMonteCarlo") result = runValMonteCarlo(data);

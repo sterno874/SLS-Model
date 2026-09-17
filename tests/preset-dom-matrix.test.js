@@ -129,6 +129,10 @@ function installDom() {
           this.onmessage({ data: { type: "done", mode: data.mode, results: data.tasks.map((task) => ({ id: task.id, pw: 0.7 })) } });
           return;
         }
+        if (data.mode === "bandSegments") {
+          this.onmessage({ data: { type: "done", mode: data.mode, bands: data.configs.map((config) => ({ id: config.id, runs: [[config.min, config.max]] })) } });
+          return;
+        }
         if (data.mode === "scenarioBatch") {
           const rows = data.items.map((item, i) => ({
             id: item.id, name: item.name, mode: item.mode, label: item.label,

@@ -89,6 +89,7 @@ const $ = id => document.getElementById(id);
 function onClick(id, fn){const el=$(id);if(el)el.onclick=fn;}
 function on(id, ev, fn){const el=$(id);if(el)el.addEventListener(ev,fn);}
 function onChange(id, fn){const el=$(id);if(el)el.onchange=fn;}
+function createCalculationWorker(){return new Worker(new URL("./workers/regal-mc-worker.js?v=20260916f",import.meta.url),{type:"module"});}
 
 let liveQuote = null;
 let stopQuotePoll = null;
@@ -209,6 +210,7 @@ function scheduleUpdate(){
   cancelReadoutWorker();
   cancelAnalysisWorkers();
   cancelInverseSolve();
+  cancelBandSegmentsWorker();
   if(restoringState){updateNow();return;}
   // Throttle the light gauge/event/verdict update to one run per animation frame so the
   // readouts track the slider live; heavy work (band windows, readout MC, open panels)
@@ -241,7 +243,7 @@ function cancelInverseSolve(){
 }
 function requestInverseSolve(base){
   cancelInverseSolve();
-  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const worker=createCalculationWorker();
   inverseSolveWorker=worker;
   if($("invStatus"))$("invStatus").textContent="Solving anchors in background…";
   worker.onmessage=event=>{
@@ -369,22 +371,32 @@ function renderBandMarkers(){
     const cur=+$(c.id).value;mk.style.left="calc("+pct(cur,c.min,c.max)+"% - 1px)";
   });
 }
-// Heavy: recompute each slider's green consistency window (deferred to drag-end).
-function renderBandSegments(p){
-  CFG.forEach(c=>{
+// Heavy: recompute each slider's green consistency window in a worker after drag-end.
+let bandSegmentsWorker=null;
+function cancelBandSegmentsWorker(){
+  if(bandSegmentsWorker){bandSegmentsWorker.terminate();bandSegmentsWorker=null;}
+}
+function applyBandSegments(bands){
+  bands.forEach(({id,runs})=>{
+    const c=CFG.find(config=>config.id===id);
     const strip=$("data-"+c.id);if(!strip)return;strip.innerHTML="";
-    const M=44;let runs=[],inRun=false,start=0;
-    for(let i=0;i<=M;i++){
-      const v=c.min+(c.max-c.min)*i/M;
-      const q=Object.assign({},p);q[c.field]=v*c.sc;
-      const ok=consistent(q);
-      if(ok&&!inRun){inRun=true;start=v;}
-      if((!ok||i===M)&&inRun){inRun=false;runs.push([start, ok?v:(c.min+(c.max-c.min)*(i-1)/M)]);}
-    }
     runs.forEach(r=>{const s=document.createElement("div");s.className="seg";
       s.style.left=pct(r[0],c.min,c.max)+"%";s.style.width=Math.max(0.8,pct(r[1],c.min,c.max)-pct(r[0],c.min,c.max))+"%";
       s.style.background="var(--data)";s.style.opacity="0.75";strip.appendChild(s);});
   });
+}
+function renderBandSegments(p){
+  cancelBandSegmentsWorker();
+  const worker=createCalculationWorker();
+  bandSegmentsWorker=worker;
+  worker.onmessage=event=>{
+    if(bandSegmentsWorker!==worker)return;
+    if(event.data?.type==="error"){cancelBandSegmentsWorker();return;}
+    if(event.data?.type!=="done")return;
+    bandSegmentsWorker=null;worker.terminate();applyBandSegments(event.data.bands);
+  };
+  worker.onerror=()=>{if(bandSegmentsWorker===worker)cancelBandSegmentsWorker();};
+  worker.postMessage({mode:"bandSegments",ctr:p,bins:110,configs:CFG.map(c=>({id:c.id,field:c.field,min:c.min,max:c.max,scale:c.sc,steps:44}))});
 }
 function renderBands(p){renderBandSegments(p);renderBandMarkers();}
 let bandsSegTimer=null;
@@ -392,6 +404,7 @@ let bandsSegTimer=null;
 // then skips genuinely-redundant recomputes (e.g. re-applying the same preset).
 function scheduleBandSegments(p,force){
   if(!force&&sliderDragging)return;
+  cancelBandSegmentsWorker();
   const bk=JSON.stringify(p)+regalMode;
   if(restoringState){if(bk!==lastBandsKey){lastBandsKey=bk;renderBandSegments(p);}return;}
   clearTimeout(bandsSegTimer);
@@ -498,7 +511,7 @@ function updateReadoutTracker(){
   if($("reDate"))$("reDate").textContent=fmtCalMonth(t80);
   if($("reEvents"))$("reEvents").textContent=CURRENT_EVENT_ANCHOR.count+'/80';
   if($("reCI"))$("reCI").textContent="90% event-time interval: computing in background…";
-  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const worker=createCalculationWorker();
   readoutWorker=worker;
   worker.onmessage=event=>{
     if(readoutWorker!==worker)return;
@@ -550,7 +563,7 @@ function runScenarioDiff(){
   stopAnalysisWorker("scenario");
   const a=resolveScmpScenario('scmpA','scmpHashA'),b=resolveScmpScenario('scmpB','scmpHashB');
   if(!a||!b){$("scmpStatus").textContent='Could not resolve both scenarios';return;}
-  const cutoff=+($("cutoff")&&$("cutoff").value)||72,worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const cutoff=+($("cutoff")&&$("cutoff").value)||72,worker=createCalculationWorker();
   analysisWorkers.scenario=worker;$("scmpRun").disabled=true;$("scmpStatus").textContent="starting background comparison…";
   worker.onmessage=event=>{
     if(analysisWorkers.scenario!==worker)return;
@@ -596,7 +609,7 @@ function updateEventSensitivity(){
   const aAt80=analyzeLR(m80,p),thIA=analyzeLR(46,p).z;
   const pwAt80=binding?condPow(thIA,aAt80.z,80,p.zfut).cp:Phi(aAt80.z-ZFINAL);
   $("evSensOut").innerHTML="Computing P(win) scenarios in background…";
-  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const worker=createCalculationWorker();
   analysisWorkers.event=worker;
   worker.onmessage=event=>{
     if(analysisWorkers.event!==worker)return;
@@ -701,7 +714,7 @@ function draw(p,light){
   ctx.beginPath();ctx.moveTo(X(36),Tp);ctx.lineTo(X(36),H-B);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle="#9aa1ac";ctx.textAlign="left";ctx.fillText("36 mo",X(36)+4,Tp+10);
   if(showUncertainty&&!light){
-    const env=mcEnvelope(p,masterSweepActive?80:300);
+    const env=mcEnvelope(p,masterSweepActive?80:160);
     function fillBand(loFn,hiFn,color){ctx.fillStyle=color;ctx.beginPath();let started=false;
       for(let i=0;i<env.length;i++){const x=X(env[i].t),y=Y(hiFn(env[i]));if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);}
       for(let i=env.length-1;i>=0;i--){ctx.lineTo(X(env[i].t),Y(loFn(env[i])));}
@@ -895,7 +908,7 @@ function finishRegalMC(worker){
 }
 function runMC(){
   cancelRegalMC();
-  const mode=regalMode,ctr=readParams(),worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const mode=regalMode,ctr=readParams(),worker=createCalculationWorker();
   regalMcWorker=worker;$("mcRun").disabled=true;
   worker.onmessage=event=>{
     if(regalMcWorker!==worker)return;
@@ -1028,7 +1041,7 @@ function scheduleMasterSweepUpdate(){
 }
 function applyMasterSweep(value){
   if(regalMode!=="forward")setRegalMode("forward");
-  clearTimeout(bandsSegTimer);bandsSegTimer=null;
+  clearTimeout(bandsSegTimer);bandsSegTimer=null;cancelBandSegmentsWorker();
   const v=Math.max(0,Math.min(100,+value));
   let q=masterSweepScenario(v,P);
   const candidate=paramsFromPresetPure("",q,"forward",P,INV);
@@ -1231,7 +1244,7 @@ function renderTornado(basePw,baseHr,results){
 }
 function runTornado(){
   cancelTornado();
-  const base=readParams(),worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const base=readParams(),worker=createCalculationWorker();
   tornadoWorker=worker;$("tornadoStatus").textContent="starting background calculation…";$("tornadoRun").disabled=true;
   worker.onmessage=event=>{
     if(tornadoWorker!==worker)return;
@@ -1359,7 +1372,7 @@ function cancelAnalysisWorkers(){
 }
 function runT80Sim(){
   stopAnalysisWorker("t80");
-  const p=readParams(),N=mcDrawLimit(2000,"t80"),worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const p=readParams(),N=mcDrawLimit(2000,"t80"),worker=createCalculationWorker();
   analysisWorkers.t80=worker;$("t80Status").textContent="starting background simulation…";$("t80Run").disabled=true;
   worker.onmessage=event=>{
     if(analysisWorkers.t80!==worker)return;
@@ -1399,7 +1412,7 @@ function runPresetCmp(){
   const cutoff=+$("cutoff").value,items=[];
   for(const name in P)items.push({id:"f:"+name,name,q:P[name],mode:"forward",binding:P[name].mcFloor!=null?P[name].mcFloor:true,cutoff,draws:120});
   for(const name in INV)items.push({id:"i:"+name,name,q:INV[name],mode:"inverse",binding:!!INV[name].mcFloor,cutoff,draws:120});
-  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const worker=createCalculationWorker();
   analysisWorkers.preset=worker;$("presetCmpStatus").textContent="starting background comparison…";$("presetCmpRun").disabled=true;
   worker.onmessage=event=>{
     if(analysisWorkers.preset!==worker)return;
@@ -1426,7 +1439,7 @@ function renderBacktest(){
   stopAnalysisWorker("backtest");
   const p=readParams(),binding=$("mcFloor").checked;
   $("backtestCards").innerHTML='<div class="mcard">Computing milestone backtest in background…</div>';
-  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  const worker=createCalculationWorker();
   analysisWorkers.backtest=worker;
   worker.onmessage=event=>{
     if(analysisWorkers.backtest!==worker)return;
@@ -2094,7 +2107,7 @@ function mcSLS(){
   stopSecondaryWorker("sls");
   const ids=["sls_os","sls_bench","fl_base","fl_sls"],N=mcDrawLimit(20000,"sls"),flev=+$("sls_flev").value;
   $("v_slsflev").textContent=flev;$("mcSlsStatus").textContent="running in background…";$("mcSlsRun").disabled=true;
-  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});secondaryWorkers.sls=worker;
+  const worker=createCalculationWorker();secondaryWorkers.sls=worker;
   worker.onmessage=event=>{
     if(secondaryWorkers.sls!==worker)return;
     if(event.data?.type==="error"){stopSecondaryWorker("sls");$("mcSlsStatus").textContent="Simulation failed: "+event.data.message;return;}
@@ -2118,7 +2131,7 @@ function mcVal(){
   const ids=["v_cr2","v_cr1","v_gpen","v_gprice","v_gyears","v_flpool","v_rrpool","v_spen","v_sprice","v_syears","v_platform","v_mult","v_shares","v_cash"];
   const N=mcDrawLimit(20000,"val"),ra=$("v_riskadj").checked,pG=+$("v_pgps").value/100,pS=+$("v_psls").value/100;
   $("mcValStatus").textContent="running in background…";$("mcValRun").disabled=true;
-  const worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});secondaryWorkers.val=worker;
+  const worker=createCalculationWorker();secondaryWorkers.val=worker;
   worker.onmessage=event=>{
     if(secondaryWorkers.val!==worker)return;
     if(event.data?.type==="error"){stopSecondaryWorker("val");$("mcValStatus").textContent="Simulation failed: "+event.data.message;return;}

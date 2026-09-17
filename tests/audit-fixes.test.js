@@ -165,7 +165,7 @@ test("full confidence-band redraw wins when animation-frame updates coalesce", (
 });
 
 test("REGAL Monte Carlo runs off the browser main thread and is cancellable", () => {
-  assert.match(js, /new Worker\(new URL\("\.\/workers\/regal-mc-worker\.js",import\.meta\.url\)/);
+  assert.match(js, /function createCalculationWorker\(\)\{return new Worker\(new URL\("\.\/workers\/regal-mc-worker\.js\?v=[^"]+"/);
   assert.match(js, /function cancelRegalMC\(\)/);
   assert.match(js, /function clearRegalMCOutput\(msg\)\{\s*cancelRegalMC\(\)/);
   assert.doesNotMatch(js, /for\(let i=0;i<MAX;i\+\+\)\{\s*if\(performance\.now\(\)-t0>3[0-9]{3}\)/);
@@ -184,7 +184,7 @@ test("sensitivity tornado runs in the worker with progress and common draws", ()
 });
 
 test("all remaining heavy interactive analyses are worker-backed", () => {
-  for (const mode of ["t80Paths", "pwinBatch", "scenarioBatch", "inverseSolve", "slsMonteCarlo", "valMonteCarlo"]) {
+  for (const mode of ["t80Paths", "pwinBatch", "bandSegments", "scenarioBatch", "inverseSolve", "slsMonteCarlo", "valMonteCarlo"]) {
     assert.match(regalMcWorker, new RegExp(`data\\.mode === "${mode}"`), `${mode} must run in the calculation worker`);
   }
   assert.match(js, /function updateReadoutTracker\(\)[\s\S]*mode:"t80Paths"/);
@@ -195,6 +195,8 @@ test("all remaining heavy interactive analyses are worker-backed", () => {
   assert.match(js, /function mcSLS\(\)[\s\S]*mode:"slsMonteCarlo"/);
   assert.match(js, /function mcVal\(\)[\s\S]*mode:"valMonteCarlo"/);
   assert.match(js, /function requestInverseSolve\(base\)[\s\S]*mode:"inverseSolve"/);
+  assert.match(js, /function renderBandSegments\(p\)[\s\S]*mode:"bandSegments"/);
+  assert.doesNotMatch(js, /function renderBandSegments\(p\)\{[\s\S]{0,800}consistent\(q\)/);
   assert.doesNotMatch(js, /function runT80Sim\(\)[\s\S]{0,500}deferWithLoading/);
   assert.doesNotMatch(js, /function mcSLS\(\)[\s\S]{0,500}for\(let i=0;i<N;i\+\+\)/);
   assert.doesNotMatch(js, /function mcVal\(\)[\s\S]{0,500}for\(let i=0;i<N;i\+\+\)/);
