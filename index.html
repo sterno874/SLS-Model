@@ -137,6 +137,29 @@
   <div class="regal-limitations no-print" role="note">
     <b>Limitations</b> <span class="tag u">caveats</span> — Blinded pooled death counts fix the timeline but <b>not the arm split</b> (GPS vs BAT): many parameter sets fit 60/72/78, including HR ≈ 1 null-effect worlds. The Sep 16 no-announcement status is weaker than an announced count and can be affected by reporting lag. HR gauges and curves are <span class="tag m">model outputs</span> (Pike/stratified log-rank approximations), not the SAP stratified Cox. Calendar months assume trial month 0 = 8 Feb 2021.
   </div>
+  <section class="master-sweep no-print" id="masterSweepPanel" aria-labelledby="masterSweepTitle">
+    <div class="master-sweep-head">
+      <div>
+        <div class="master-sweep-kicker">Constraint-aligned scenario sweep</div>
+        <h2 id="masterSweepTitle">Master bearish ↔ bullish slider</h2>
+      </div>
+      <div class="master-sweep-readout" aria-live="polite">
+        <b id="masterSweepLabel">Biology-first</b>
+        <span>HR <b id="masterSweepHr">~0.25</b></span>
+        <span id="masterSweepFit">60/72/78 fit ✓</span>
+      </div>
+    </div>
+    <label class="sr-only" for="masterSweep">Sweep from constrained bearish to bullish REGAL outcomes</label>
+    <input type="range" id="masterSweep" min="0" max="100" step="1" value="75" aria-describedby="masterSweepNote"/>
+    <div class="master-sweep-axis" aria-hidden="true">
+      <span>Constrained bear<br><small>HR ~0.68 · miss</small></span>
+      <span>Critique<br><small>HR ~0.48</small></span>
+      <span>Moderate<br><small>HR ~0.39</small></span>
+      <span>Biology-first<br><small>HR ~0.25</small></span>
+      <span>Bull<br><small>HR ~0.18</small></span>
+    </div>
+    <p class="master-sweep-note" id="masterSweepNote">Drag to update both survival curves in real time. Uncertainty bands turn on automatically. Every point on this selected path passes the model’s published-event windows and BAT-median ceiling; it is a one-dimensional tour through plausible scenarios, <b>not</b> a posterior percentile or the entire non-identifiable parameter space.</p>
+  </section>
   <div class="methodpanel" id="m-gps" hidden>
     <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.
     <h4>1 · Survival &amp; events</h4>
@@ -2128,7 +2151,7 @@
   </div>
 </footer>
 
-<script type="module" src="js/main.js?v=20260916d"></script>
+<script type="module" src="js/main.js?v=20260916e"></script>
 <script>
   (function(){
     var h=location.hostname;

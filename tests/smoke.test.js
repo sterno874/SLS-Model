@@ -19,7 +19,7 @@ test("main.js declares $ helper once and exports toggleMethod", () => {
   const js = readFileSync(path.join(root, "js/main.js"), "utf8");
   assert.equal((js.match(/^const \$ =/gm) || []).length, 1);
   assert.match(js, /window\.toggleMethod\s*=/);
-  assert.match(js, /return inverseSolve\(base,cap3\)/);
+  assert.match(js, /worker\.postMessage\(\{mode:"inverseSolve",base,cap:/);
 });
 
 test("survival.js exports core model functions", async () => {

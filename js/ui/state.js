@@ -81,6 +81,33 @@ export const SHARE_P = {
   vdm:     { bat: 16.8, batc: 0, batk: 1.16, gpsc: 0,  gpsu: 16.3, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
   vdmfit:  { bat: 16.8, batc: 0, batk: 1.16, gpsc: 61, gpsu: 6.5,  delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true }
 };
+export const MASTER_SWEEP_EDGE = { bat: 10.2, batc: 20, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 17 };
+export const MASTER_SWEEP_STOPS = [
+  { at: 0, label: "Constrained bear", q: MASTER_SWEEP_EDGE },
+  { at: 25, label: "Critique", preset: "critique" },
+  { at: 50, label: "Moderate", preset: "moderate" },
+  { at: 75, label: "Biology-first", preset: "best" },
+  { at: 100, label: "Bull", preset: "bull" }
+];
+export function masterSweepScenario(value, presets = SHARE_P) {
+  const v = Math.max(0, Math.min(100, Number(value)));
+  const resolved = MASTER_SWEEP_STOPS.map((stop) => ({
+    ...stop,
+    q: stop.q || presets[stop.preset]
+  }));
+  let hi = resolved.findIndex((point) => point.at >= v);
+  if (hi <= 0) return { ...resolved[0].q };
+  if (hi < 0) hi = resolved.length - 1;
+  const a = resolved[hi - 1], b = resolved[hi];
+  const t = (v - a.at) / (b.at - a.at), q = {};
+  for (const key of new Set([...Object.keys(a.q), ...Object.keys(b.q)])) {
+    const av = a.q[key], bv = b.q[key];
+    q[key] = typeof av === "number" && typeof bv === "number"
+      ? av + (bv - av) * t
+      : (t < 0.5 ? av : bv);
+  }
+  return q;
+}
 export const SHARE_INV = {
   cw42:   { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
   cw35:   { gpsc: 35, batcap: 14, delay: 2, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },

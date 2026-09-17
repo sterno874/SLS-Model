@@ -68,6 +68,8 @@ import {
   paramsFromPreset as paramsFromPresetPure,
   paramsFromPresetQ,
   isPlausible,
+  MASTER_SWEEP_STOPS,
+  masterSweepScenario,
   computeValuationMetrics as computeValuationMetricsPure,
   computeFrozenBestEst,
   DEFAULT_CASH_M,
@@ -173,9 +175,10 @@ function initSliderDrag(){
   document.addEventListener("pointerdown",e=>{
     if(e.target&&e.target.type==="range")sliderDragging=true;
   },true);
-  function endDrag(){
+  function endDrag(event){
     if(!sliderDragging)return;
     sliderDragging=false;
+    if(event&&event.target&&event.target.id==="masterSweep")return;
     scheduleBandSegments(readParams(),true);
     updateNow(true);
   }
@@ -269,6 +272,7 @@ function applyInverseResult(r){
 }
 function setRegalMode(mode){
   lastMcPwin=null; // mode switch changes the effective params → invalidate cached MC P(win)
+  if(mode==="inverse")setMasterSweepActive(false);
   cancelInverseSolve();
   clearRegalMCOutput("mode changed — click Run");
   regalMode=mode;
@@ -403,6 +407,7 @@ function scheduleBandSegments(p,force){
 let showUncertainty=false;
 let lastMcPwin=null,lastPointPwin=null;
 let chartLayout=null,chartPinMonth=null,chartParams=null;
+let masterSweepActive=true,masterSweepApplying=false,masterSweepRaf=null;
 function fmtAsOf(iso){if(!iso)return'';const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',year:'numeric',day:'numeric'});}
 function initFactsAsOf(){
   document.querySelectorAll('.facts .fgrid > div').forEach(el=>{
@@ -665,10 +670,13 @@ function initChartInteraction(){
 }
 function mcEnvelope(p,nDraws){
   nDraws=nDraws||400;const tmax=60,pts=[];const ctr=Object.assign({},p);
+  let state=0x5EED1234;
+  const random=()=>{state+=0x6D2B79F5;let t=state;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};
+  const normal=()=>{let u=0,v=0;while(!u)u=random();while(!v)v=random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
   for(let t=0;t<=tmax;t+=1)pts.push({t,bat:[],gps:[],pool:[]});
   for(let i=0;i<nDraws;i++){
     const q={osmode:"itt",batk:ctr.batk,fh:ctr.fh,stratF:ctr.stratF,zfut:ctr.zfut};
-    for(const f of MCFIELDS) q[f]=sampleField(f,ctr[f],0.5);
+    for(const f of MCFIELDS) q[f]=sampleField(f,ctr[f],0.5,normal,random);
     for(let j=0;j<pts.length;j++){const t=pts[j].t;pts[j].bat.push(sBAT(t,q));pts[j].gps.push(sGPS(t,q));pts[j].pool.push(poolS(t,q));}
   }
   function qtl(a,q){const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(q*s.length))];}
@@ -693,7 +701,7 @@ function draw(p,light){
   ctx.beginPath();ctx.moveTo(X(36),Tp);ctx.lineTo(X(36),H-B);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle="#9aa1ac";ctx.textAlign="left";ctx.fillText("36 mo",X(36)+4,Tp+10);
   if(showUncertainty&&!light){
-    const env=mcEnvelope(p,300);
+    const env=mcEnvelope(p,masterSweepActive?80:300);
     function fillBand(loFn,hiFn,color){ctx.fillStyle=color;ctx.beginPath();let started=false;
       for(let i=0;i<env.length;i++){const x=X(env[i].t),y=Y(hiFn(env[i]));if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);}
       for(let i=env.length-1;i>=0;i--){ctx.lineTo(X(env[i].t),Y(loFn(env[i])));}
@@ -722,7 +730,7 @@ function hrMarkLeft(hr){return "calc("+Math.min(100,Math.max(0,hr/HRMAX*100))+"%
 function readParams(){return{bat:+$("bat").value,batc:+$("batc").value/100,batk:+$("batk").value,gpsc:+$("gpsc").value/100,gpsu:+$("gpsu").value,delay:+$("delay").value,xtx:+$("xtx").value/100,cens:+$("cens").value/100,osmode:"itt",mid:+$("mid").value,k:+$("k").value,fh:$("fhTest").checked,assumeStatus:$("assumeStatus").checked,stratF:+$("stratF").value,zfut:+$("zfut").value};}
 
 function update(full){
-  const light=!full&&sliderDragging;
+  const light=!full&&(sliderDragging||masterSweepApplying);
   let p=readParams();
   let noSol=null;
   if(regalMode==="inverse"){
@@ -742,7 +750,7 @@ function update(full){
   $("vXtx").textContent=(p.xtx*100).toFixed(0)+"%";$("vCens").textContent=(p.cens*100).toFixed(0)+"%";
   $("vBatk").textContent=p.batk.toFixed(2);$("vStratF").textContent=p.stratF.toFixed(2);$("vZfut").textContent=p.zfut.toFixed(2);
 
-  scheduleDraw(p,light);
+  scheduleDraw(p,light&&!masterSweepActive);
   renderBandMarkers();
   if(!light)scheduleBandSegments(p);
 
@@ -768,9 +776,10 @@ function update(full){
   $("oRmst").innerHTML=(dR>=0?'+':'')+dR.toFixed(1)+' <small>mo</small>';
   const cutoff=+$("cutoff").value; $("vCut").textContent=cutoff;
   const binding=$("mcFloor").checked;
-  const gs=hrGaugeState(p,cutoff);
+  const gs=hrGaugeState(p,cutoff,light?60:110,light?12:undefined);
   const{t80,Tan,Dan}=gs;
-  const t10=t80Quantile(p,0.1),t90=t80Quantile(p,0.9),statusMode=p.assumeStatus?'Aug phrase interpreted as &lt;80':'confirmed 78 only';
+  const t10=t80Quantile(p,0.1,T4,light?60:110,light?12:undefined),t90=t80Quantile(p,0.9,T4,light?60:110,light?12:undefined),statusMode=p.assumeStatus?'Aug phrase interpreted as &lt;80':'confirmed 78 only';
+  if(masterSweepActive)updateMasterSweepReadout(p,gs);
   $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(1)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small> <span class="tag m" style="font-size:9px;vertical-align:1px">predictive median · 80% interval '+fmtCalRange(t10,t90)+' · '+statusMode+'</span>';
   if(!light){
     const thIA=analyzeLR(46,p).z, th80=analyzeLR(Tan,p).z;
@@ -870,7 +879,7 @@ function mcDrawLimit(defaultN,key){
   return Number.isFinite(n)&&n>0?Math.floor(n):defaultN;
 }
 const SD={};CFG.forEach(c=>SD[c.field]=(c.sig.b1[1]-c.sig.b1[0])/2*c.sc);
-function sampleField(f,mu,sdScale){const c=CFG.find(x=>x.field===f);const scale=sdScale==null?1:sdScale;return truncatedNormal(mu,SD[f]*scale,c.min*c.sc,c.max*c.sc,rn,Math.random);}
+function sampleField(f,mu,sdScale,normal,uniform){const c=CFG.find(x=>x.field===f);const scale=sdScale==null?1:sdScale;return truncatedNormal(mu,SD[f]*scale,c.min*c.sc,c.max*c.sc,normal||rn,uniform||Math.random);}
 const MCFIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
 function mcFieldSpecs(){return MCFIELDS.map(field=>{const c=CFG.find(x=>x.field===field);return{field,sd:SD[field],min:c.min*c.sc,max:c.max*c.sc};});}
 let regalMcWorker=null;
@@ -968,6 +977,71 @@ const INV={
  cw50:   {gpsc:50,batcap:14,delay:4,xtx:0,cens:0,mid:25,k:0.15,mcFloor:false},
  cwbind: {gpsc:42,batcap:14,delay:3,xtx:0,cens:0,mid:25,k:0.15,mcFloor:true}
 };
+const MASTER_PRESET_POS={critique:25,moderate:50,best:75,bull:100};
+const MASTER_FIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
+function masterSweepStage(value){
+  const v=+value;
+  const exact=MASTER_SWEEP_STOPS.find(point=>Math.abs(point.at-v)<0.01);
+  if(exact)return exact.label;
+  const hi=MASTER_SWEEP_STOPS.findIndex(point=>point.at>v),a=MASTER_SWEEP_STOPS[hi-1],b=MASTER_SWEEP_STOPS[hi];
+  return a.label+" → "+b.label;
+}
+function writeMasterSweepSliders(q){
+  const set=(id,value)=>{const el=$(id);if(el)el.value=String(Math.round(value*10000)/10000);};
+  set("bat",q.bat);set("batc",q.batc);set("gpsc",q.gpsc);set("gpsu",q.gpsu);
+  set("delay",q.delay);set("xtx",q.xtx);set("cens",q.cens);set("mid",q.mid);set("k",q.k);
+  if($("batk"))$("batk").value=String(q.batk!=null?q.batk:1);
+  $("autofit").checked=false;
+}
+function updateMasterSweepReadout(p,gs){
+  const value=+$("masterSweep").value;
+  $("masterSweepLabel").textContent=masterSweepStage(value);
+  $("masterSweepHr").textContent=Number.isFinite(gs.hrForFinal)?gs.hrForFinal.toFixed(2):"—";
+  const hardFit=passesVerdict(p)&&isBiologicallyPlausible(p);
+  $("masterSweepFit").textContent=hardFit?"60/72/78 fit ✓":"constraint edge exceeded";
+  $("masterSweepFit").className=hardFit?"master-fit-ok":"master-fit-bad";
+}
+function setMasterSweepActive(active){
+  masterSweepActive=!!active;
+  const panel=$("masterSweepPanel");if(panel)panel.classList.toggle("is-inactive",!masterSweepActive);
+  if(!masterSweepActive){
+    if(masterSweepRaf){cancelAnimationFrame(masterSweepRaf);masterSweepRaf=null;}
+    $("masterSweepLabel").textContent="Custom controls";
+    $("masterSweepFit").textContent="master path inactive";
+    $("masterSweepFit").className="";
+  }
+}
+function syncMasterSweepToPreset(name){
+  const position=MASTER_PRESET_POS[name];
+  if(position==null){setMasterSweepActive(false);return;}
+  $("masterSweep").value=String(position);
+  setMasterSweepActive(true);
+}
+function scheduleMasterSweepUpdate(){
+  lastMcPwin=null;clearRegalMCOutput("master scenario changed — click Run");
+  cancelTornado("master scenario changed — recompute");cancelReadoutWorker();cancelAnalysisWorkers();cancelInverseSolve();
+  if(masterSweepRaf)return;
+  masterSweepRaf=requestAnimationFrame(()=>{
+    masterSweepRaf=null;masterSweepApplying=true;
+    try{update(false);}finally{masterSweepApplying=false;}
+  });
+}
+function applyMasterSweep(value){
+  if(regalMode!=="forward")setRegalMode("forward");
+  clearTimeout(bandsSegTimer);bandsSegTimer=null;
+  const v=Math.max(0,Math.min(100,+value));
+  let q=masterSweepScenario(v,P);
+  const candidate=paramsFromPresetPure("",q,"forward",P,INV);
+  if(!candidate||!isPlausible(candidate)){
+    const nearest=MASTER_SWEEP_STOPS.reduce((best,point)=>Math.abs(point.at-v)<Math.abs(best.at-v)?point:best);
+    q={...(nearest.q||P[nearest.preset])};
+  }
+  writeMasterSweepSliders(q);
+  activeRegalPreset=Object.keys(MASTER_PRESET_POS).find(name=>MASTER_PRESET_POS[name]===v)||null;
+  setMasterSweepActive(true);refreshRegalPresetHighlight();
+  if(!showUncertainty){showUncertainty=true;$("showUncertainty").checked=true;}
+  scheduleMasterSweepUpdate();
+}
 /** Write forward-preset slider fields with step snapping so range inputs cannot drift. */
 function writeRegalPresetSliders(q){
   const set=(id,val,step)=>{
@@ -1022,6 +1096,7 @@ function applyRegalPreset(name,q){
   if(got.delay!==expect.delay)$("delay").value=String(expect.delay);
   if(got.mid!==expect.mid)$("mid").value=String(expect.mid);
   if(Math.abs(got.k-expect.k)>1e-9)$("k").value=String(expect.k);
+  syncMasterSweepToPreset(name);
   // Lead-time is display-only sensitivity; presets reset to a sensible default (does not affect event fit).
   if($("irm_lead"))$("irm_lead").value=String(q.irm_lead!=null?q.irm_lead:DEFAULT_IRM_LEAD);
   if(regalMode==="inverse")setRegalMode("forward");
@@ -1036,6 +1111,7 @@ function applyInversePreset(name,q){
   $("xtx").value=q.xtx!=null?q.xtx:0;$("cens").value=q.cens!=null?q.cens:0;
   if(q.mcFloor!=null)$("mcFloor").checked=!!q.mcFloor;
   if($("irm_lead"))$("irm_lead").value=String(q.irm_lead!=null?q.irm_lead:DEFAULT_IRM_LEAD);
+  setMasterSweepActive(false);
   setRegalMode("inverse");
 }
 document.querySelectorAll("button[data-preset]").forEach(b=>b.onclick=()=>applyRegalPreset(b.dataset.preset));
@@ -1043,8 +1119,10 @@ document.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>applyInve
 
 ["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","cutoff","batk","stratF","zfut","fhTest","autofit","batcap"].forEach(id=>{
   const el=$(id);if(!el)return;
-  el.addEventListener("input",()=>{syncRegalPresetMarker();scheduleUpdate();});
+  el.addEventListener("input",()=>{if(MASTER_FIELDS.includes(id)||id==="batk"||id==="autofit")setMasterSweepActive(false);syncRegalPresetMarker();scheduleUpdate();});
 });
+on("masterSweep","input",function(){applyMasterSweep(this.value);});
+on("masterSweep","change",function(){masterSweepApplying=true;try{updateNow(true);}finally{masterSweepApplying=false;}});
 on("mcRun","click",function(){
   $("mcStatus").textContent="starting background simulation…";
   runMC();
@@ -1073,7 +1151,8 @@ function applyState(s){
   restoringState=true;lastMcPwin=null; // restoring a shared state changes params → invalidate cached MC P(win)
   clearRegalMCOutput("state restored — click Run");
   try{
-    activeRegalPreset=s.activeRegalPreset||activeRegalPreset;activeInvPreset=s.activeInvPreset||activeInvPreset;
+    if(Object.prototype.hasOwnProperty.call(s,"activeRegalPreset"))activeRegalPreset=s.activeRegalPreset;
+    activeInvPreset=s.activeInvPreset||activeInvPreset;
     activeSlsPreset=s.activeSlsPreset||activeSlsPreset;activeValPreset=s.activeValPreset||activeValPreset;
     applySliderValues(GPS_SHARE_KEYS,s.gps);
     if(s.gps){if(s.gps.autofit!=null)$("autofit").checked=s.gps.autofit;if(s.gps.fhTest!=null)$("fhTest").checked=s.gps.fhTest;if(s.gps.mcFloor!=null)$("mcFloor").checked=s.gps.mcFloor;if(s.gps.assumeStatus!=null)$("assumeStatus").checked=s.gps.assumeStatus;}
@@ -1100,6 +1179,7 @@ function applyState(s){
         $("mcFloor").checked=activeRegalPreset==="bind";
         activeRegalPreset="best";
       }else if(activeRegalPreset&&P[activeRegalPreset])writeRegalPresetSliders(P[activeRegalPreset]);
+      syncMasterSweepToPreset(activeRegalPreset);
       if(regalMode!=="forward")setRegalMode("forward");
       else{refreshRegalPresetHighlight();updateNow();}
     }

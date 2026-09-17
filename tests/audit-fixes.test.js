@@ -11,7 +11,10 @@ import {
 import { truncatedNormal, weightedQuantile } from "../js/math/stats.js";
 import {
   paramsFromPreset,
-  computeValuationMetrics
+  computeValuationMetrics,
+  isPlausible,
+  MASTER_SWEEP_STOPS,
+  masterSweepScenario
 } from "../js/ui/state.js";
 import { paramsFromPresetQ } from "./helpers.js";
 import { P, INV } from "./fixtures/presets.js";
@@ -151,9 +154,9 @@ test("truncated draws have no clamped boundary atoms and weighted quantiles use 
 });
 
 test("uncertainty envelope uses the current truncated sampler", () => {
-  assert.match(js, /function mcEnvelope[\s\S]*q\[f\]=sampleField\(f,ctr\[f\],0\.5\)/);
+  assert.match(js, /function mcEnvelope[\s\S]*q\[f\]=sampleField\(f,ctr\[f\],0\.5,normal,random\)/);
   assert.doesNotMatch(js, /\bclampf\s*\(/, "removed clampf helper must not remain in a lazy chart path");
-  assert.match(js, /function sampleField\(f,mu,sdScale\)/);
+  assert.match(js, /function sampleField\(f,mu,sdScale,normal,uniform\)/);
 });
 
 test("full confidence-band redraw wins when animation-frame updates coalesce", () => {
@@ -195,6 +198,30 @@ test("all remaining heavy interactive analyses are worker-backed", () => {
   assert.doesNotMatch(js, /function runT80Sim\(\)[\s\S]{0,500}deferWithLoading/);
   assert.doesNotMatch(js, /function mcSLS\(\)[\s\S]{0,500}for\(let i=0;i<N;i\+\+\)/);
   assert.doesNotMatch(js, /function mcVal\(\)[\s\S]{0,500}for\(let i=0;i<N;i\+\+\)/);
+});
+
+test("master sweep spans constrained bearish through bullish scenarios", () => {
+  assert.deepEqual(MASTER_SWEEP_STOPS.map((point) => point.at), [0, 25, 50, 75, 100]);
+  let previousHr = Infinity;
+  for (let value = 0; value <= 100; value++) {
+    const p = paramsFromPreset("", masterSweepScenario(value, P), "forward", P, INV);
+    assert.equal(isPlausible(p), true, `master position ${value} must pass event and BAT constraints`);
+    const hr = hrGaugeState(p, 72).hrForFinal;
+    assert.ok(hr <= previousHr + 0.002, `master HR should become no more bearish at ${value}`);
+    previousHr = hr;
+  }
+  const bear = paramsFromPreset("", masterSweepScenario(0, P), "forward", P, INV);
+  const bull = paramsFromPreset("", masterSweepScenario(100, P), "forward", P, INV);
+  assert.equal(hrGaugeState(bear, 72).finalClears, false);
+  assert.equal(hrGaugeState(bull, 72).finalClears, true);
+});
+
+test("master sweep is prominent, live, and automatically shows uncertainty", () => {
+  assert.match(html, /id="masterSweep"[^>]*min="0"[^>]*max="100"/);
+  assert.match(html, /one-dimensional tour through plausible scenarios/);
+  assert.match(js, /on\("masterSweep","input",function\(\)\{applyMasterSweep\(this\.value\);/);
+  assert.match(js, /if\(!showUncertainty\)\{showUncertainty=true;\$\("showUncertainty"\)\.checked=true;\}/);
+  assert.match(js, /scheduleDraw\(p,light&&!masterSweepActive\)/);
 });
 
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------
