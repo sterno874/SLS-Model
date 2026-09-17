@@ -442,7 +442,7 @@
 <details class="feat-panel" id="panelTornado">
   <summary>Sensitivity tornado — which inputs move P(win) most? <span class="tag m">model</span></summary>
   <div class="panel-body">
-    <p class="cw-note">One-at-a-time perturbation of key parameters (±20% or ±1σ band) from the current scenario. Bars show ΔP(win) in percentage points — green = higher win probability when perturbed in the favorable direction. Uses a fast approximate MC (5k draws per perturbation). <span class="tag a">assumption</span></p>
+    <p class="cw-note">One-at-a-time perturbation of key parameters (±20% or ±1σ band) from the current scenario. Bars show ΔP(win) in percentage points — green = higher win probability when perturbed in the favorable direction. Uses a background approximate MC with 80 common random draws per perturbation and a reduced-precision T80 search to avoid blocking; rows appear progressively. <span class="tag a">assumption</span></p>
     <button class="p p-run" id="tornadoRun">▶ Compute tornado</button>
     <span id="tornadoStatus" class="run-status"></span>
     <div id="tornadoChart"></div>
@@ -2128,7 +2128,7 @@
   </div>
 </footer>
 
-<script type="module" src="js/main.js?v=20260916b"></script>
+<script type="module" src="js/main.js?v=20260916c"></script>
 <script>
   (function(){
     var h=location.hostname;

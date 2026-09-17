@@ -83,12 +83,13 @@ function t80ConditionalCdf(T,p,statusMonth,bins){
   const e=Math.exp(-lambdaFuture);
   return p1*(1-e)+p0*(1-e*(1+lambdaFuture));
 }
-function t80Quantile(p,q,statusMonth,bins){
+function t80Quantile(p,q,statusMonth,bins,iterations){
   bins=bins||110;q=Math.min(0.999999,Math.max(0.000001,q==null?0.5:q));
+  iterations=iterations||28;
   statusMonth=statusMonth!=null?statusMonth:T4;
   let lo=usesStatusAssumption(p)?statusMonth:T3,hi=130;
   if(t80ConditionalCdf(hi,p,statusMonth,bins)<q)return hi;
-  for(let i=0;i<28;i++){const m=(lo+hi)/2;if(t80ConditionalCdf(m,p,statusMonth,bins)<q)lo=m;else hi=m;}
+  for(let i=0;i<iterations;i++){const m=(lo+hi)/2;if(t80ConditionalCdf(m,p,statusMonth,bins)<q)lo=m;else hi=m;}
   return (lo+hi)/2;
 }
 function eventsAtStatusConditioned(T,p,bins){
@@ -112,7 +113,7 @@ function eventsBeforeT80(T,p,bins){
   const future=Math.max(0,eventsAt(T,p,bins)-atStatus),e=Math.exp(-future),w0=p0*e,w1=p0*future*e+p1*e;return E3+w1/Math.max(1e-12,w0+w1);
 }
 function T80(p){return t80Quantile(p,0.5,T4,110);}
-function t80Analysis(p,cutoff,bins,u){bins=bins||110;const q=u==null?0.5:u,t80=t80Quantile(p,q,T4,bins),reached=t80<=cutoff;return reached?{t80,Tan:t80,Dan:80,reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)}:{t80,Tan:cutoff,Dan:eventsBeforeT80(cutoff,p,bins),reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)};}
+function t80Analysis(p,cutoff,bins,u,iterations){bins=bins||110;const q=u==null?0.5:u,t80=t80Quantile(p,q,T4,bins,iterations),reached=t80<=cutoff;return reached?{t80,Tan:t80,Dan:80,reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)}:{t80,Tan:cutoff,Dan:eventsBeforeT80(cutoff,p,bins),reached,reachedProbability:t80ConditionalCdf(cutoff,p,T4,bins)};}
 function mcPathToT80(q,bins,u){return t80Quantile(q,u==null?0.5:u,T4,bins||110);}
 
 // ---------- HR (Pike) ----------

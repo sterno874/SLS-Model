@@ -203,6 +203,7 @@ function clearRegalMCOutput(msg){
 function scheduleUpdate(){
   lastMcPwin=null; // params changed → any prior MC P(win) is stale until MC is re-run
   clearRegalMCOutput();
+  cancelTornado("inputs changed — recompute");
   if(restoringState){updateNow();return;}
   // Throttle the light gauge/event/verdict update to one run per animation frame so the
   // readouts track the slider live; heavy work (band windows, readout MC, open panels)
@@ -1099,46 +1100,59 @@ function paramsFromPreset(name,q,mode){
 }
 
 // ================= TORNADO (#2) =================
+let tornadoWorker=null;
+function cancelTornado(msg){
+  if(tornadoWorker){tornadoWorker.terminate();tornadoWorker=null;}
+  const btn=$("tornadoRun");if(btn)btn.disabled=false;
+  if(msg&&$("tornadoStatus"))$("tornadoStatus").textContent=msg;
+}
+function renderTornado(basePw,baseHr,results){
+  results.sort((a,b)=>Math.max(Math.abs(a.lo),Math.abs(a.hi))-Math.max(Math.abs(b.lo),Math.abs(b.hi))).reverse();
+  const maxD=Math.max(0.01,...results.flatMap(r=>[Math.abs(r.lo),Math.abs(r.hi)]));
+  let h='<div style="font-size:12px;margin-bottom:6px">Baseline P(win)='+(100*basePw).toFixed(0)+'%, HR='+baseHr.toFixed(2)+'</div>';
+  results.forEach(r=>{
+    const loW=Math.abs(r.lo)/maxD*45,hiW=Math.abs(r.hi)/maxD*45;
+    h+='<div class="tornado-row"><div class="tornado-lbl">'+r.lbl+'</div><div class="tornado-bar">';
+    if(r.lo<0)h+='<div class="neg" style="width:'+loW+'%"></div>';
+    if(r.hi>0)h+='<div class="pos" style="width:'+hiW+'%"></div>';
+    h+='</div><div class="tornado-val">'+(r.lo*100).toFixed(0)+' / +'+(r.hi*100).toFixed(0)+'pp</div></div>';
+  });
+  $("tornadoChart").innerHTML=h;
+}
 function runTornado(){
-  $("tornadoStatus").textContent="computing…";$("tornadoRun").disabled=true;
-  deferWithLoading(function(){
-    const base=readParams(),binding=$("mcFloor").checked,cutoff=+$("cutoff").value;
-    const basePw=fastPwin(base,binding,cutoff,5000);
-    const baseHr=hazardRatio(T2,base);
-    const specs=[
-      {lbl:"GPS cure",field:"gpsc",pct:0.20,good:"up"},
-      {lbl:"BAT tail",field:"batc",pct:0.20,good:"down"},
-      {lbl:"BAT median",field:"bat",pct:0.20,good:"up"},
-      {lbl:"GPS uncured",field:"gpsu",pct:0.20,good:"up"},
-      {lbl:"Censoring",field:"cens",pct:0.20,good:"down"},
-      {lbl:"Binding IA",field:"_bind",toggle:true}
-    ];
-    const results=[];
-    for(const sp of specs){
-      if(sp.toggle){
-        const pwLo=fastPwin(base,false,cutoff,3000),pwHi=fastPwin(base,true,cutoff,3000);
-        results.push({lbl:sp.lbl,lo:pwLo-basePw,hi:pwHi-basePw});
-      }else{
-        const c=CFG.find(x=>x.field===sp.field),ctr=base[sp.field];
-        const dLo=ctr*(1-sp.pct),dHi=ctr*(1+sp.pct);
-        const pLo=Object.assign({},base,{[sp.field]:Math.max(c.min*c.sc,dLo)});
-        const pHi=Object.assign({},base,{[sp.field]:Math.min(c.max*c.sc,dHi)});
-        const pwLo=fastPwin(pLo,binding,cutoff,3000),pwHi=fastPwin(pHi,binding,cutoff,3000);
-        results.push({lbl:sp.lbl,lo:pwLo-basePw,hi:pwHi-basePw});
-      }
+  cancelTornado();
+  const base=readParams(),worker=new Worker(new URL("./workers/regal-mc-worker.js",import.meta.url),{type:"module"});
+  tornadoWorker=worker;$("tornadoStatus").textContent="starting background calculation…";$("tornadoRun").disabled=true;
+  worker.onmessage=event=>{
+    if(tornadoWorker!==worker)return;
+    const data=event.data||{};
+    if(data.type==="tornadoProgress"){
+      if(data.results&&data.results.length)renderTornado(data.basePw,data.baseHr,data.results);
+      $("tornadoStatus").textContent=data.completed+"/"+data.total+" sensitivities · "+data.label+" · running in background…";
+      return;
     }
-    results.sort((a,b)=>Math.max(Math.abs(a.lo),Math.abs(a.hi))-Math.max(Math.abs(b.lo),Math.abs(b.hi))).reverse();
-    const maxD=Math.max(0.01,...results.flatMap(r=>[Math.abs(r.lo),Math.abs(r.hi)]));
-    let h='<div style="font-size:12px;margin-bottom:6px">Baseline P(win)='+(100*basePw).toFixed(0)+'%, HR='+baseHr.toFixed(2)+'</div>';
-    results.forEach(r=>{
-      const loW=Math.abs(r.lo)/maxD*45,hiW=Math.abs(r.hi)/maxD*45;
-      h+='<div class="tornado-row"><div class="tornado-lbl">'+r.lbl+'</div><div class="tornado-bar">';
-      if(r.lo<0)h+='<div class="neg" style="width:'+loW+'%"></div>';
-      if(r.hi>0)h+='<div class="pos" style="width:'+hiW+'%"></div>';
-      h+='</div><div class="tornado-val">'+(r.lo*100).toFixed(0)+' / +'+(r.hi*100).toFixed(0)+'pp</div></div>';
-    });
-    $("tornadoChart").innerHTML=h;$("tornadoStatus").textContent="done";$("tornadoRun").disabled=false;
-  },"Computing tornado…");
+    if(data.type==="error"){
+      cancelTornado();$("tornadoStatus").textContent="Tornado failed: "+data.message;return;
+    }
+    if(data.type!=="done")return;
+    tornadoWorker=null;worker.terminate();$("tornadoRun").disabled=false;
+    renderTornado(data.basePw,data.baseHr,data.results);$("tornadoStatus").textContent="done";
+  };
+  worker.onerror=event=>{if(tornadoWorker!==worker)return;cancelTornado();$("tornadoStatus").textContent="Tornado failed: "+(event.message||"worker error");};
+  const specs=MCFIELDS.map(field=>{const c=CFG.find(x=>x.field===field);return{field,sd:SD[field],min:c.min*c.sc,max:c.max*c.sc};});
+  const tornadoSpecs=[
+    {lbl:"GPS cure",field:"gpsc",pct:0.20},
+    {lbl:"BAT tail",field:"batc",pct:0.20},
+    {lbl:"BAT median",field:"bat",pct:0.20},
+    {lbl:"GPS uncured",field:"gpsu",pct:0.20},
+    {lbl:"Censoring",field:"cens",pct:0.20},
+    {lbl:"Binding IA",field:"_bind",toggle:true}
+  ].map(sp=>{
+    if(sp.toggle)return sp;
+    const c=CFG.find(x=>x.field===sp.field),ctr=base[sp.field];
+    return{...sp,loValue:Math.max(c.min*c.sc,ctr*(1-sp.pct)),hiValue:Math.min(c.max*c.sc,ctr*(1+sp.pct))};
+  });
+  worker.postMessage({mode:"tornado",ctr:base,binding:$("mcFloor").checked,cutoff:+$("cutoff").value,specs,tornadoSpecs,draws:mcDrawLimit(80,"tornado")});
 }
 onClick("tornadoRun",runTornado);
 

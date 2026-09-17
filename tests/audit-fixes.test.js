@@ -111,6 +111,13 @@ test("T80 CDF and quantile are inverse and path sampling integrates cutoff proba
   assert.ok(Math.abs(reached / n - expected) < 1 / n + 1e-6);
 });
 
+test("reduced-iteration T80 search remains close enough for tornado ranking", () => {
+  const p = paramsFromPresetQ(P.best);
+  const exact = t80Quantile(p, 0.37, T4, 60, 28);
+  const quick = t80Quantile(p, 0.37, T4, 60, 12);
+  assert.ok(Math.abs(quick - exact) < 0.03);
+});
+
 test("Aug status toggle changes only the optional conditioning term", () => {
   const assumed = paramsFromPresetQ(P.best), confirmed = { ...assumed, assumeStatus: false };
   assert.ok(statusLogLikelihood(assumed) < 0);
@@ -162,6 +169,15 @@ test("REGAL Monte Carlo runs off the browser main thread and is cancellable", ()
   assert.match(regalMcWorker, /function runForward\(data\)/);
   assert.match(regalMcWorker, /function runInverse\(data\)/);
   assert.match(regalMcWorker, /postMessage\(\{ type: "progress"/);
+});
+
+test("sensitivity tornado runs in the worker with progress and common draws", () => {
+  assert.match(js, /function runTornado\(\)[\s\S]*mode:"tornado"/);
+  assert.match(js, /function cancelTornado\(msg\)/);
+  assert.doesNotMatch(js, /deferWithLoading\(function\(\)\{\s*const base=readParams\(\)[\s\S]*fastPwin\(base/);
+  assert.match(regalMcWorker, /function runTornado\(data\)/);
+  assert.match(regalMcWorker, /function seededRandom\(seed\)/);
+  assert.match(regalMcWorker, /type: "tornadoProgress"/);
 });
 
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------

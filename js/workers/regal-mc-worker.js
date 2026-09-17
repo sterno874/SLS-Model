@@ -1,6 +1,6 @@
 import {
-  E1, E2, E3, eventsAt, medianOf, poolS, lpois, statusLogLikelihood,
-  analyzeLR, t80Analysis, interimContribution, consistent, inverseSolve
+  E1, E2, E3, T4, eventsAt, medianOf, poolS, lpois, statusLogLikelihood,
+  hazardRatio, analyzeLR, t80Analysis, interimContribution, consistent, inverseSolve
 } from "../math/survival.js";
 import { truncatedNormal } from "../math/stats.js";
 
@@ -109,10 +109,83 @@ function runInverse(data) {
   return { acc, tried };
 }
 
+function seededRandom(seed) {
+  let state = seed >>> 0;
+  return () => {
+    state += 0x6D2B79F5;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function seededNormal(random) {
+  let u = 0, v = 0;
+  while (!u) u = random();
+  while (!v) v = random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+function tornadoPwin(ctr, binding, cutoff, nDraws, specs, seed) {
+  const random = seededRandom(seed);
+  let W = 0, WP = 0;
+  for (let i = 0; i < nDraws; i++) {
+    const q = {
+      osmode: "itt", batk: ctr.batk, fh: ctr.fh, assumeStatus: ctr.assumeStatus,
+      stratF: ctr.stratF, zfut: ctr.zfut
+    };
+    for (const spec of specs) {
+      q[spec.field] = truncatedNormal(
+        ctr[spec.field], spec.sd, spec.min, spec.max,
+        () => seededNormal(random), random
+      );
+    }
+    const e46 = eventsAt(46, q, 60), e58 = eventsAt(58, q, 60), e63 = eventsAt(63, q, 60);
+    const logL = lpois(60, e46) + lpois(12, Math.max(0, e58 - e46)) +
+      lpois(6, Math.max(0, e63 - e58)) + (T4 >= 63 ? statusLogLikelihood(q, 60) : 0);
+    const fitWeight = Math.exp(logL);
+    if (!(fitWeight > 0)) continue;
+    const thIA = analyzeLR(46, q).z;
+    const { Tan, Dan } = t80Analysis(q, cutoff, 60, random(), 12);
+    const aFin = analyzeLR(Tan, q);
+    if (Number.isNaN(aFin.hr)) continue;
+    const { w, pw } = interimContribution(binding, fitWeight, thIA, aFin.z, Dan, q.zfut);
+    W += w;
+    WP += w * pw;
+  }
+  return W > 0 ? WP / W : NaN;
+}
+
+function runTornado(data) {
+  const { ctr, binding, cutoff, specs, tornadoSpecs, draws } = data;
+  const seed = 0x51A5EED;
+  const basePw = tornadoPwin(ctr, binding, cutoff, draws, specs, seed);
+  const baseHr = hazardRatio(58, ctr);
+  const results = [];
+  postMessage({ type: "tornadoProgress", completed: 0, total: tornadoSpecs.length, label: "baseline ready", basePw, baseHr, results });
+  for (let i = 0; i < tornadoSpecs.length; i++) {
+    const item = tornadoSpecs[i];
+    let pwLo, pwHi;
+    if (item.toggle) {
+      pwLo = tornadoPwin(ctr, false, cutoff, draws, specs, seed);
+      pwHi = tornadoPwin(ctr, true, cutoff, draws, specs, seed);
+    } else {
+      pwLo = tornadoPwin({ ...ctr, [item.field]: item.loValue }, binding, cutoff, draws, specs, seed);
+      pwHi = tornadoPwin({ ...ctr, [item.field]: item.hiValue }, binding, cutoff, draws, specs, seed);
+    }
+    results.push({ lbl: item.lbl, lo: pwLo - basePw, hi: pwHi - basePw });
+    postMessage({ type: "tornadoProgress", completed: i + 1, total: tornadoSpecs.length, label: item.lbl, basePw, baseHr, results });
+  }
+  return { basePw, baseHr, results };
+}
+
 self.onmessage = (event) => {
   try {
     const data = event.data;
-    const result = data.mode === "inverse" ? runInverse(data) : runForward(data);
+    const result = data.mode === "tornado"
+      ? runTornado(data)
+      : (data.mode === "inverse" ? runInverse(data) : runForward(data));
     postMessage({ type: "done", mode: data.mode, ...result });
   } catch (error) {
     postMessage({ type: "error", message: error?.message || String(error) });
