@@ -136,6 +136,14 @@ test("Pike HR ≈ analyzeLR", () => {
   assert.ok(Math.abs(hazardRatio(T2, best) - lr.hr) < 0.005);
 });
 
+test("Fleming-Harrington toggle changes the significance score, not the HR estimator", () => {
+  const unweighted = analyzeLR(68, mk({ fh: false }));
+  const weighted = analyzeLR(68, mk({ fh: true }));
+  assert.ok(Number.isFinite(unweighted.z) && Number.isFinite(weighted.z));
+  assert.notEqual(unweighted.z, weighted.z);
+  assert.equal(unweighted.hr, weighted.hr);
+});
+
 test("SLS OS ratio = bench/os under exponential", () => {
   const osRatio = 2.8 / 8.9;
   const expected = (Math.log(2) / 8.9) / (Math.log(2) / 2.8);

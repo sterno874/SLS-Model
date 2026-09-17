@@ -762,6 +762,7 @@ function update(full){
   $("vDelay").textContent=p.delay.toFixed(1)+" m";$("vMid").textContent=p.mid+" m";$("vK").textContent=p.k.toFixed(2);
   $("vXtx").textContent=(p.xtx*100).toFixed(0)+"%";$("vCens").textContent=(p.cens*100).toFixed(0)+"%";
   $("vBatk").textContent=p.batk.toFixed(2);$("vStratF").textContent=p.stratF.toFixed(2);$("vZfut").textContent=p.zfut.toFixed(2);
+  $("testWeightStatus").textContent=p.fh?"Late-weighted FH(0,1) active":"Unweighted log-rank active";
 
   scheduleDraw(p,light&&!masterSweepActive);
   renderBandMarkers();

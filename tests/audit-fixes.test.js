@@ -226,6 +226,17 @@ test("master sweep is prominent, live, and automatically shows uncertainty", () 
   assert.match(js, /scheduleDraw\(p,light&&!masterSweepActive\)/);
 });
 
+test("unweighted versus late-weighted significance is a prominent live sensitivity", () => {
+  const sweep = html.match(/<section class="master-sweep[\s\S]*?<\/section>/)?.[0] || "";
+  assert.match(sweep, /id="fhTest"/);
+  assert.match(sweep, /Unweighted/);
+  assert.match(sweep, /Late-weighted FH\(0,1\)/);
+  assert.match(html, /published design describes an unweighted stratified log-rank test/);
+  assert.match(html, /full SAP is not public/);
+  assert.equal((html.match(/id="fhTest"/g) || []).length, 1);
+  assert.match(js, /testWeightStatus"\)\.textContent=p\.fh\?/);
+});
+
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------
 test("approx-fit warning cites the pooled-median floor, not e63", () => {
   assert.match(js, /pooled median OS/);

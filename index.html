@@ -158,6 +158,19 @@
       <span>Biology-first<br><small>HR ~0.25</small></span>
       <span>Bull<br><small>HR ~0.18</small></span>
     </div>
+    <div class="test-weight-control">
+      <div class="test-weight-copy">
+        <b>Significance-test weighting</b>
+        <span id="testWeightStatus" aria-live="polite">Unweighted log-rank active</span>
+      </div>
+      <label class="test-weight-toggle" for="fhTest">
+        <input class="sr-only" type="checkbox" id="fhTest" aria-label="Use late-weighted Fleming-Harrington (0,1) significance test instead of unweighted log-rank"/>
+        <span class="test-weight-option test-weight-unweighted">Unweighted</span>
+        <span class="test-weight-track" aria-hidden="true"><span></span></span>
+        <span class="test-weight-option test-weight-weighted">Late-weighted FH(0,1)</span>
+      </label>
+    </div>
+    <p class="test-weight-note">The published design describes an unweighted stratified log-rank test; the full SAP is not public. FH(0,1) is a sensitivity that gives later deaths more influence and can favor a delayed GPS effect.</p>
     <p class="master-sweep-note" id="masterSweepNote">Drag to update both survival curves in real time. Uncertainty bands turn on automatically. Every point on this selected path passes the model’s published-event windows and BAT-median ceiling; it is a one-dimensional tour through plausible scenarios, <b>not</b> a posterior percentile or the entire non-identifiable parameter space.</p>
   </section>
   <div class="methodpanel" id="m-gps" hidden>
@@ -353,8 +366,8 @@
     <details>
       <summary>Method &amp; structural assumptions (all adjustable — none of these are disclosed)</summary>
       <div class="ctrl mt-sm">
-        <label class="inline-check"><input type="checkbox" id="fhTest"> Fleming-Harrington late-weighted test (FH 0,1)</label>
-        <small>OFF = unweighted stratified log-rank (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>). ON = Fleming-Harrington late-weight (<a href="https://pubmed.ncbi.nlm.nih.gov/24497461/" target="_blank" rel="noopener">Hasegawa 2014</a>). REGAL's actual test-weighting is NOT public.</small>
+        <b>Test weighting is controlled by the prominent switch above.</b>
+        <small>Unweighted is the published-design base case. Fleming–Harrington (0,1) is the late-weighted sensitivity (<a href="https://pubmed.ncbi.nlm.nih.gov/24497461/" target="_blank" rel="noopener">Hasegawa 2014</a>); the complete REGAL SAP remains unavailable.</small>
       </div>
       <div class="ctrl">
         <label for="batk">BAT hazard shape (Weibull k) <span id="vBatk">1.00</span></label>
@@ -2151,7 +2164,7 @@
   </div>
 </footer>
 
-<script type="module" src="js/main.js?v=20260916f"></script>
+<script type="module" src="js/main.js?v=20260917a"></script>
 <script>
   (function(){
     var h=location.hostname;
