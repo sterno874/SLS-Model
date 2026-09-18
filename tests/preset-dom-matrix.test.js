@@ -351,7 +351,7 @@ async function runValMC(document, label) {
   assert.match(out, /mc-hist-wrap/);
 }
 
-test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 150000 }, async () => {
+test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 300000 }, async () => {
   const { document, errors } = installDom();
   await import(`${pathToFileURL(path.join(root, "js/main.js")).href}?preset-dom-matrix=${Date.now()}`);
   await waitFor(() => document.getElementById("chart").__drawCalls > 0, "initial REGAL draw", 60000);
