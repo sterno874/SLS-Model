@@ -1,28 +1,13 @@
-/** Forward REGAL presets (percent sliders) — keep in sync with js/main.js `const P`.
- *  irm_lead is display-only sensitivity (not used by paramsFromPresetQ / event engine). */
-export const P = {
-  best: { bat: 13, batc: 0, gpsc: 42, gpsu: 42.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 3 },
-  moderate: { bat: 11, batc: 13, gpsc: 28, gpsu: 34, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 3 },
-  critique: { bat: 10.5, batc: 12, gpsc: 18, gpsu: 30.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 6, cens: 18, mcFloor: true, irm_lead: 3 },
-  bull: { bat: 10, batc: 1, gpsc: 40, gpsu: 38, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false, irm_lead: 3 },
-  bear: { bat: 10, batc: 16, gpsc: 14, gpsu: 29, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 18, mcFloor: true, irm_lead: 3 },
-  cw: { bat: 10.5, batc: 1, gpsc: 41, gpsu: 35.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false, irm_lead: 3 },
-  capbreach: { bat: 10.5, batc: 21, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 15, mcFloor: true, irm_lead: 3 },
-  noeffect: { bat: 14, batc: 28, gpsc: 28, gpsu: 14, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 3 },
-  vdm: { bat: 16.8, batc: 0, batk: 1.16, gpsc: 0, gpsu: 16.3, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 0 },
-  vdmfit: { bat: 16.8, batc: 0, batk: 1.16, gpsc: 61, gpsu: 6.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true, irm_lead: 0 }
-};
+import { LEGACY_REGAL_PRESETS, INVERSE_PRESETS } from "../../js/data/model-config.js";
+
+/** Canonical presets are imported by production and tests. */
+export const P = LEGACY_REGAL_PRESETS;
 
 /** Ridge/null presets fit anchors by design but are not biology-first anchor fits. */
 export const RIDGE_PRESET_NAMES = ["noeffect"];
 export const EXTERNAL_SENSITIVITY_PRESET_NAMES = ["vdm", "vdmfit"];
 
-export const INV = {
-  cw42: { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
-  cw35: { gpsc: 35, batcap: 14, delay: 2, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
-  cw50: { gpsc: 50, batcap: 14, delay: 4, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
-  cwbind: { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: true }
-};
+export const INV = INVERSE_PRESETS;
 
 export const FORWARD_PRESET_NAMES = Object.keys(P);
 

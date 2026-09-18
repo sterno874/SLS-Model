@@ -39,10 +39,10 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 
 ### Other primary-source updates since 8 Jul 2026
 
-- **Institutional ownership:** Vanguard reported 9,666,278 beneficially owned shares (5.19%) and State Street reported 12,996,558 shares (7%), each as of Jun 30. These are ownership disclosures—not company warrants, new issuance, or additions to the share denominator ([Vanguard 13G](https://www.sec.gov/Archives/edgar/data/1390478/000210011926001315/primary_doc.xml); [State Street 13G](https://www.sec.gov/Archives/edgar/data/1390478/000009375126000539/primary_doc.xml)).
+- **Institutional ownership:** Vanguard reported 9,666,278 beneficially owned **warrants** (5.19%) and State Street reported 12,996,558 shares (7%), each as of Jun 30. These are ownership disclosures, not new issuance ([Vanguard 13G](https://www.sec.gov/Archives/edgar/data/1390478/000210011926001315/0002100119-26-001315.txt); [State Street 13G](https://www.sec.gov/Archives/edgar/data/1390478/000009375126000539/primary_doc.xml)).
 - **SLS-009 registry:** Jul 29 version 15 changed a contact number only; Sep 3 version 16 expanded locations 26→32 and recruiting sites 10→12 without changing design, enrollment target, endpoints, dose or completion dates ([CT.gov history](https://clinicaltrials.gov/api/int/studies/NCT04588922/history); [version 16](https://clinicaltrials.gov/api/int/studies/NCT04588922/history/16)). This supports enrollment capacity, not efficacy.
 - **PDAC posters:** three preclinical SLS-009 abstracts were accepted for AACR Pancreatic Cancer; no numerical efficacy data were disclosed by the cutoff, and proceedings were scheduled for Sep 25 ([SELLAS announcement](https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-to-Present-Preclinical-Data-on-SLS009-in-Pancreatic-Ductal-Adenocarcinoma-at-the-2026-AACR-Conference-on-Pancreatic-Cancer/default.aspx); [AACR schedule](https://www.aacr.org/meeting/aacr-conference-on-pancreatic-cancer/abstracts/)). Track as exploratory optionality only.
-- **Registry negatives:** REGAL had no in-window ClinicalTrials.gov revision ([history](https://clinicaltrials.gov/api/int/studies/NCT04229979/history)); site/contact changes and CTIS estimates do not alter the confirmed N=127/event anchors.
+- **Registry negatives:** REGAL had no in-window ClinicalTrials.gov revision ([history](https://clinicaltrials.gov/api/int/studies/NCT04229979/history)); site/contact changes and CTIS estimates do not alter the confirmed 126-randomized/event anchors.
 
 ---
 
@@ -52,7 +52,7 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 |------|--------|-----|
 | Trial | REGAL — GPS vs BAT in AML CR2, transplant-ineligible | verified |
 | NCT | [NCT04229979](https://clinicaltrials.gov/study/NCT04229979) | verified |
-| Design | Event-driven ITT OS, N=127, 1:1, PH design reference HR 0.636 at 80 deaths (one-sided α=0.025) | verified — [Jamy & Cicic, *Future Oncol* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/) |
+| Design | Event-driven ITT OS, 126 randomized, 1:1, PH design alternative HR 0.636 at 80 deaths (one-sided α=0.025); primary stratified Cox | verified — [Jamy & Cicic, *Future Oncol* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/) and Aug 2025 company update |
 | Interim | IDMC continued at 60 deaths (Jan 2025); HR ≈0.55 is a model translation of an assumed OBF boundary, not a disclosed result | verified continuation / model interpretation — [interim PR](https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html) |
 | Event anchors | **60** @ ~m46; **72** @ ~m58; **78** @ ~m63 (11 May 2026) | verified — PRs |
 | Final | 80 events — TBD | verified — protocol |
@@ -73,7 +73,7 @@ CT.gov currently lists GPS dosing "as follows, until disease relapse": injection
 | No trigger/topline announcement found | ~67.2 (16 Sep 2026) | Official IR/SEC/registry search | partial — announcement status only; reporting can lag |
 | 80 | TBD | protocol | verified |
 
-**Model implementation caveats:** the engine uses expected balanced allocation **63.5/arm** for N=127; the actual arm split is blinded. Censoring is an independent censor-survival sensitivity used in expected observed deaths and log-rank risk sets; informative/differential censoring is not identified. The transplant sensitivity moves survivors at a stylized month 6; actual post-randomization transplant timing and outcomes are unavailable. Poisson increments approximate a finite 127-participant event process. The log-rank information-efficiency factor approximates unavailable patient-level stratification. T80 is an event-time distribution; database lock and public announcement may occur later.
+**Model implementation caveats:** the engine uses expected balanced allocation **63/arm** for 126 randomized; the actual arm split is withheld. Censoring is an independent censor-survival sensitivity used in expected observed deaths and risk sets; informative/differential censoring is not identified. The transplant sensitivity moves survivors at a stylized month 6; actual post-randomization transplant timing and outcomes are unavailable. Poisson increments approximate a finite 126-participant event process. The primary-like score approximates unavailable patient-level Cox strata. T80 is an event-time distribution; database lock and public announcement may occur later.
 
 ### Biology-first vs neutral ridge
 
@@ -126,7 +126,7 @@ REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life 
 | Key efficacy | ORR 46% (58% 1-prior-line); CR/CRi 29%; least-pretreated mOS **8.9 mo** | verified — ASH 2025 / [SEC 8-K](https://www.sec.gov/Archives/edgar/data/1390478/000139047826000004/sls-202603198xkexhibit991.htm) |
 | Historical bench | Sponsor comparator ~2.4–2.6m; Fatima 2026 n=356: **4.0m overall**, 6.0m active Ven-containing salvage, 2.0m supportive care | verified / non-randomized — [Fatima 2026](https://doi.org/10.1038/s41408-026-01612-w) |
 | Frontline | Randomized ~80-pt Ph2; **28 enrolled by Aug 11**, topline guided Q4 2026 | verified — [Q2 update](https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx) |
-| Evidence grade | Single-arm vs historical — selection / immortal-time confounding | partial |
+| Evidence grade | Single-arm vs historical — selection, responder association and temporal confounding | partial |
 
 **Rejected:** Treating r/r single-arm OS fold as equivalent to a randomized registrational win.
 
@@ -163,7 +163,7 @@ REGAL entry requires CR2→randomization **≤6 months** and **>6 months** life 
 | Venclexta (venetoclax) | ~$2.58B sales 2024 | verified — AbbVie SEC | AML blockbuster ceiling |
 | Gilead–Forty Seven (magrolimab) | ~$4.9B pre-approval | verified — [SEC](https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm) | Buyers pay big pre-Ph3; Ph3 ENHANCE discontinued 2023 |
 | Onureg (QUAZAR) | mOS 24.7 vs 14.8; sales not broken out | verified / partial | Closest GPS analog — clinical win, modest uptake |
-| Regor CDK deal | ~$850M on Ph1 ~28% CR | community | Early M&A ceiling for CDK-class — not clinical equivalence |
+| Regor CDK deal | $850M upfront for breast-cancer CDK portfolio; RGT-419B had 2/7 confirmed PR in measurable patients | primary transaction release | Remote M&A comparator—not AML or clinical equivalence |
 
 **Rejected community claims:** “$5–20B guaranteed buyout”; “SLS worth $50+/sh on REGAL alone” without disclosed talks.
 

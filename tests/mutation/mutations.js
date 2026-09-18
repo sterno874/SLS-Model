@@ -7,9 +7,9 @@ export const MUTATION_TARGETS = [
   // --- survival.js constants ---
   {
     id: "surv-THRESH",
-    file: "js/math/survival.js",
+    file: "js/data/model-config.js",
     description: "THRESH 0.636 → 0.637 (final efficacy HR boundary)",
-    apply: (s) => s.replace("THRESH=0.636", "THRESH=0.637")
+    apply: (s) => s.replace("designHr: 0.636", "designHr: 0.637")
   },
   {
     id: "surv-IFLOOR",
@@ -19,15 +19,15 @@ export const MUTATION_TARGETS = [
   },
   {
     id: "surv-E3",
-    file: "js/math/survival.js",
+    file: "js/data/model-config.js",
     description: "E3 anchor 78 → 79 (m63 event lock)",
-    apply: (s) => s.replace("E3=78", "E3=79")
+    apply: (s) => s.replace("may2026: 78", "may2026: 79")
   },
   {
     id: "surv-N_ARM",
-    file: "js/math/survival.js",
+    file: "js/data/model-config.js",
     description: "N_ARM 63 → 64 (per-arm enrollment)",
-    apply: (s) => s.replace("N_ARM = 63", "N_ARM = 64")
+    apply: (s) => s.replace("perArm: 63", "perArm: 64")
   },
   {
     id: "surv-ZFINAL",
@@ -43,8 +43,8 @@ export const MUTATION_TARGETS = [
     description: "hazardRatio: invert (Og/Eg)/(Ob/Eb) ratio",
     apply: (s) =>
       s.replace(
-        "return (Og/Eg)/(Ob/Eb);",
-        "return (Ob/Eb)/(Og/Eg);"
+        "const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb)",
+        "const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Ob/Eb)/(Og/Eg)"
       )
   },
   {
@@ -53,8 +53,8 @@ export const MUTATION_TARGETS = [
     description: "hazardRatio integration step h=0.5 → 0.6",
     apply: (s) =>
       s.replace(
-        "function hazardRatio(T,p){const h=0.5;",
-        "function hazardRatio(T,p){const h=0.6;"
+        "function hazardRatio(T,p){return scoreParts(T,p,0.5).hr;}",
+        "function hazardRatio(T,p){return scoreParts(T,p,0.6).hr;}"
       )
   },
 
@@ -62,8 +62,8 @@ export const MUTATION_TARGETS = [
   {
     id: "surv-events-cens",
     file: "js/math/survival.js",
-    description: "eventsAt dropout factor 0.5 → 0.4",
-    apply: (s) => s.replace("raw*(1-p.cens*0.5)", "raw*(1-p.cens*0.4)")
+    description: "censoring reaches its stated loss fraction at month 35 instead of 36",
+    apply: (s) => s.replace("Math.max(0,t)/36", "Math.max(0,t)/35")
   },
   {
     id: "surv-events-anchored",
@@ -79,7 +79,7 @@ export const MUTATION_TARGETS = [
     id: "surv-armDeaths-weight",
     file: "js/math/survival.js",
     description: "armDeaths uses w*2 enrollment weight",
-    apply: (s) => s.replace("d+=N_ARM*w*pd;", "d+=N_ARM*w*pd*2;")
+    apply: (s) => s.replace("t,h,N_ARM).deaths;", "t,h,N_ARM*2).deaths;")
   },
 
   // --- survival curves ---
@@ -105,8 +105,8 @@ export const MUTATION_TARGETS = [
     description: "sGPSbase GPS uncured uses gpsu+1 in exponent",
     apply: (s) =>
       s.replace(
-        "Math.exp(-LN2*(t-d)/p.gpsu))",
-        "Math.exp(-LN2*(t-d)/(p.gpsu+1)))"
+        "Math.exp(-LN2*(t-d)/p.gpsu);",
+        "Math.exp(-LN2*(t-d)/(p.gpsu+1));"
       )
   },
   {
@@ -115,8 +115,8 @@ export const MUTATION_TARGETS = [
     description: "txMix uses xtx*1.1 transplant fraction",
     apply: (s) =>
       s.replace(
-        "? p.xtx*Stx(t)+(1-p.xtx)*base",
-        "? p.xtx*1.1*Stx(t)+(1-p.xtx)*base"
+        "(1-p.xtx)*base+p.xtx*atTx*Stx(t-TX_MONTH)",
+        "(1-p.xtx)*base+p.xtx*1.1*atTx*Stx(t-TX_MONTH)"
       )
   },
 
@@ -127,8 +127,8 @@ export const MUTATION_TARGETS = [
     description: "analyzeLR HR formula inverted",
     apply: (s) =>
       s.replace(
-        "const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb);",
-        "const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Ob/Eb)/(Og/Eg);"
+        "const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb)",
+        "const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Ob/Eb)/(Og/Eg)"
       )
   },
   {
@@ -145,7 +145,7 @@ export const MUTATION_TARGETS = [
     id: "surv-condPow-rho",
     file: "js/math/survival.js",
     description: "condPow correlation uses sqrt(61/Dan) not 60",
-    apply: (s) => s.replace("const rho=Math.sqrt(60/Dan)", "const rho=Math.sqrt(61/Dan)")
+    apply: (s) => s.replace("const rho=Math.sqrt(60/finalInfo)", "const rho=Math.sqrt(61/finalInfo)")
   },
   {
     id: "surv-condPow-ZEFF",
@@ -181,9 +181,9 @@ export const MUTATION_TARGETS = [
   },
   {
     id: "surv-enrollCDF",
-    file: "js/math/survival.js",
+    file: "js/data/model-config.js",
     description: "enrollCDF LMAX 38 → 39",
-    apply: (s) => s.replace("LMAX = 38", "LMAX = 39")
+    apply: (s) => s.replace("enrollmentEndMonth: 38", "enrollmentEndMonth: 39")
   },
 
   // --- Poisson / normal ---
@@ -239,10 +239,5 @@ export const MUTATION_TARGETS = [
 
 /** Formula-critical test files (exclude DOM/smoke for speed). */
 export const MUTATION_TEST_FILES = [
-  "math.test.js",
-  "formulas.test.js",
-  "presets.test.js",
-  "valuation.test.js",
-  "share.test.js",
-  "ui-logic.test.js"
+  "mutation-critical.test.js"
 ];

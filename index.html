@@ -115,9 +115,9 @@
       <summary>How this works</summary>
       <div class="howworks-body">
       <p><span class="tag f">Fact</span> SELLAS reports <b>pooled</b> death counts (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60</a> → <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72</a> → <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78</a>) from an ITT trial (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>) — not which arm each death belongs to. The <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">Aug 11 Q2 update</a> officially said “approaching” 80, so the model conditions on 78 or 79 events through that date. No announcement was found through Sep 16, but that later silence is <b>not</b> treated as an event-count bound because database lock and reporting can lag the event.</p>
-      <p><b>What the chart shows:</b> Kaplan–Meier–style overall-survival curves from randomization — not patient-level resimulation. Pooled = 50/50 average of both arms.</p>
-      <p><b>Hazard ratio (HR):</b> Pike/O–E ratio of observed vs expected deaths in each arm — an approximate log-rank HR, not the final stratified Cox from the SAP. Interim OBF efficacy floor HR ≲0.547 (@ 60 events); final win threshold HR &lt; 0.636 (@ 80 events) from the design paper (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>).</p>
-      <p><b>Monte Carlo P(win):</b> Sample prior uncertainty on each slider → weight draws by Poisson likelihood of the event increments → score significance via stratified log-rank Z at 80 deaths (or cutoff). P(win) = fraction of posterior weight with Z ≥ 2.01 — a <em>model output</em>, not a company forecast.</p>
+      <p><b>What the chart shows:</b> Model overall-survival curves from randomization—not patient-level Kaplan–Meier estimates. Default curves mix favorable/intermediate/adverse prognostic assumptions within each arm; legacy mode uses one homogeneous curve per arm.</p>
+      <p><b>Hazard ratio (HR):</b> Pike/O–E descriptive ratio from expected risk sets. The published primary analysis is a Cox model stratified by CR1 duration, poor-vs-other cytogenetics, CR2/CRp2 and MRD. Patient-level factors are unavailable, so the score and modeled OBF boundaries are approximations; HR 0.636 is the design alternative, not the formal win rule (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>).</p>
+      <p><b>Monte Carlo P(significant):</b> Sample documented input uncertainty → weight draws by an approximate Poisson event-increment likelihood → score the final analysis at 80 deaths. Endpoint reach by a selected date is reported separately. Percentile ribbons are model intervals, not observed confidence intervals.</p>
       <p><b>Anchor-constrained inversion:</b> Mandatory constraint = reproduce event anchors (60/72/78). GPS cure fraction is the swept structural assumption (cw35/cw42/cw50 + inversion MC); least-squares solver derives implied BAT median/tail and GPS uncured mOS. HR and mOS are outputs — still non-identifiable along the GPS-cure ↔ BAT-heterogeneity ridge (<a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">critique thread</a>).</p>
       <details class="math-detail">
         <summary>Show math</summary>
@@ -137,6 +137,48 @@
   <div class="regal-limitations no-print" role="note">
     <b>Limitations</b> <span class="tag u">caveats</span> — Blinded pooled death counts fix the timeline but <b>not the arm split</b> (GPS vs BAT): many parameter sets fit 60/72/78, including HR ≈ 1 null-effect worlds. The Sep 16 no-announcement status is weaker than an announced count and can be affected by reporting lag. HR gauges and curves are <span class="tag m">model outputs</span> (Pike/stratified log-rank approximations), not the SAP stratified Cox. Calendar months assume trial month 0 = 8 Feb 2021.
   </div>
+  <section class="eln-model-panel no-print" aria-labelledby="elnModelTitle">
+    <div class="eln-model-head">
+      <div>
+        <span class="tag m">model family</span>
+        <h2 id="elnModelTitle">ELN-explicit prognostic sensitivity</h2>
+      </div>
+      <label>Active engine
+        <select id="modelFamily">
+          <option value="eln" selected>ELN-explicit (default)</option>
+          <option value="pooled">Legacy pooled homogeneous</option>
+        </select>
+      </label>
+      <label>GPS effect outside durable responders
+        <select id="benefitModel">
+          <option value="durable" selected>None — benefit accrues to durable responders</option>
+          <option value="leaky">Leaky benefit among non-durable patients</option>
+        </select>
+      </label>
+    </div>
+    <p class="field-note"><span class="tag a">assumption ranges</span> REGAL has not disclosed its ELN mix or arm-level ELN outcomes. These are prognostic strata, not a reconstruction of all randomization factors. Published 95% CIs are shown only where a source reported them; simulation ribbons are 90% model intervals.</p>
+    <details id="elnInputs">
+      <summary>ELN values and uncertainty inputs</summary>
+      <div class="eln-input-grid">
+        <label>Mix favorable %<input id="mixFav" type="number" min="0" max="100" step="1" value="23"></label>
+        <label>Mix intermediate %<input id="mixInt" type="number" min="0" max="100" step="1" value="52"></label>
+        <label>Mix adverse %<input id="mixAdv" type="number" min="0" max="100" step="1" value="25"></label>
+        <label>BAT mOS favorable<input id="batMosFav" type="number" min="4" max="36" step="0.1" value="20"></label>
+        <label>BAT mOS intermediate<input id="batMosInt" type="number" min="4" max="36" step="0.1" value="16"></label>
+        <label>BAT mOS adverse<input id="batMosAdv" type="number" min="4" max="36" step="0.1" value="12"></label>
+        <label>BAT 3y OS favorable %<input id="bat3Fav" type="number" min="0.1" max="79" step="0.1" value="33"></label>
+        <label>BAT 3y OS intermediate %<input id="bat3Int" type="number" min="0.1" max="79" step="0.1" value="20"></label>
+        <label>BAT 3y OS adverse %<input id="bat3Adv" type="number" min="0.1" max="79" step="0.1" value="4"></label>
+        <label>GPS durable favorable %<input id="gpsDurFav" type="number" min="0" max="85" step="1" value="60"></label>
+        <label>GPS durable intermediate %<input id="gpsDurInt" type="number" min="0" max="85" step="1" value="37"></label>
+        <label>GPS durable adverse %<input id="gpsDurAdv" type="number" min="0" max="85" step="1" value="0"></label>
+        <label>Non-durable survival multiplier<input id="gpsNonDurableGain" type="number" min="1" max="2" step="0.05" value="1"></label>
+        <label>BAT post-randomization HCT %<input id="batXtx" type="number" min="0" max="30" step="1" value="12"></label>
+        <label>GPS post-randomization HCT %<input id="gpsXtx" type="number" min="0" max="30" step="1" value="13"></label>
+      </div>
+      <p id="elnUncertaintySummary" class="field-note">Preset ranges: mix 15–32 / 42–62 / 16–35%; BAT subgroup mOS 16–25 / 13.5–20.2 / 9–16m; subgroup 3y OS 25–42 / 14–25 / 1–9%. All are assumption ranges.</p>
+    </details>
+  </section>
   <section class="master-sweep no-print" id="masterSweepPanel" aria-labelledby="masterSweepTitle">
     <div class="master-sweep-head">
       <div>
@@ -170,13 +212,13 @@
         <span class="test-weight-option test-weight-weighted">Late-weighted FH(0,1)</span>
       </label>
     </div>
-    <p class="test-weight-note">The published design describes an unweighted stratified log-rank test; the full SAP is not public. FH(0,1) is a sensitivity that gives later deaths more influence and can favor a delayed GPS effect.</p>
-    <p class="master-sweep-note" id="masterSweepNote">Drag to update both survival curves in real time. Uncertainty bands turn on automatically. Every point on this selected path passes the model’s published-event windows and BAT-median ceiling; it is a one-dimensional tour through plausible scenarios, <b>not</b> a posterior percentile or the entire non-identifiable parameter space.</p>
+    <p class="test-weight-note">The published design specifies a stratified Cox model. The default score is a primary-like approximation; FH(0,1) is an exploratory sensitivity that gives later deaths more influence and can favor delayed separation.</p>
+    <p class="master-sweep-note" id="masterSweepNote">Drag to update both survival curves in real time. Uncertainty bands turn on automatically. Some conservative ELN points do not fit all blinded event anchors and are reported as misses rather than forced to fit; this is a one-dimensional scenario tour, not a posterior percentile.</p>
   </section>
   <div class="methodpanel" id="m-gps" hidden>
     <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.
     <h4>1 · Survival &amp; events</h4>
-    BAT arm = Weibull (shape <code>k</code>, k=1 → exponential) + a long-survivor plateau; GPS arm = an absolute plateau <code>c</code> plus post-onset residual decline, continuous at the optional delay. The transplant sensitivity moves eligible survivors at month 6 rather than granting transplant survival at randomization. Expected observed deaths integrate each arm's death increments against independent censor survival and the enrollment curve, using expected allocation 63.5/arm (127 total).
+    Default ELN mode builds favorable/intermediate/adverse BAT curves from subgroup mOS and 3-year OS assumptions, then allocates GPS durable responders within each risk group. Non-durable GPS patients follow their ELN baseline unless leaky benefit is selected. Legacy mode retains the homogeneous Weibull/mixture-cure family. Expected deaths use 63 patients per arm (126 randomized).
     <h4>2 · Hazard ratio &amp; significance</h4>
     HR is descriptive via the Pike/O–E estimator. The implemented verdict uses the expected <b>log-rank score</b> <code>Z = (Σ w·(O−E))/√(Σ w²·V) · √(information-efficiency)</code> computed from censor-adjusted risk sets (unweighted <code>w=1</code>; optional Fleming-Harrington <code>w=1−S_pool</code>). The efficiency slider is an approximation because patient-level REGAL strata are unavailable. Win = <code>Z ≥ 2.01</code> (the O'Brien-Fleming final boundary, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>); HR 0.636 is the proportional-hazards design reference, not a second verdict rule. The interim HR ≈0.547 is likewise a model translation of the assumed OBF boundary—not a disclosed result.
     <h4>3 · Monte-Carlo posterior</h4>
@@ -340,7 +382,7 @@
 
     <div class="ctrl">
       <label for="cens">Censoring / dropout <span id="vCens">0%</span></label>
-      <input type="range" id="cens" min="0" max="30" step="1" value="0"/>
+      <input type="range" id="cens" min="0" max="50" step="1" value="26"/>
       <div class="bands" id="band-cens"></div>
       <small class="source-line">Lost-to-follow-up before death. Phase 2 GPS ~15% (<a href="https://www.onclive.com/view/maintenance-galinpepimut-s-appears-effective-and-safe-in-aml-in-second-cr" target="_blank" rel="noopener">Brayer/OncLive</a>). Differential dropout by arm not modeled.</small>
     </div>
@@ -352,7 +394,7 @@
       <summary>Advanced: enrollment shape</summary>
       <div class="ctrl mt-sm">
         <label for="mid">Enrollment midpoint (trial month) <span id="vMid">25 m</span></label>
-        <input type="range" id="mid" min="15" max="32" step="1" value="25"/>
+        <input type="range" id="mid" min="15" max="35" step="1" value="28"/>
         <div class="bands" id="band-mid"></div>
       </div>
       <div class="ctrl">
@@ -360,7 +402,7 @@
         <input type="range" id="k" min="0.08" max="0.30" step="0.01" value="0.15"/>
         <div class="bands" id="band-k"></div>
       </div>
-      <small class="source-line">First patient = trial month 0 (8 Feb 2021, <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>). Enrollment done ~m38 (Apr 2024, <a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">Apr 2024 PR</a>), N=127.</small>
+      <small class="source-line">First patient = trial month 0 (8 Feb 2021, <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>). Enrollment completed ~m38; the April 2024 release described n=127 enrolled, while later company reporting confirmed <b>126 randomized</b> (<a href="https://www.globenewswire.com/news-release/2024/04/29/2871255/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">Apr 2024 PR</a>).</small>
     </details>
 
     <details>
@@ -384,7 +426,7 @@
         <input type="range" id="zfut" min="0" max="1.2" step="0.05" value="0.4"/>
         <small>How clearly the interim had to beat futility. 0 = essentially none; higher = the interim ruled out weaker worlds. REGAL's exact futility rule is not public.</small>
       </div>
-      <small style="color:var(--muted)">Binding-vs-informational efficacy is toggled above. N=127, announced event counts, 80-event trigger, one-sided α=0.025, and PH design reference HR 0.636 are sourced facts. Z boundaries, futility, and information efficiency are model implementations because the full SAP is not public (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
+      <small style="color:var(--muted)">Binding-vs-informational conditioning is toggled above. N=126 randomized, announced event counts, 80-event trigger, one-sided α=0.025, and PH design alternative HR 0.636 are sourced facts. Exact Z boundaries, futility and information efficiency are model implementations because the full SAP is not public (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
     </details>
     </div>
   </div>
@@ -392,7 +434,7 @@
   <!-- OUTPUT -->
   <div class="card" id="outputCard">
     <h2>Survival curves (from randomization)</h2>
-    <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: GPS (mixture-cure), BAT (Weibull + tail), pooled 50/50 average. Vertical dashed line = 36 months. Medians and HR below are derived from these curves — not unblinded trial data. <b>Hover/tap curve for survival values.</b></div>
+    <div class="chart-sub"><span class="tag m">Model output</span> ITT overall-survival curves: default ELN-explicit marginal GPS/BAT curves and their 50/50 trial mixture; legacy pooled mode is selectable. The 90% ribbon is a model interval, not an observed confidence interval. <b>Hover/tap for values.</b></div>
     <div id="plausibilityWarn" class="plausibility-warn" role="alert" hidden>Current parameters do not fit blinded event counts (e46/e58/e63). Adjust sliders or enable auto-fit.</div>
     <div class="chart-wrap" id="chartWrap"><canvas id="chart" width="920" height="430"></canvas><div class="chart-stale-msg" id="chartStaleMsg" hidden>Chart frozen at last scenario that fit 60/72/78 — adjust sliders or enable auto-fit.</div><div class="chart-tooltip" id="chartTip"></div></div>
     <div class="chart-pin-panel" id="chartPinPanel"></div>
@@ -725,13 +767,13 @@
   <div class="card">
     <h2>Known facts &amp; the bet <span class="h2-sub"><span class="tag v">verified</span> from PRs/filings · <span class="tag u">unknown</span> not disclosed</span></h2>
     <div class="fgrid">
-      <div><b>Trial:</b> REGAL Phase 3, N=127 actual (~63–64/arm), AML CR2/CRp2, transplant-ineligible, <b>open-label</b>, start 8 Feb 2021 <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT]</a></span></div>
+      <div><b>Trial:</b> REGAL Phase 3, N=126 randomized (expected 63/arm), AML CR2/CRp2, transplant-ineligible at entry, <b>open-label</b>, start 8 Feb 2021 <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT]</a></span></div>
       <div><b>Primary endpoint:</b> OS = death from ANY cause since randomization → <b>ITT, transplant NOT censored</b>; final analysis at 80 events <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>BAT arm (weak by design):</b> investigator's choice of observation/HMA/venetoclax/LDAC; FLT3- &amp; IDH-maintainable patients EXCLUDED <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT]</a></span></div>
       <div><b>Design:</b> HR &lt; 0.636 = significance BAR (~50% power), NOT the design alternative (~0.48–0.53 for 90% power). 80 deaths, 1-sided α=0.025 <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
-      <div><b>Test:</b> Lan-DeMets O'Brien-Fleming (interim Z≈2.34, final Z≈2.01) + unweighted stratified log-rank primary <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
+      <div><b>Test:</b> Primary stratified Cox model; one-sided α=0.025 with Lan-DeMets O'Brien-Fleming spending. Displayed Z boundaries are model approximations, not published constants <span class="tag v">verified design</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Interim design:</b> O'Brien-Fleming, reviewed efficacy + futility + safety <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
-      <div><b>Enrollment:</b> first patient Feb 2021; 126 completed ~Apr 2024 <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
+      <div><b>Enrollment:</b> first patient Feb 2021; completed Apr 2024; 127 described as enrolled then, 126 later confirmed randomized <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871255/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
       <div><b>Event timeline:</b> 60 (Jan'25) · 72 (26 Dec'25) · 78 (11 May'26) · “approaching” 80 (11 Aug'26) · no 80th-event announcement found through 16 Sep'26 <span class="tag v">primary + public status</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[May]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">[Aug]</a></span></div>
       <div><b>Interim (60 deaths):</b> OBF efficacy boundary NOT crossed → not stopped early ⇒ actual interim HR &gt;≈0.547; futility cleared. "Continue w/o modification" Jan'25 &amp; Aug'25 <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">[Jan'25]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Interim-Analysis-of-REGAL-Phase-3-Study/default.aspx" target="_blank" rel="noopener">[Aug'25]</a></span></div>
       <div><b>Computed OBF boundaries:</b> interim Z=2.34 → HR≤0.547 to stop early; final Z=2.01 → win needs HR≤0.636 <span class="tag d">derived</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
@@ -744,8 +786,8 @@
       <div><b>Phase 2 CR1:</b> ~47% 3-yr plateau; immune-response rate ~64% <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Historical BAT (Kurosawa):</b> 3-yr OS 14% for ALL relapsed / no-HCT / survived ≥2 mo (includes non-CR2) — CR2/no-HCT subgroups higher (intermediate ~19%, unfavorable ~35%, favorable ~50–78%); ven-era median ~8–12m <span class="tag v">verified</span> <span class="cite"><a href="https://haematologica.org/article/view/5781" target="_blank" rel="noopener">[Kurosawa]</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank" rel="noopener">[Stahl]</a></span></div>
       <div><b>VDM private-email sensitivity:</b> reported mOS 16.8m (95% CI 12.3–27.4), 3-yr OS 18.6% (10.7–32.2); source data/clock unavailable publicly <span class="tag a">community / unverified</span> <span class="cite"><a href="https://www.reddit.com/r/sellaslifesciences/comments/1w0lasw/aml_cr2_non_transplant_survival_data_over_bbq_van/" target="_blank" rel="noopener">[neo2551]</a></span></div>
-      <div><b>Enrollment (back-loaded):</b> 105 (ex-China) by Nov 2023 · N=127 by ~Apr 2024 <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
-      <div><b>Discontinuations:</b> 66 pts stopped TREATMENT by Mar 2024 (blinded) — relapse-driven, NOT OS censoring <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
+      <div><b>Enrollment (back-loaded):</b> 105 (ex-China) by Nov 2023; 127 described as enrolled in Apr 2024 and 126 later confirmed randomized <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871255/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
+      <div><b>Discontinuations:</b> 66 patients had stopped treatment by Mar 2024 for undisclosed mixed reasons including death, relapse, toxicity or completion; this is not an OS-censoring count <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871255/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
       <div><b>Cash:</b> $138.3M (Jun 30, 2026); H1 operating cash use $16.4M <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000012/sls-20260630.htm" target="_blank" rel="noopener">[Q2 10-Q]</a></span></div>
       <div><b>WT1 platform value:</b> modeled in Tab 3 — GPS (WT1 vaccine) + SLS-009 (separate CDK9 asset); shared sponsor only <span class="tag d">see Tab 3</span></div>
       <div><b>Arm-level split of the 72–78 deaths:</b> unknown (blinded) — the crux <span class="tag u">unknown</span></div>
@@ -759,7 +801,7 @@
     <h2>References (sources for every band &amp; fact)</h2>
     <ol class="ref-list">
       <li><b>REGAL design paper</b> — Jamy O, Cicic D. <i>Future Oncol</i> 2025 (PMC11760237). Design assumptions (BAT 8.0m vs GPS 12.6m, HR 0.636, 80 deaths, "90% power" <em>as stated by the design paper</em> — but note this is internally inconsistent: Schoenfeld gives ~50% power at HR 0.636 with only 80 events; 90% power at HR 0.636 needs ~205 events), O'Brien-Fleming interim, GPS dosing, Phase 1/2 summaries. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank">pmc.ncbi.nlm.nih.gov/articles/PMC11760237</a></li>
-      <li><b>ClinicalTrials.gov NCT04229979</b> — eligibility (transplant-ineligible at entry; FLT3/IDH-maintainable excluded), N=127, OS = death from any cause (ITT), BAT options, start 8 Feb 2021, and extended GPS dosing: Y2 Q2M then Q3M after 2 years until relapse. <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">clinicaltrials.gov/study/NCT04229979</a></li>
+      <li><b>ClinicalTrials.gov NCT04229979</b> — eligibility (transplant-ineligible at entry; FLT3/IDH-maintainable excluded), open-label randomized design, OS = death from any cause, BAT options, start 8 Feb 2021, and extended GPS dosing. Later company reporting confirms 126 randomized. <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank">clinicaltrials.gov/study/NCT04229979</a></li>
       <li><b>SELLAS interim (60 events)</b> — 23 Jan 2025; IDMC "continue without modification." <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">globenewswire.com (Jan 2025)</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia/default.aspx" target="_blank" rel="noopener">IR</a></li>
       <li><b>SELLAS IDMC (Aug 2025)</b> — second "continue without modification" after 60-event interim. <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Interim-Analysis-of-REGAL-Phase-3-Study/default.aspx" target="_blank" rel="noopener">IR (Aug 2025)</a></li>
       <li><b>SELLAS 72-event update</b> — 29 Dec 2025; remains blinded. <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank">globenewswire.com (Dec 2025)</a></li>
@@ -770,7 +812,7 @@
       <li><b>Forman SJ, Rowe JM. "The myth of the second remission of acute leukemia in the adult."</b> <i>Blood</i> 2013 — 5-yr OS from first relapse ~10%; AML no-prior-transplant post-relapse ~12%; CR2-transplant cure ~40–50% (selected minority). <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Forman+Rowe+myth+second+remission+acute+leukemia+adult" target="_blank">PubMed (Forman &amp; Rowe, Blood 2013)</a></li>
       <li><b>Kurosawa S et al. <i>Haematologica</i> 2010</b> — 158 AML in CR2 <i>ineligible</i> for transplant: 3-yr OS 14% overall for the whole cohort (all relapsed, no-HCT, survived ≥2 mo — <em>not</em> a pure CR2 figure); CR2/no-HCT subgroups run higher (intermediate ~19%, unfavorable ~35%, favorable CBF ~50–78%). Conservative BAT anchor. <a href="https://haematologica.org/article/view/5781" target="_blank">Haematologica 2010</a> (PMID 20634493)</li>
       <li><b>Stahl M et al. — venetoclax-era R/R AML salvage</b> — modern CR2/salvage OS medians ~8–12m by mutation (NPM1/FLT3/TP53); durable survival still gated on transplant. <a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank">Blood Adv 2021</a></li>
-      <li><b>REGAL enrollment &amp; discontinuation milestones</b> — first patient Feb 2021; 105 pts (ex-China) by Nov 2023; full enrollment ~Apr 2024; 66 patients had discontinued <i>treatment</i> by Mar 2024 (blinded; relapse-driven, not OS censoring). <a href="https://www.globenewswire.com/news-release/2024/04/29/2871141/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank">Apr 2024 IDMC/enrollment PR</a></li>
+      <li><b>REGAL enrollment &amp; discontinuation milestones</b> — first patient Feb 2021; 105 pts (ex-China) by Nov 2023; enrollment completed Apr 2024; 66 patients had discontinued <i>treatment</i> by Mar 2024 for an undisclosed mix of protocol-defined reasons. This is not an OS-censoring count. <a href="https://www.globenewswire.com/news-release/2024/04/29/2871255/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank">Apr 2024 IDMC/enrollment PR</a></li>
       <li><b>SELLAS Nov 14, 2022 update</b> — blinded pooled mOS "approximately two-fold longer than originally anticipated" (design pooled 10.3m → ~20m). <a href="https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Nov 2022)</a></li>
       <li><b>AVALON — Todisco et al. <i>Cancer</i> 2023</b> — Italian real-world Ven+HMA cohort (190 pts incl. relapsed/refractory AML); R/R median OS in the single digits, durable survival gated on transplant. <a href="https://acsjournals.onlinelibrary.wiley.com/doi/10.1002/cncr.34608" target="_blank">Cancer 2023</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/41224500/" target="_blank">2025 transplant-bridge subanalysis</a></li>
       <li><b>2026 salvage/transplant calibration</b> — Fatima post-Ven-HMA failure supports heterogeneous 2m supportive/4m overall/6m active-salvage outcomes; Berdel HAM-VEN, Warraich post-HCT and Dumas first-relapse cohorts show that durable modern-salvage tails are heavily transplant/fitness-conditioned and should not lift no-HCT REGAL BAT directly. <a href="https://doi.org/10.1038/s41408-026-01612-w" target="_blank" rel="noopener">Fatima</a> · <a href="https://doi.org/10.3324/haematol.2026.301102" target="_blank" rel="noopener">Berdel</a> · <a href="https://doi.org/10.1002/ajh.70480" target="_blank" rel="noopener">Warraich</a> · <a href="https://doi.org/10.1111/bjh.70815" target="_blank" rel="noopener">Dumas</a></li>
@@ -842,8 +884,8 @@
       <div class="pgrp-hint">Observed = sponsor’s historical comparator. Best Available Guess = reported SLS-009 data against the newer Fatima 2026 all-patient benchmark; Bear uses its active-salvage 6.0m result.</div>
       <div class="presets">
         <button class="p p-def" data-sls="best" title="Reported Ph2 OS/ORR with 4.0m benchmark from Fatima 2026 (n=356) and modest frontline uplift.">Best Available Guess<span class="p-sub">Reported · Fatima 2026 bench</span></button>
-        <button class="p" data-sls="obs" title="Exact ASH 2025 anchors: 8.9m OS, 46% ORR, 2.5m benchmark — no adjustment for selection/immortal time.">Observed (Ph2)<span class="p-sub">ASH 2025 anchors only</span></button>
-        <button class="p" data-sls="bear" title="Discount for single-arm selection, immortal time, and optimistic historical-control drift.">Bear<span class="p-sub">Selection &amp; drift haircut</span></button>
+        <button class="p" data-sls="obs" title="Exact ASH 2025 anchors: 8.9m OS, 46% ORR, 2.5m benchmark — no adjustment for selection or historical-control differences.">Observed (Ph2)<span class="p-sub">ASH 2025 anchors only</span></button>
+        <button class="p" data-sls="bear" title="Discount for single-arm selection, responder association, and optimistic historical-control drift.">Bear<span class="p-sub">Selection &amp; drift haircut</span></button>
         <button class="p" data-sls="bull" title="Frontline option-value case: strong r/r + optimistic Ph3 frontline projections.">Bull (frontline)<span class="p-sub">Commercial upside</span></button>
       </div>
       <h2 class="mt-sm">Relapsed / refractory AML-MR (Phase 2)</h2>
@@ -914,7 +956,7 @@
       <ul class="list-tight">
         <li><b>Single-arm design</b> — no concurrent control; all patients receive SLS-009+AZA/VEN (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>). Efficacy vs history, not vs live BAT.</li>
         <li><b>Selection bias</b> — trial sites (academic centers) and inclusion criteria (fit for triplet, post-Ven AML-MR) may enroll healthier patients than real-world post-Ven failure (<a href="https://haematologica.org/article/view/11910" target="_blank" rel="noopener">European RW</a>).</li>
-        <li><b>Immortal time / response bias</b> — responders who achieve CR contribute disproportionately to mOS; ORR 46% ≠ 46% long-term cure. mOS in 1-prior-line subset was <b>not reached</b> with shorter follow-up (<a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx" target="_blank" rel="noopener">ASH 2025</a>).</li>
+        <li><b>Responder association / selection</b> — response and longer survival are associated in a single-arm cohort, but ORR 46% does not imply 46% long-term cure. mOS in the 1-prior-line subset was <b>not reached</b> with shorter follow-up (<a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Presents-Positive-Phase-2-Data-of-SLS009-in-Combination-with-AZAVEN-in-RelapsedRefractory-AML-MR-at-ASH-2025/default.aspx" target="_blank" rel="noopener">ASH 2025</a>).</li>
         <li><b>Historical-control drift</b> — <a href="https://doi.org/10.1038/s41408-026-01612-w" target="_blank" rel="noopener">Fatima 2026</a> found 4.0m overall and 6.0m with active Ven-containing salvage after frontline Ven-HMA failure. At 6.0m, the apparent 8.9m SLS-009 advantage is only 1.5×; cross-study selection remains unresolved.</li>
         <li><b>Small N / subset fishing</b> — ASH 2025 reports n=35 evaluable; ASXL1/TP53 subgroup ORRs are hypothesis-generating (48%/57%) not independently validated (<a href="https://ashpublications.org/blood/article/146/Supplement%201/3423/552036/" target="_blank" rel="noopener">Blood 2025</a>).</li>
         <li><b>ORR ≠ OS guarantee</b> — Phase 2 target was ORR ≥20% and mOS ≥3 mo (<a href="https://www.globenewswire.com/news-release/2025/07/15/3115485/0/en/SELLAS-Meets-All-Primary-Endpoints-in-Phase-2-Trial-of-SLS009-in-r-r-AML-and-Receives-FDA-Guidance-to-Advance-into-First-Line-Therapy-Study.html" target="_blank" rel="noopener">Jul 2025 PR</a>); meeting bar ≠ registrational proof.</li>
@@ -936,7 +978,7 @@
           <tr><td>Vyxeos (CPX-351)</td><td>Frontline AML-MRC</td><td>mOS 9.6 mo</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/28104705/" target="_blank" rel="noopener">Lancet 2018</a> — community compares r/r SLS-009 OS to frontline Vyxeos (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1j2vjc1/the_promise_of_sls009/" target="_blank" rel="noopener">Reddit</a>); different line of therapy</td></tr>
           <tr><td>Voruciclib (CDK9i) + Ven</td><td>R/R AML</td><td>Early Ph1/2 signals at ASH 2024</td><td><a href="https://www.reddit.com/r/sellaslifesciences/comments/1h5j4zc/voruciclib_cdk9_inhibitor_in_rr_aml_at_ash_2024/" target="_blank" rel="noopener">Community ASH 2024</a> — competing CDK9 mechanism</td></tr>
           <tr><td>QHRD107 (CDK9i)</td><td>R/R AML</td><td>ASH 2024 poster</td><td><a href="https://www.reddit.com/r/sellaslifesciences/comments/1h18o1n/another_cdk9_inhibitor_in_rr_aml_qhrd107_at_ash/" target="_blank" rel="noopener">Community</a></td></tr>
-          <tr><td>Regor (CDK inhibitor)</td><td>Ph1 AML</td><td>~$850M upfront deal on ~28% CR</td><td><a href="https://www.reddit.com/r/sellaslifesciences/comments/1h7ftri/regor_cdk_inhibitor_asset_bought_for_850m_in_cash/" target="_blank" rel="noopener">Community comp</a> — M&amp;A ceiling reference, not clinical equivalence</td></tr>
+          <tr><td>Regor RGT-419B portfolio</td><td>Phase 1 HR+/HER2− breast cancer</td><td>$850M upfront; 2/7 confirmed partial responses in measurable patients</td><td><a href="https://www.prnewswire.com/news-releases/regor-enters-into-a-definitive-purchase-agreement-for-genentech-to-acquire-regors-portfolio-of-next-generation-cdk-inhibitors-for-the-treatment-of-breast-cancer-302262174.html" target="_blank" rel="noopener">Transaction release</a> — remote CDK/M&amp;A comparator, not clinical equivalence</td></tr>
           <tr><td>GPS (galinpepimut-S)</td><td>AML CR2 maintenance</td><td>Phase 3 REGAL (blinded)</td><td>Same sponsor; complementary not competing (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>)</td></tr>
         </tbody>
       </table></div>
@@ -1188,7 +1230,7 @@
           <tr class="hl"><td>Gilead → Forty Seven (magrolimab)</td><td>~$4.9B (<a href="https://www.sec.gov/Archives/edgar/data/1667633/000110465920043980/a20-14980_68k.htm" target="_blank" rel="noopener">SEC EX-99.1</a>, closed Apr 2020)</td><td>Pre-approval AML/MDS CD47 mAb</td><td>Buyers pay big pre-Ph3 — but Ph3 ENHANCE discontinued 2023 (<a href="https://investors.gilead.com/news/news-details/2023/Gilead-To-Discontinue-Phase-3-ENHANCE-Study-of-Magrolimab-Plus-Azacitidine-in-Higher-Risk-MDS/default.aspx" target="_blank" rel="noopener">Gilead</a>). <b>Cautionary comp.</b></td></tr>
           <tr><td>AbbVie Venclexta (venetoclax)</td><td>~$2.58B sales 2024 (<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&amp;CIK=0001551152&amp;type=10-K" target="_blank" rel="noopener">AbbVie SEC</a>)</td><td>Approved AML/CLL/MDS combo</td><td>Blockbuster ceiling for AML-active therapy; GPS/SLS would compete in overlapping lines</td></tr>
           <tr><td>BMS Onureg (CC-486)</td><td>Not broken out; in ~$1.6B "Other Growth" group (<a href="https://www.sec.gov/Archives/edgar/data/14272/000001427225000039/R34.htm" target="_blank" rel="noopener">BMS SEC 2024</a>)</td><td>Approved AML CR1 maintenance; QUAZAR mOS 24.7 vs 14.8 (<a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2001094" target="_blank" rel="noopener">NEJM 2020</a>)</td><td><b>Closest GPS analog</b> — strong trial, modest commercial uptake; caps maintenance TAM optimism</td></tr>
-          <tr><td>Regor CDK inhibitor (community)</td><td>~$850M upfront on Ph1 ~28% CR (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1h7ftri/regor_cdk_inhibitor_asset_bought_for_850m_in_cash/" target="_blank" rel="noopener">Reddit</a>)</td><td>Early AML</td><td>M&amp;A ceiling reference for CDK-class assets; not clinical equivalence to SLS-009</td></tr>
+          <tr><td>Regor RGT-419B portfolio</td><td>$850M upfront; preliminary 2/7 confirmed PR in measurable patients</td><td>HR+/HER2− breast cancer</td><td>Remote CDK/M&amp;A comparator; not clinical equivalence to SLS-009</td></tr>
           <tr><td>Voruciclib / QHRD107 (CDK9)</td><td>No disclosed M&amp;A</td><td>R/R AML Ph1/2</td><td>Competing CDK9 mechanisms — class not unique (<a href="https://www.reddit.com/r/sellaslifesciences/comments/1h5j4zc/voruciclib_cdk9_inhibitor_in_rr_aml_at_ash_2024/" target="_blank" rel="noopener">community</a>)</td></tr>
           <tr><td>Community buyer lists</td><td>🔬 opinion</td><td>—</td><td>Gilead, BMS, AbbVie, J&amp;J, Pfizer cited in <a href="https://www.reddit.com/r/sellaslifesciences/comments/1k796w4/potential_buyers_for_sls/" target="_blank" rel="noopener">buyers thread</a> — logical AML/onc strategics, <span class="val-no">❌</span> no disclosed talks</td></tr>
         </tbody>
@@ -1247,7 +1289,7 @@
       <div><b>Runway:</b> ≥12 months from Q2 2026 filing; Q2 net loss $9.6M <span class="tag v">verified</span></div>
       <div><b>Basic shares outstanding:</b> ~201.9M (Aug 10, 2026) <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000012/sls-20260630.htm" target="_blank" rel="noopener">[10-Q]</a></span></div>
       <div><b>Fully diluted (model default):</b> ~217.6M = basic + disclosed warrants/options/RSUs <span class="tag f">estimate</span></div>
-      <div><b>Institutional ownership:</b> Vanguard 9.666M beneficially owned shares (5.19%); State Street 12.997M shares (7%), both as of Jun 30—ownership, not company warrants or issuance <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000210011926001315/primary_doc.xml" target="_blank" rel="noopener">[Vanguard 13G]</a> · <a href="https://www.sec.gov/Archives/edgar/data/1390478/000009375126000539/primary_doc.xml" target="_blank" rel="noopener">[State Street 13G]</a></span></div>
+      <div><b>Institutional ownership:</b> Vanguard reported 9.666M beneficially owned <b>warrants</b> (5.19%); State Street reported 12.997M shares (7%), both as of Jun 30. These are ownership disclosures, not new issuance <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000210011926001315/0002100119-26-001315.txt" target="_blank" rel="noopener">[Vanguard 13G]</a> · <a href="https://www.sec.gov/Archives/edgar/data/1390478/000009375126000539/primary_doc.xml" target="_blank" rel="noopener">[State Street 13G]</a></span></div>
       <div><b>ATM facility:</b> up to $150M authorized; no sales through Jun 30, 2026 <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000012/sls-20260630.htm" target="_blank" rel="noopener">[Q2 10-Q]</a></span></div>
       <div><b>Q2 2026 net loss:</b> $9.6M; H1 cash used in operations $16.4M <span class="tag v">verified</span></div>
       <div><b>Pipeline:</b> GPS REGAL Ph3 (AML CR2); SLS-009 Ph2 r/r (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>) + Ph2 frontline enrolling Mar 2026 (<a href="https://clinicaltrials.gov/study/NCT04588922" target="_blank" rel="noopener">NCT04588922</a>) <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[REGAL]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Announces-Enrollment-of-First-Patient-in-Newly-Diagnosed-First-Line-AML-Trial-of-SLS009/default.aspx" target="_blank" rel="noopener">[Mar 2026]</a></span></div>
@@ -2205,7 +2247,7 @@
 
 <section class="print-only model-table-print-sheet" id="modelTablePrintSheet"></section>
 
-<script type="module" src="js/main.js?v=20260917b"></script>
+<script type="module" src="js/main.js"></script>
 <script>
   (function(){
     var h=location.hostname;

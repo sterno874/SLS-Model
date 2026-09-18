@@ -1,4 +1,13 @@
 import { STRATF, ZFUT, inverseSolve, passesVerdict, isBiologicallyPlausible, hrGaugeState } from "../math/survival.js";
+import {
+  REGAL_PRESETS,
+  INVERSE_PRESETS,
+  SLS_PRESETS,
+  VALUATION_PRESETS,
+  ELN_PRESETS,
+  DEFAULT_ELN,
+  FACTS
+} from "../data/model-config.js";
 
 export const VALID_TABS = ["gps", "sls009", "value", "explain", "statistics", "biology"];
 export const EXPLAIN_LEVELS = ["eli5", "ms", "hs", "col", "pro", "phd"];
@@ -38,7 +47,7 @@ export function b64urlDecode(str) {
 /** Canonical default state — mirrors the initial slider `value=` attributes in
  *  index.html plus the module defaults in js/main.js. */
 export const DEFAULT_STATE = {
-  v: 1,
+  v: 2,
   tab: "gps",
   regalMode: "forward",
   activeRegalPreset: "best",
@@ -48,8 +57,9 @@ export const DEFAULT_STATE = {
   embed: false,
   gps: {
     bat: 13, batc: 0, batk: 1, gpsc: 42, gpsu: 42.5, delay: 3, xtx: 0,
-    cens: 0, mid: 25, k: 0.15, batcap: 14, autofit: false, fhTest: false,
-    stratF: 0.9, zfut: 0.4, mcFloor: true, assumeStatus: true, cutoff: 72
+    cens: 26, mid: 28, k: 0.15, batcap: 14, autofit: false, fhTest: false,
+    stratF: 0.9, zfut: 0.4, mcFloor: true, assumeStatus: true, cutoff: 72,
+    modelFamily: "eln", ...DEFAULT_ELN
   },
   sls: {
     sls_os: 8.9, sls_bench: 4.0, sls_orr: 46, fl_base: 14.7, fl_sls: 20,
@@ -67,20 +77,7 @@ export const DEFAULT_STATE = {
 // Preset tables — kept in sync with js/main.js (P/INV/SLSP/VALP). Used only to
 // build the encode/decode baseline; drift only lengthens links, never corrupts
 // them (both sides use these same tables).
-export const SHARE_P = {
-  best:    { bat: 13, batc: 0, gpsc: 42, gpsu: 42.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  bind:    { bat: 13, batc: 0, gpsc: 42, gpsu: 42.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  nonbind: { bat: 13, batc: 0, gpsc: 42, gpsu: 42.5, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: false },
-  moderate:{ bat: 11, batc: 13, gpsc: 28, gpsu: 34, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  critique:{ bat: 10.5, batc: 12, gpsc: 18, gpsu: 30.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 6, cens: 18, mcFloor: true },
-  bull:    { bat: 10,  batc: 1,  gpsc: 40, gpsu: 38,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
-  bear:    { bat: 10,  batc: 16, gpsc: 14, gpsu: 29,   delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 18, mcFloor: true },
-  cw:      { bat: 10.5,batc: 1,  gpsc: 41, gpsu: 35.5, delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: false },
-  capbreach:{ bat: 10.5, batc: 21, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 15, mcFloor: true },
-  noeffect:{ bat: 14,  batc: 28, gpsc: 28, gpsu: 14,   delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0,  mcFloor: true },
-  vdm:     { bat: 16.8, batc: 0, batk: 1.16, gpsc: 0,  gpsu: 16.3, delay: 3, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true },
-  vdmfit:  { bat: 16.8, batc: 0, batk: 1.16, gpsc: 61, gpsu: 6.5,  delay: 0, mid: 25, k: 0.15, auto: false, xtx: 0, cens: 0, mcFloor: true }
-};
+export const SHARE_P = REGAL_PRESETS;
 export const MASTER_SWEEP_EDGE = { bat: 10.2, batc: 20, gpsc: 12, gpsu: 25.5, delay: 2, mid: 25, k: 0.15, auto: false, xtx: 8, cens: 17 };
 export const MASTER_SWEEP_STOPS = [
   { at: 0, label: "Constrained bear", q: MASTER_SWEEP_EDGE },
@@ -108,33 +105,18 @@ export function masterSweepScenario(value, presets = SHARE_P) {
   }
   return q;
 }
-export const SHARE_INV = {
-  cw42:   { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
-  cw35:   { gpsc: 35, batcap: 14, delay: 2, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
-  cw50:   { gpsc: 50, batcap: 14, delay: 4, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: false },
-  cwbind: { gpsc: 42, batcap: 14, delay: 3, xtx: 0, cens: 0, mid: 25, k: 0.15, mcFloor: true }
-};
-export const SHARE_SLSP = {
-  best: { sls_os: 8.9, sls_bench: 4.0, sls_orr: 46, fl_base: 14.7, fl_sls: 20, tp_base: 5.3, tp_sls: 13 },
-  obs:  { sls_os: 8.9, sls_bench: 2.5, sls_orr: 46, fl_base: 14.7, fl_sls: 22, tp_base: 5.3, tp_sls: 15 },
-  bear: { sls_os: 6.5, sls_bench: 6.0, sls_orr: 35, fl_base: 14.7, fl_sls: 17, tp_base: 5.3, tp_sls: 10 },
-  bull: { sls_os: 11,  sls_bench: 2.2, sls_orr: 55, fl_base: 14.7, fl_sls: 24, tp_base: 5.3, tp_sls: 16 }
-};
-export const SHARE_VALP = {
-  best: { v_cr2: 2800, v_cr1: 5500, v_gpen: 45, v_gprice: 145, v_gyears: 2.8, v_flpool: 9000,  v_rrpool: 3500, v_spen: 38, v_sprice: 145, v_syears: 1.4, v_platform: 2.5, v_mult: 5,   v_shares: 217.6, v_cash: 138.3 },
-  cons: { v_cr2: 2000, v_cr1: 4000, v_gpen: 30, v_gprice: 125, v_gyears: 2.0, v_flpool: 7000,  v_rrpool: 2800, v_spen: 22, v_sprice: 125, v_syears: 1.0, v_platform: 0.5, v_mult: 4,   v_shares: 220, v_cash: 138.3 },
-  bull: { v_cr2: 3800, v_cr1: 7500, v_gpen: 58, v_gprice: 185, v_gyears: 3.5, v_flpool: 11000, v_rrpool: 4500, v_spen: 50, v_sprice: 175, v_syears: 1.8, v_platform: 4,   v_mult: 6.5, v_shares: 214, v_cash: 138.3 },
-  cw:   { v_cr2: 3000, v_cr1: 6000, v_gpen: 58, v_gprice: 165, v_gyears: 3.2, v_flpool: 11000, v_rrpool: 4500, v_spen: 45, v_sprice: 165, v_syears: 1.7, v_platform: 4,   v_mult: 5.5, v_shares: 217.6, v_cash: 138.3 }
-};
+export const SHARE_INV = INVERSE_PRESETS;
+export const SHARE_SLSP = SLS_PRESETS;
+export const SHARE_VALP = VALUATION_PRESETS;
 
 /** Q2 2026 cash & equivalents ($M) — Jun 30 2026 PR / 10-Q. */
-export const DEFAULT_CASH_M = 138.3;
+export const DEFAULT_CASH_M = FACTS.cashM;
 /** Basic shares outstanding (M) — Aug 10 2026 10-Q cover. */
-export const BASIC_SHARES_M = 201.9;
+export const BASIC_SHARES_M = FACTS.basicSharesM;
 /** Fully diluted modeled (M): basic + outstanding warrants/options/RSUs. */
-export const FD_SHARES_M = 217.6;
+export const FD_SHARES_M = FACTS.fullyDilutedSharesM;
 /** ATM stress (M): 217.6M FD + full $150M ATM at ~$6.25/sh. */
-export const ATM_SHARES_M = 241.6;
+export const ATM_SHARES_M = FACTS.atmStressSharesM;
 
 /** UX subtitle when share slider differs from FD anchor — EV unchanged, $/sh scales ÷ shares. */
 export function formatShareDilutionSubtitle(sharesM, refSharesM = FD_SHARES_M, refLabel = "217.6M FD") {
@@ -156,7 +138,13 @@ export const SHARE_FIELD_DEFS = [
   ["gu", "gps", "gpsu"], ["dl", "gps", "delay"], ["xt", "gps", "xtx"], ["ce", "gps", "cens"],
   ["md", "gps", "mid"], ["kk", "gps", "k"], ["bp", "gps", "batcap"], ["af", "gps", "autofit"],
   ["fh", "gps", "fhTest"], ["sf", "gps", "stratF"], ["zf", "gps", "zfut"], ["mf", "gps", "mcFloor"], ["as", "gps", "assumeStatus"],
-  ["co", "gps", "cutoff"],
+  ["co", "gps", "cutoff"], ["fm", "gps", "modelFamily"],
+  ["ef", "gps", "mixFav"], ["ei", "gps", "mixInt"], ["ea", "gps", "mixAdv"],
+  ["mfv", "gps", "batMosFav"], ["mit", "gps", "batMosInt"], ["mad", "gps", "batMosAdv"],
+  ["s3f", "gps", "bat3Fav"], ["s3i", "gps", "bat3Int"], ["s3a", "gps", "bat3Adv"],
+  ["gdf", "gps", "gpsDurFav"], ["gdi", "gps", "gpsDurInt"], ["gda", "gps", "gpsDurAdv"],
+  ["gng", "gps", "gpsNonDurableGain"], ["gxt", "gps", "gpsXtx"], ["bxt", "gps", "batXtx"],
+  ["gbm", "gps", "benefitModel"],
   ["so", "sls", "sls_os"], ["sb", "sls", "sls_bench"], ["sr", "sls", "sls_orr"], ["fb", "sls", "fl_base"],
   ["fs", "sls", "fl_sls"], ["tb", "sls", "tp_base"], ["ts", "sls", "tp_sls"], ["sl", "sls", "sls_flev"],
   ["c2", "val", "v_cr2"], ["c1", "val", "v_cr1"], ["vg", "val", "v_gpen"], ["vr", "val", "v_gprice"],
@@ -201,7 +189,10 @@ function buildValueBaseline(markers) {
     if (q) overlayInverse(b.gps, q);
   } else {
     const q = SHARE_P[markers.activeRegalPreset];
-    if (q) overlayForward(b.gps, q);
+    if (q) {
+      overlayForward(b.gps, q);
+      Object.assign(b.gps, ELN_PRESETS[markers.activeRegalPreset] || DEFAULT_ELN);
+    }
   }
   const sq = SHARE_SLSP[markers.activeSlsPreset];
   if (sq) Object.assign(b.sls, sq);
@@ -212,7 +203,11 @@ function buildValueBaseline(markers) {
 
 function markersFrom(source) {
   const m = {};
-  for (const f of MARKER_FIELDS) m[f] = source[f] != null ? source[f] : DEFAULT_STATE[f];
+  for (const f of MARKER_FIELDS) {
+    m[f] = Object.prototype.hasOwnProperty.call(source, f) && source[f] !== undefined
+      ? source[f]
+      : DEFAULT_STATE[f];
+  }
   return m;
 }
 
@@ -243,6 +238,7 @@ export function buildShareHash(state) {
     const val = roundVal(raw);
     if (val !== roundVal(base)) payload[code] = val;
   }
+  payload.sv = 2;
   return "#s1=" + b64urlEncode(JSON.stringify(payload));
 }
 
@@ -280,10 +276,12 @@ function inflateDelta(payload) {
   for (const d of SHARE_FIELD_DEFS) byCode[d[0]] = d;
   for (const f of MARKER_FIELDS) {
     const code = SHARE_FIELD_DEFS.find((d) => d[1] === "" && d[2] === f)[0];
-    markers[f] = payload[code] != null ? payload[code] : DEFAULT_STATE[f];
+    markers[f] = Object.prototype.hasOwnProperty.call(payload, code) ? payload[code] : DEFAULT_STATE[f];
   }
   const state = buildValueBaseline(markers);
-  state.v = 1;
+  state.v = 2;
+  // Links written before model-family support represented the homogeneous model.
+  state.gps.modelFamily = payload.sv === 2 ? "eln" : "pooled";
   for (const f of MARKER_FIELDS) state[f] = markers[f];
   for (const code in payload) {
     const d = byCode[code];
@@ -308,7 +306,8 @@ export function tabVisibility(activeTab) {
 
 export function paramsFromPresetQ(q) {
   if (!q) return null;
-  return {
+  const elnPreset = Object.entries(SHARE_P).find(([, preset]) => preset === q)?.[0];
+  const out={
     bat: q.bat,
     batc: q.batc / 100,
     batk: q.batk != null ? q.batk : 1,
@@ -323,14 +322,36 @@ export function paramsFromPresetQ(q) {
     fh: false,
     assumeStatus: q.assumeStatus !== false,
     stratF: STRATF,
-    zfut: ZFUT
+    zfut: ZFUT,
+    modelFamily: q.modelFamily || "eln"
   };
+  return out.modelFamily==="pooled"?out:withElnRuntime(out,q.eln || ELN_PRESETS[elnPreset] || DEFAULT_ELN);
+}
+
+export function withElnRuntime(p, e = DEFAULT_ELN) {
+  return Object.assign(p, {
+    modelFamily: p.modelFamily || "eln",
+    elnMix: normalizeElnMix(e.mixFav, e.mixInt, e.mixAdv),
+    elnBatMos: { fav: +e.batMosFav, int: +e.batMosInt, adv: +e.batMosAdv },
+    elnBat3: { fav: +e.bat3Fav / 100, int: +e.bat3Int / 100, adv: +e.bat3Adv / 100 },
+    elnGpsDurable: { fav: +e.gpsDurFav / 100, int: +e.gpsDurInt / 100, adv: +e.gpsDurAdv / 100 },
+    gpsNonDurableGain: Math.max(1, +e.gpsNonDurableGain || 1),
+    gpsXtx: Math.max(0, +e.gpsXtx || 0) / 100,
+    batXtx: Math.max(0, +e.batXtx || 0) / 100,
+    benefitModel: e.benefitModel === "leaky" ? "leaky" : "durable"
+  });
+}
+
+export function normalizeElnMix(fav, int, adv) {
+  const raw = [Math.max(0, +fav || 0), Math.max(0, +int || 0), Math.max(0, +adv || 0)];
+  const total = raw[0] + raw[1] + raw[2] || 1;
+  return { fav: raw[0] / total, int: raw[1] / total, adv: raw[2] / total };
 }
 
 export function paramsFromPreset(name, q, mode, P, INV) {
   q = q || (mode === "inverse" ? INV[name] : P[name]);
   if (!q) return null;
-  const base = { osmode: "itt", batk: q.batk != null ? q.batk : 1, fh: false, assumeStatus: q.assumeStatus !== false, stratF: STRATF, zfut: ZFUT };
+  const base = { osmode: "itt", batk: q.batk != null ? q.batk : 1, fh: false, assumeStatus: q.assumeStatus !== false, stratF: STRATF, zfut: ZFUT, modelFamily: mode === "inverse" ? "pooled" : (q.modelFamily || "eln") };
   if (mode === "inverse") {
     const ir = inverseSolve(
       Object.assign({}, base, {
@@ -353,7 +374,7 @@ export function paramsFromPreset(name, q, mode, P, INV) {
         })
       : null;
   }
-  return Object.assign({}, base, {
+  const out=Object.assign({}, base, {
     bat: q.bat,
     batc: q.batc / 100,
     gpsc: q.gpsc / 100,
@@ -364,6 +385,7 @@ export function paramsFromPreset(name, q, mode, P, INV) {
     mid: q.mid || 25,
     k: q.k || 0.15
   });
+  return out.modelFamily==="pooled"?out:withElnRuntime(out,q.eln || ELN_PRESETS[name] || DEFAULT_ELN);
 }
 
 export function isPlausible(p) {
@@ -378,10 +400,9 @@ export function isPlausible(p) {
  * a known preset name is active.
  */
 export function resolveForwardPresetParams(activeRegalPreset, _gpsBlock) {
-  const q =
-    (activeRegalPreset && SHARE_P[activeRegalPreset]) ||
-    SHARE_P.best;
-  return paramsFromPresetQ(q);
+  const name = activeRegalPreset && SHARE_P[activeRegalPreset] ? activeRegalPreset : "best";
+  const q = SHARE_P[name];
+  return withElnRuntime(paramsFromPresetQ(q), ELN_PRESETS[name] || DEFAULT_ELN);
 }
 
 /** DOM-free valuation metrics (values object mirrors slider fields).
@@ -433,12 +454,12 @@ export function computeValuationMetrics(v) {
 /** Biology-first header scenario — GPS/SLS clinical presets stay fixed; valuation may be live.
  *  Keep in sync with P / SLSP / VALP preset tables in js/main.js. */
 export const FROZEN_BEST_EST = {
-  label: "Biology-first (bullish) · risk-adj @ P(GPS)=65%",
+  label: "ELN-explicit central case · risk-adj @ P(GPS)=65%",
   gpsPreset: SHARE_P.best,
   slsPreset: SHARE_SLSP.best,
   valPreset: SHARE_VALP.best,
   /** Neutral-anchor ridge HR band (identifiability, not biology-first). */
-  neutralRidgeHrNote: "Neutral-ridge HR ~0.45–0.64"
+  neutralRidgeHrNote: "Legacy pooled ridge retained as sensitivity"
 };
 
 function valInputsFromPreset(v, overrides) {
@@ -480,8 +501,8 @@ export function computeFrozenBestEst(valOverrides) {
   const ra = live.riskAdjusted;
   return {
     label: ra
-      ? "Biology-first (bullish) · risk-adj @ P(GPS)="+inputs.pgps+"%"
-      : "Biology-first (bullish) · gross",
+      ? "ELN-explicit central case · risk-adj @ P(GPS)="+inputs.pgps+"%"
+      : "ELN-explicit central case · gross",
     gpsHr,
     slsOsRatio,
     EV: live.EV,

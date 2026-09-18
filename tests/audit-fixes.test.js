@@ -82,9 +82,9 @@ test("verdict branch is driven by gs.finalClears / readout Z, not the m58 snapsh
   assert.doesNotMatch(js, /else if\(hr<THRESH\)\{v\.className="verdict v-win"/);
 });
 
-test("engine uses all 127 expected participants as 63.5 per arm", () => {
-  assert.equal(N_TOTAL, 127);
-  assert.equal(N_ARM, 63.5);
+test("engine analyzes 126 randomized participants as 63 per arm", () => {
+  assert.equal(N_TOTAL, 126);
+  assert.equal(N_ARM, 63);
 });
 
 test("GPS plateau is absolute and curve is continuous at delay", () => {
@@ -165,12 +165,13 @@ test("full confidence-band redraw wins when animation-frame updates coalesce", (
 });
 
 test("REGAL Monte Carlo runs off the browser main thread and is cancellable", () => {
-  assert.match(js, /function createCalculationWorker\(\)\{return new Worker\(new URL\("\.\/workers\/regal-mc-worker\.js\?v=[^"]+"/);
+  assert.match(js, /function createCalculationWorker\(\)\{return new Worker\(new URL\("\.\/workers\/regal-mc-worker\.js\?v="\+ASSET_VERSION/);
   assert.match(js, /function cancelRegalMC\(\)/);
   assert.match(js, /function clearRegalMCOutput\(msg\)\{\s*cancelRegalMC\(\)/);
   assert.doesNotMatch(js, /for\(let i=0;i<MAX;i\+\+\)\{\s*if\(performance\.now\(\)-t0>3[0-9]{3}\)/);
   assert.match(regalMcWorker, /function runForward\(data\)/);
   assert.match(regalMcWorker, /function runInverse\(data\)/);
+  assert.match(regalMcWorker, /t80Analysis\(p, cutoff, 80, Math\.random\(\), 12\)/);
   assert.match(regalMcWorker, /postMessage\(\{ type: "progress"/);
 });
 
@@ -202,25 +203,25 @@ test("all remaining heavy interactive analyses are worker-backed", () => {
   assert.doesNotMatch(js, /function mcVal\(\)[\s\S]{0,500}for\(let i=0;i<N;i\+\+\)/);
 });
 
-test("master sweep spans constrained bearish through bullish scenarios", () => {
+test("master sweep spans bearish through bullish scenarios and reports non-fitting points", () => {
   assert.deepEqual(MASTER_SWEEP_STOPS.map((point) => point.at), [0, 25, 50, 75, 100]);
-  let previousHr = Infinity;
+  const fits=[];
   for (let value = 0; value <= 100; value++) {
     const p = paramsFromPreset("", masterSweepScenario(value, P), "forward", P, INV);
-    assert.equal(isPlausible(p), true, `master position ${value} must pass event and BAT constraints`);
     const hr = hrGaugeState(p, 72).hrForFinal;
-    assert.ok(hr <= previousHr + 0.002, `master HR should become no more bearish at ${value}`);
-    previousHr = hr;
+    assert.ok(Number.isFinite(hr));
+    fits.push(isPlausible(p));
   }
+  assert.ok(fits.some(Boolean), "at least one sweep point should fit");
+  assert.ok(fits.some((fit)=>!fit), "non-fitting ELN sensitivities must not be forced to fit");
   const bear = paramsFromPreset("", masterSweepScenario(0, P), "forward", P, INV);
   const bull = paramsFromPreset("", masterSweepScenario(100, P), "forward", P, INV);
-  assert.equal(hrGaugeState(bear, 72).finalClears, false);
-  assert.equal(hrGaugeState(bull, 72).finalClears, true);
+  assert.ok(hrGaugeState(bear, 72).hrForFinal > hrGaugeState(bull, 72).hrForFinal);
 });
 
 test("master sweep is prominent, live, and automatically shows uncertainty", () => {
   assert.match(html, /id="masterSweep"[^>]*min="0"[^>]*max="100"/);
-  assert.match(html, /one-dimensional tour through plausible scenarios/);
+  assert.match(html, /one-dimensional scenario tour/);
   assert.match(js, /on\("masterSweep","input",function\(\)\{applyMasterSweep\(this\.value\);/);
   assert.match(js, /if\(!showUncertainty\)\{showUncertainty=true;\$\("showUncertainty"\)\.checked=true;\}/);
   assert.match(js, /scheduleDraw\(p,light&&!masterSweepActive\)/);
@@ -231,7 +232,7 @@ test("unweighted versus late-weighted significance is a prominent live sensitivi
   assert.match(sweep, /id="fhTest"/);
   assert.match(sweep, /Unweighted/);
   assert.match(sweep, /Late-weighted FH\(0,1\)/);
-  assert.match(html, /published design describes an unweighted stratified log-rank test/);
+  assert.match(html, /published design specifies a stratified Cox model/);
   assert.match(html, /full SAP is not public/);
   assert.equal((html.match(/id="fhTest"/g) || []).length, 1);
   assert.match(js, /testWeightStatus"\)\.textContent=p\.fh\?/);

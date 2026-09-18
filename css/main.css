@@ -15,6 +15,7 @@
     --surface-soft:#fbfcfe; --surface-accent:#eef3fe;
   }
   *{box-sizing:border-box}
+  html,body{max-width:100%;overflow-x:hidden}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     background:var(--bg);color:var(--ink);line-height:1.55}
   .page-column,.page-inner{width:100%;max-width:var(--content-max);margin-left:auto;margin-right:auto;padding-left:var(--page-pad);padding-right:var(--page-pad)}
@@ -151,6 +152,14 @@
   .regal-limitations{max-width:calc(var(--content-max) - var(--page-pad) * 2);margin:var(--space-md) auto 0;padding:var(--space-md) var(--space-lg);border-radius:var(--radius);border:1px solid var(--line);background:#fafbfc;font-size:12.5px;line-height:1.6;color:var(--ink)}
   .regal-limitations b:first-child{display:inline-block;margin-right:var(--space-xs)}
   .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+  .eln-model-panel{max-width:calc(var(--content-max) - var(--page-pad) * 2);margin:var(--space-md) auto 0;padding:var(--space-lg);border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+  .eln-model-head{display:grid;grid-template-columns:minmax(260px,1fr) minmax(210px,.55fr) minmax(280px,.8fr);gap:var(--space-md);align-items:end}
+  .eln-model-head h2{font-size:17px;margin:4px 0 0}
+  .eln-model-head label,.eln-input-grid label{font-size:11px;font-weight:700;color:var(--muted);display:grid;gap:4px}
+  .eln-model-head select,.eln-input-grid input{width:100%;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:7px 8px;font:inherit}
+  .eln-model-panel details{margin-top:var(--space-sm)}
+  .eln-model-panel summary{cursor:pointer;font-size:12px;font-weight:750;color:var(--accent)}
+  .eln-input-grid{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:var(--space-sm);margin-top:var(--space-md)}
   .master-sweep{max-width:calc(var(--content-max) - var(--page-pad) * 2);margin:var(--space-md) auto 0;padding:var(--space-lg);border:1px solid #b8c9ed;border-radius:var(--radius);background:linear-gradient(100deg,#f6f0ee 0%,#fbfcfe 49%,#edf4ff 100%);box-shadow:var(--shadow)}
   .master-sweep-head{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-lg);margin-bottom:var(--space-sm)}
   .master-sweep-kicker{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;color:var(--accent)}
@@ -180,6 +189,9 @@
   .master-sweep-note{margin:var(--space-md) 0 0;font-size:11.5px;line-height:1.5;color:var(--muted)}
   .master-sweep.is-inactive .master-sweep-head,.master-sweep.is-inactive>input[type=range],.master-sweep.is-inactive .master-sweep-axis,.master-sweep.is-inactive .master-sweep-note{filter:saturate(.65);opacity:.8}
   @media(max-width:680px){
+    .eln-model-panel{margin-left:var(--page-pad);margin-right:var(--page-pad);padding:var(--space-md)}
+    .eln-model-head{grid-template-columns:1fr}
+    .eln-input-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
     .master-sweep{margin-left:var(--page-pad);margin-right:var(--page-pad);padding:var(--space-md)}
     .master-sweep-head{display:block}
     .master-sweep-readout{justify-content:flex-start;margin-top:var(--space-sm)}
@@ -350,11 +362,11 @@
   .t80-hist div{flex:1;background:var(--accent);opacity:.7;border-radius:2px 2px 0 0;min-height:2px}
   /* sticky header mobile */
   @media(max-width:768px){
-    html,body{overflow-x:hidden;max-width:100%}
     :root{--page-pad:var(--space-md);--section-gap:var(--space-md)}
     header{position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(20,27,38,.08);padding:var(--space-md) 0 var(--space-sm)}
     .wrap{padding:var(--space-md) var(--page-pad) var(--space-sm)}
     .howworks,.methodpanel,.feat-panel,.cw-panel,.regal-analysis,.regal-limitations,.tab-intro-bar:not(.expl-intro){margin-left:var(--page-pad);margin-right:var(--page-pad)}
+    .tab-intro-bar:not(.expl-intro){width:auto}
     .tab-intro-bar,.tab-lead{padding-left:var(--page-pad);padding-right:var(--page-pad)}
     .facts{padding:var(--space-md) var(--page-pad) var(--space-2xl)}
     .tabnav{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scrollbar-width:none;margin:var(--space-sm) calc(-1 * var(--page-pad)) 0;padding:0 var(--page-pad) var(--space-xs)}

@@ -68,10 +68,10 @@ test("golden: hazardRatio @ m46 for best preset ≈ 0.299", () => {
   assert.ok(Math.abs(hazardRatio(T1, best) - 0.299050) < 0.0002);
 });
 
-test("golden: analyzeLR @ m58 HR ≈ 0.264, z ≈ 5.34", () => {
+test("golden: unified score @ m58 HR ≈ 0.263, z ≈ 5.34", () => {
   const lr = analyzeLR(T2, best);
-  assert.ok(Math.abs(lr.hr - 0.264129) < 0.001);
-  assert.ok(Math.abs(lr.z - 5.336783) < 0.01);
+  assert.ok(Math.abs(lr.hr - 0.262507) < 0.001);
+  assert.ok(Math.abs(lr.z - 5.335752) < 0.01);
   assert.ok(lr.z > 0, "GPS should beat BAT (positive z)");
 });
 
@@ -88,9 +88,9 @@ test("property: GPS benefit implies HR < 1 for best preset", () => {
 
 // ---------- events ----------
 test("golden: eventsAt @ m46/m58/m63 for best preset", () => {
-  assert.ok(Math.abs(eventsAt(46, best) - 59.935515) < 0.01);
-  assert.ok(Math.abs(eventsAt(58, best) - 73.139140) < 0.01);
-  assert.ok(Math.abs(eventsAt(63, best) - 76.945934) < 0.01);
+  assert.ok(Math.abs(eventsAt(46, best) - 59.814121) < 0.01);
+  assert.ok(Math.abs(eventsAt(58, best) - 72.771931) < 0.01);
+  assert.ok(Math.abs(eventsAt(63, best) - 76.510258) < 0.01);
 });
 
 test("golden: eventsAtAnchored locks exactly 78 @ m63", () => {
@@ -123,13 +123,13 @@ test("golden: T80PrPace linear estimate ≈ 64.67 mo", () => {
   assert.ok(Math.abs(T80PrPace() - 64.666667) < 0.01);
 });
 
-test("golden: optional-status-conditioned T80(best) ≈ 67.66 mo", () => {
-  assert.ok(Math.abs(T80(best) - 67.660510) < 0.01);
+test("golden: optional-status-conditioned T80(best) ≈ 67.70 mo", () => {
+  assert.ok(Math.abs(T80(best) - 67.699145) < 0.01);
 });
 
 test("golden: status-conditioned t80Analysis(best,72) reaches 80", () => {
   const a = t80Analysis(best, 72);
-  assert.ok(Math.abs(a.t80 - 67.660510) < 0.01);
+  assert.ok(Math.abs(a.t80 - 67.699145) < 0.01);
   assert.ok(Math.abs(a.Tan - a.t80) < 0.01);
   assert.equal(a.Dan, 80);
 });
@@ -211,8 +211,8 @@ test("golden: hrGaugeState(best,72) field values", () => {
   const gs = hrGaugeState(best, 72);
   assert.ok(Math.abs(gs.hrInterim - 0.299050) < 0.001);
   assert.ok(Math.abs(gs.hrM58 - 0.262507) < 0.001);
-  assert.ok(Math.abs(gs.hrReadout - 0.252499) < 0.001);
-  assert.ok(Math.abs(gs.t80 - 67.660510) < 0.01);
+  assert.ok(Math.abs(gs.hrReadout - 0.250674) < 0.001);
+  assert.ok(Math.abs(gs.t80 - 67.699145) < 0.01);
   assert.equal(gs.Dan, 80);
   assert.equal(gs.interimWouldStop, true);
   assert.equal(gs.interimClearsFloor, false);
@@ -231,11 +231,11 @@ test("hrGaugeState: IFLOOR and THRESH constants match exports", () => {
 });
 
 // ---------- inverse solve ----------
-test("golden: inverseSolve cw42 yields bat≈13, gpsu≈42.5", () => {
+test("golden: inverseSolve cw42 yields bat≈13, gpsu≈40.75", () => {
   const ir = inverseSolve(mk({ gpsc: 0.42, bat: 8, delay: 3 }), 14);
   assert.ok(ir.sol);
   assert.ok(Math.abs(ir.sol.bat - 13) < 0.01);
-  assert.ok(Math.abs(ir.sol.gpsu - 42.5) < 0.01);
+  assert.ok(Math.abs(ir.sol.gpsu - 40.75) < 0.01);
   assert.ok(ir.sol.batc < 0.001);
   assert.ok(passesVerdict(Object.assign({}, ir.sol, { batk: 1, fh: false, stratF: 0.9, zfut: 0.4 })));
 });
@@ -311,12 +311,12 @@ test("analyzeLR z uses default STRATF=0.9 when stratF omitted", () => {
   const lr = analyzeLR(T2, p);
   const withExplicit = analyzeLR(T2, mk({ stratF: 0.9 }));
   assert.ok(Math.abs(lr.z - withExplicit.z) < 1e-12);
-  assert.ok(Math.abs(lr.z - 5.336783) < 0.001);
+  assert.ok(Math.abs(lr.z - 5.335752) < 0.001);
 });
 
 test("eventsAt applies dropout censoring: critique preset", () => {
   const crit = paramsFromPresetQ(P.critique);
-  assert.ok(Math.abs(eventsAt(58, crit) - 74.174028) < 0.01);
+  assert.ok(Math.abs(eventsAt(58, crit) - 73.777026) < 0.01);
   const noDrop = { ...crit, cens: 0 };
   assert.ok(eventsAt(58, noDrop) > eventsAt(58, crit) + 3);
 });

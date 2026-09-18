@@ -243,14 +243,14 @@ test("inverseSolve cw42 preset yields finite BAT and GPS uncured medians", () =>
   assert.ok(Number.isFinite(ir.sol.gpsu));
 });
 
-test("computeFrozenBestEst: biology-first risk-adj equity $/sh (default P(approval))", () => {
+test("computeFrozenBestEst: ELN-explicit risk-adj equity $/sh (default P(approval))", () => {
   const f = computeFrozenBestEst();
   // Readout HR (hrForFinal @ cutoff 72), not m58 snapshot (~0.270)
-  assert.ok(Math.abs(f.gpsHr - 0.262) < 0.01);
+  assert.ok(Math.abs(f.gpsHr - 0.631) < 0.01);
   assert.ok(Math.abs(f.slsOsRatio - FROZEN_BEST_EST.slsPreset.sls_bench / FROZEN_BEST_EST.slsPreset.sls_os) < 1e-9);
-  assert.match(f.label, /Biology-first/);
+  assert.match(f.label, /ELN-explicit/);
   assert.match(f.label, /risk-adj/i);
-  assert.match(f.neutralRidgeHrNote, /0\.45/);
+  assert.match(f.neutralRidgeHrNote, /Legacy pooled ridge/);
   const riskAdj = computeValuationMetrics(VAL_DEFAULTS);
   const gross = computeValuationMetrics({ ...VAL_DEFAULTS, riskadj: false });
   assert.ok(Math.abs(f.EV - riskAdj.EV) < 0.01);

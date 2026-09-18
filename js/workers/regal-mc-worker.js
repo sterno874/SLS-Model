@@ -4,7 +4,7 @@ import {
   interimContribution, consistent, passesVerdict, sBAT, inverseSolve
 } from "../math/survival.js";
 import { truncatedNormal } from "../math/stats.js";
-import { paramsFromPreset, isPlausible } from "../ui/state.js";
+import { paramsFromPreset, isPlausible, withElnRuntime, computeValuationMetrics } from "../ui/state.js";
 
 function rn() {
   let u = 0, v = 0;
@@ -15,6 +15,42 @@ function rn() {
 
 function sampleField(spec, mu) {
   return truncatedNormal(mu, spec.sd, spec.min, spec.max, rn, Math.random);
+}
+
+function cloneModelContext(ctr) {
+  return {
+    ...ctr,
+    elnMix: ctr.elnMix ? { ...ctr.elnMix } : undefined,
+    elnBatMos: ctr.elnBatMos ? { ...ctr.elnBatMos } : undefined,
+    elnBat3: ctr.elnBat3 ? { ...ctr.elnBat3 } : undefined,
+    elnGpsDurable: ctr.elnGpsDurable ? { ...ctr.elnGpsDurable } : undefined
+  };
+}
+
+function runtimeElnInputs(ctr){
+  return{
+    mixFav:(ctr.elnMix?.fav||0)*100,mixInt:(ctr.elnMix?.int||0)*100,mixAdv:(ctr.elnMix?.adv||0)*100,
+    batMosFav:ctr.elnBatMos?.fav,batMosInt:ctr.elnBatMos?.int,batMosAdv:ctr.elnBatMos?.adv,
+    bat3Fav:(ctr.elnBat3?.fav||0)*100,bat3Int:(ctr.elnBat3?.int||0)*100,bat3Adv:(ctr.elnBat3?.adv||0)*100,
+    gpsDurFav:(ctr.elnGpsDurable?.fav||0)*100,gpsDurInt:(ctr.elnGpsDurable?.int||0)*100,gpsDurAdv:(ctr.elnGpsDurable?.adv||0)*100,
+    gpsNonDurableGain:ctr.gpsNonDurableGain||1,batXtx:(ctr.batXtx||0)*100,gpsXtx:(ctr.gpsXtx||0)*100,
+    benefitModel:ctr.benefitModel||"durable"
+  };
+}
+
+function sampledElnInputs(data, ctr, normal = rn, uniform = Math.random) {
+  const e = runtimeElnInputs(ctr);
+  for (const spec of data.elnSpecs || []) {
+    e[spec.field] = truncatedNormal(e[spec.field], spec.sd, spec.min, spec.max, normal, uniform);
+  }
+  return e;
+}
+
+function sampledParams(ctr, specs, data, normal = rn, uniform = Math.random) {
+  let p = cloneModelContext(ctr);
+  for (const spec of specs || []) p[spec.field] = truncatedNormal(ctr[spec.field], spec.sd, spec.min, spec.max, normal, uniform);
+  if (p.modelFamily !== "pooled") p = withElnRuntime(p, sampledElnInputs(data, ctr, normal, uniform));
+  return p;
 }
 
 function progress(mode, tried, usable, started, force = false) {
@@ -34,11 +70,7 @@ function runForward(data) {
   for (let i = 0; i < maxDraws; i++) {
     if (performance.now() - started > timeLimitMs) break;
     tried++;
-    const p = {
-      osmode: "itt", batk: ctr.batk, fh: ctr.fh, assumeStatus: ctr.assumeStatus,
-      stratF: ctr.stratF, zfut: ctr.zfut
-    };
-    for (const spec of specs) p[spec.field] = sampleField(spec, ctr[spec.field]);
+    const p = sampledParams(ctr, specs, data);
     const e58 = eventsAt(58, p, 80);
     const e46 = eventsAt(46, p, 80), e63 = eventsAt(63, p, 80);
     const pm = medianOf(poolS, p);
@@ -54,7 +86,9 @@ function runForward(data) {
       continue;
     }
     const thIA = analyzeLR(46, p).z;
-    const { t80, Tan, Dan } = t80Analysis(p, cutoff, 80, Math.random());
+    // Twelve bisection steps resolve T80 to <0.02 month while keeping joint
+    // ELN draws responsive; the UI's point estimate retains the full iteration count.
+    const { t80, Tan, Dan } = t80Analysis(p, cutoff, 80, Math.random(), 12);
     const aFin = analyzeLR(Tan, p);
     if (Number.isNaN(aFin.hr)) {
       progress("forward", tried, acc.length, started);
@@ -129,20 +163,11 @@ function seededNormal(random) {
   return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
-function quickPwin(ctr, binding, cutoff, nDraws, specs, seed, dataThrough = T4) {
+function quickPwin(ctr, binding, cutoff, nDraws, specs, seed, dataThrough = T4, modelData = {}) {
   const random = seededRandom(seed);
   let W = 0, WP = 0;
   for (let i = 0; i < nDraws; i++) {
-    const q = {
-      osmode: "itt", batk: ctr.batk, fh: ctr.fh, assumeStatus: ctr.assumeStatus,
-      stratF: ctr.stratF, zfut: ctr.zfut
-    };
-    for (const spec of specs) {
-      q[spec.field] = truncatedNormal(
-        ctr[spec.field], spec.sd, spec.min, spec.max,
-        () => seededNormal(random), random
-      );
-    }
+    const q = sampledParams(ctr, specs, modelData, () => seededNormal(random), random);
     const e46 = eventsAt(46, q, 60), e58 = eventsAt(58, q, 60), e63 = eventsAt(63, q, 60);
     let logL = 0;
     if (dataThrough >= 46) logL += lpois(60, e46);
@@ -165,7 +190,7 @@ function quickPwin(ctr, binding, cutoff, nDraws, specs, seed, dataThrough = T4) 
 function runTornado(data) {
   const { ctr, binding, cutoff, specs, tornadoSpecs, draws } = data;
   const seed = 0x51A5EED;
-  const basePw = quickPwin(ctr, binding, cutoff, draws, specs, seed);
+  const basePw = quickPwin(ctr, binding, cutoff, draws, specs, seed, T4, data);
   const baseHr = hazardRatio(58, ctr);
   const results = [];
   postMessage({ type: "tornadoProgress", completed: 0, total: tornadoSpecs.length, label: "baseline ready", basePw, baseHr, results });
@@ -173,11 +198,11 @@ function runTornado(data) {
     const item = tornadoSpecs[i];
     let pwLo, pwHi;
     if (item.toggle) {
-      pwLo = quickPwin(ctr, false, cutoff, draws, specs, seed);
-      pwHi = quickPwin(ctr, true, cutoff, draws, specs, seed);
+      pwLo = quickPwin(ctr, false, cutoff, draws, specs, seed, T4, data);
+      pwHi = quickPwin(ctr, true, cutoff, draws, specs, seed, T4, data);
     } else {
-      pwLo = quickPwin({ ...ctr, [item.field]: item.loValue }, binding, cutoff, draws, specs, seed);
-      pwHi = quickPwin({ ...ctr, [item.field]: item.hiValue }, binding, cutoff, draws, specs, seed);
+      pwLo = quickPwin({ ...ctr, [item.field]: item.loValue }, binding, cutoff, draws, specs, seed, T4, data);
+      pwHi = quickPwin({ ...ctr, [item.field]: item.hiValue }, binding, cutoff, draws, specs, seed, T4, data);
     }
     results.push({ lbl: item.lbl, lo: pwLo - basePw, hi: pwHi - basePw });
     postMessage({ type: "tornadoProgress", completed: i + 1, total: tornadoSpecs.length, label: item.lbl, basePw, baseHr, results });
@@ -189,11 +214,11 @@ function runT80Paths(data) {
   const { ctr, draws, bins = 60, iterations = 12, batSd = 0.5, gpscSd = 0.03 } = data;
   const times = [];
   for (let i = 0; i < draws; i++) {
-    const q = {
-      ...ctr,
-      bat: ctr.bat + rn() * batSd,
-      gpsc: Math.max(0, Math.min(0.75, ctr.gpsc + rn() * gpscSd))
-    };
+    const q = sampledParams(ctr, [], data);
+    if(q.modelFamily==="pooled"){
+      q.bat=ctr.bat+rn()*batSd;
+      q.gpsc=Math.max(0,Math.min(0.75,ctr.gpsc+rn()*gpscSd));
+    }
     times.push(mcPathToT80(q, bins, Math.random(), iterations));
     if ((i + 1) % 100 === 0) postMessage({ type: "pathProgress", completed: i + 1, total: draws });
   }
@@ -208,7 +233,7 @@ function runPwinBatch(data) {
     const pw = quickPwin(
       task.ctr, task.binding, task.cutoff, task.draws || data.draws,
       data.specs, task.seed == null ? 0x51A5EED + i * 997 : task.seed,
-      task.dataThrough == null ? T4 : task.dataThrough
+      task.dataThrough == null ? T4 : task.dataThrough, data
     );
     results.push({ id: task.id, pw });
     postMessage({ type: "batchProgress", completed: i + 1, total: data.tasks.length, id: task.id, results });
@@ -248,7 +273,7 @@ function metricsForScenario(item, data, index) {
     e63: eventsAt(63, p), pw: quickPwin(
       p, item.binding, item.cutoff, item.draws || data.draws, data.specs,
       item.seed == null ? 0xC0FFEE + index * 997 : item.seed,
-      item.dataThrough == null ? T4 : item.dataThrough
+      item.dataThrough == null ? T4 : item.dataThrough, data
     ),
     bat3: sBAT(36, p) * 100, gpsc: p.gpsc * 100,
     batMed: medianOf(sBAT, p)
@@ -298,12 +323,12 @@ function runValMonteCarlo(data) {
     const flpool = draw("v_flpool"), rrpool = draw("v_rrpool"), spen = draw("v_spen") / 100;
     const sprice = draw("v_sprice"), syears = draw("v_syears");
     const platform = draw("v_platform"), mult = draw("v_mult"), shares = draw("v_shares"), cash = draw("v_cash");
-    let gp = (cr2 + cr1) * gpen * gyears * gprice / 1000;
-    let sp = (flpool + rrpool) * spen * syears * sprice / 1000;
-    if (data.riskAdjusted) { gp *= data.pG; sp *= data.pS; }
-    const EV = (gp + sp) * mult + platform * 1000;
-    evs.push(EV / 1000);
-    pss.push((EV + cash) / shares);
+    const metrics=computeValuationMetrics({
+      cr2,cr1,gpen:gpen*100,gprice,gyears,flpool,rrpool,spen:spen*100,sprice,syears,platform,mult,shares,cash,
+      riskadj:data.riskAdjusted,pgps:data.pG*100,psls:data.pS*100
+    });
+    evs.push(metrics.EV/1000);
+    pss.push(metrics.ps);
   }
   return { evs, pss, draws: data.draws, riskAdjusted: data.riskAdjusted };
 }

@@ -280,7 +280,7 @@ async function runRegalMC(document, label) {
     assert.match(status, /widen priors|loosen the floor/i, `${label} low-draw MC should explain next step`);
   } else {
     assert.match(status, /draws · effective N/i, `${label} MC status should summarize draws`);
-    assert.match(stats, /P\(win/, `${label} MC stats should include P(win)`);
+    assert.match(stats, /P\(significant at 80 deaths\)/, `${label} MC stats should include final significance`);
     assert.match(hist, /mc-hist-wrap/, `${label} MC histogram should render`);
   }
 }
@@ -297,7 +297,7 @@ async function assertRegalClearsStaleMC(document, seedSelector, changeSelector) 
   } finally {
     drawCfg.regal = oldRegalDraws;
   }
-  assert.match(document.getElementById("mcStats").textContent, /P\(win/);
+  assert.match(document.getElementById("mcStats").textContent, /P\(significant at 80 deaths\)/);
   click(document, changeSelector);
   await sleep(20);
   assert.equal(document.getElementById("mcStats").textContent, "");
@@ -383,7 +383,8 @@ test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 15
     await waitFor(() => (document.getElementById("chart").__drawCalls || 0) > before, `forward ${name} draw`);
     assert.equal(document.querySelector("button[data-preset].p-def")?.dataset.preset, name);
     assert.ok(document.getElementById("modeForward").classList.contains("active"), `${name} should be forward`);
-    assert.equal(document.getElementById("bat").disabled, false, `${name} should re-enable BAT slider`);
+    assert.equal(document.getElementById("modelFamily").value, "eln", `${name} should activate ELN engine`);
+    assert.equal(document.getElementById("bat").disabled, true, `${name} should disable legacy BAT-only slider`);
     assert.equal(Number(document.getElementById("bat").value), P[name].bat, `${name} BAT median slider`);
     assert.equal(Number(document.getElementById("batk").value), P[name].batk ?? 1, `${name} BAT shape slider`);
     assert.equal(Number(document.getElementById("gpsc").value), P[name].gpsc, `${name} GPS cure slider`);

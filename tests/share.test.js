@@ -13,6 +13,7 @@ import {
   SHARE_VALP,
   SHARE_FIELD_DEFS
 } from "../js/ui/state.js";
+import { ELN_PRESETS } from "../js/data/model-config.js";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,6 +34,7 @@ function applyForward(state, name) {
   g.delay = q.delay; g.mid = q.mid; g.k = q.k; g.autofit = !!q.auto;
   g.xtx = q.xtx != null ? q.xtx : 0; g.cens = q.cens != null ? q.cens : 0;
   if (q.mcFloor != null) g.mcFloor = !!q.mcFloor;
+  Object.assign(g,ELN_PRESETS[name]);
   state.regalMode = "forward";
   state.activeRegalPreset = name;
   return state;
