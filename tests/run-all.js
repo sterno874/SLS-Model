@@ -17,12 +17,20 @@ const files = [
   "dom-smoke.test.js",
   "smoke-ui.test.js",
   "audit-fixes.test.js",
-  "market-quote.test.js",
-  "preset-dom-matrix.test.js"
+  "market-quote.test.js"
 ].map((f) => path.join(dir, f));
 
-const result = spawnSync(process.execPath, ["--test", ...files], {
-  stdio: "inherit"
-});
+function run(testFiles) {
+  return spawnSync(process.execPath, ["--test", ...testFiles], {
+    stdio: "inherit"
+  });
+}
 
-process.exit(result.status === null ? 1 : result.status);
+// The DOM matrix intentionally exercises every preset and several fake-worker
+// simulations. Run it after the parallel unit-test batch so CI CPU contention
+// cannot starve its animation-frame readiness checks.
+const unitResult = run(files);
+if (unitResult.status !== 0) process.exit(unitResult.status === null ? 1 : unitResult.status);
+
+const matrixResult = run([path.join(dir, "preset-dom-matrix.test.js")]);
+process.exit(matrixResult.status === null ? 1 : matrixResult.status);

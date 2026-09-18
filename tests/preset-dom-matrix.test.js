@@ -354,7 +354,7 @@ async function runValMC(document, label) {
 test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 150000 }, async () => {
   const { document, errors } = installDom();
   await import(`${pathToFileURL(path.join(root, "js/main.js")).href}?preset-dom-matrix=${Date.now()}`);
-  await waitFor(() => document.getElementById("chart").__drawCalls > 0, "initial REGAL draw");
+  await waitFor(() => document.getElementById("chart").__drawCalls > 0, "initial REGAL draw", 60000);
 
   const modelTables = document.getElementById("panelModelTables");
   modelTables.open = true;
