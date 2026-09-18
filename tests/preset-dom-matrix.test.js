@@ -356,6 +356,33 @@ test("all pre-canned scenarios click, graph, and run Monte Carlo", { timeout: 30
   await import(`${pathToFileURL(path.join(root, "js/main.js")).href}?preset-dom-matrix=${Date.now()}`);
   await waitFor(() => document.getElementById("chart").__drawCalls > 0, "initial REGAL draw", 60000);
 
+  // A master drag is relative to the current model, not a hidden preset reset.
+  for(const [id,value] of Object.entries({mixFav:31,mixInt:44,mixAdv:25,batMosFav:24,gpsDurInt:41})){
+    document.getElementById(id).value=String(value);
+    document.getElementById(id).dispatchEvent(new Event("input",{bubbles:true}));
+  }
+  document.getElementById("benefitModel").value="leaky";
+  document.getElementById("benefitModel").dispatchEvent(new Event("input",{bubbles:true}));
+  document.getElementById("masterSweep").value="60";
+  document.getElementById("masterSweep").dispatchEvent(new Event("input",{bubbles:true}));
+  await waitFor(()=>Number(document.getElementById("gpsDurInt").value)!==41,"relative ELN sweep");
+  assert.equal(document.getElementById("modelFamily").value,"eln");
+  assert.deepEqual(["mixFav","mixInt","mixAdv"].map(id=>Number(document.getElementById(id).value)),[31,44,25]);
+  assert.equal(Number(document.getElementById("batMosFav").value),24);
+  assert.equal(document.getElementById("benefitModel").value,"leaky");
+  await waitFor(
+    ()=>/ELN-explicit.*leaky.*31% \/ 44% \/ 25%.*HR/i.test(document.getElementById("masterSweepStateDescription").textContent),
+    "dynamic master state"
+  );
+
+  document.getElementById("modelFamily").value="pooled";
+  document.getElementById("modelFamily").dispatchEvent(new Event("input",{bubbles:true}));
+  document.getElementById("masterSweep").value="40";
+  document.getElementById("masterSweep").dispatchEvent(new Event("input",{bubbles:true}));
+  await waitFor(()=>/legacy pooled/.test(document.getElementById("masterSweepStateDescription").textContent),"pooled master state");
+  assert.equal(document.getElementById("modelFamily").value,"pooled");
+  assert.equal(Number(document.getElementById("mixFav").value),31);
+
   const modelTables = document.getElementById("panelModelTables");
   modelTables.open = true;
   modelTables.dispatchEvent(new Event("toggle"));

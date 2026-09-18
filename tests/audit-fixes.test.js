@@ -14,8 +14,10 @@ import {
   computeValuationMetrics,
   isPlausible,
   MASTER_SWEEP_STOPS,
-  masterSweepScenario
+  masterSweepScenario,
+  masterSweepFromBaseline
 } from "../js/ui/state.js";
+import { DEFAULT_ELN } from "../js/data/model-config.js";
 import { paramsFromPresetQ } from "./helpers.js";
 import { P, INV } from "./fixtures/presets.js";
 
@@ -219,12 +221,42 @@ test("master sweep spans bearish through bullish scenarios and reports non-fitti
   assert.ok(hrGaugeState(bear, 72).hrForFinal > hrGaugeState(bull, 72).hrForFinal);
 });
 
+test("master sweep transforms a custom ELN baseline without resetting it", () => {
+  const baseline={
+    modelFamily:"eln",
+    q:{...P.best,batk:1.16},
+    eln:{...DEFAULT_ELN,mixFav:31,mixInt:44,mixAdv:25,batMosFav:24,gpsDurInt:41,benefitModel:"leaky"}
+  };
+  const moved=masterSweepFromBaseline(60,75,baseline,P);
+  assert.equal(moved.modelFamily,"eln");
+  assert.deepEqual(
+    [moved.eln.mixFav,moved.eln.mixInt,moved.eln.mixAdv],
+    [31,44,25],
+    "custom mix is not replaced by preset defaults"
+  );
+  assert.equal(moved.eln.batMosFav,24);
+  assert.equal(moved.eln.benefitModel,"leaky");
+  assert.equal(moved.q.batk,1.16);
+  assert.notEqual(moved.eln.gpsDurInt,baseline.eln.gpsDurInt);
+  assert.deepEqual(masterSweepFromBaseline(75,75,baseline,P),baseline);
+});
+
+test("master sweep preserves the active pooled model family", () => {
+  const baseline={modelFamily:"pooled",q:{...P.best,batk:1.2},eln:{...DEFAULT_ELN,mixFav:30}};
+  const moved=masterSweepFromBaseline(25,75,baseline,P);
+  assert.equal(moved.modelFamily,"pooled");
+  assert.deepEqual(moved.eln,baseline.eln);
+  assert.equal(moved.q.batk,1.2);
+});
+
 test("master sweep is prominent, live, and automatically shows uncertainty", () => {
   assert.match(html, /id="masterSweep"[^>]*min="0"[^>]*max="100"/);
   assert.match(html, /one-dimensional scenario tour/);
   assert.match(js, /on\("masterSweep","input",function\(\)\{applyMasterSweep\(this\.value\);/);
   assert.match(js, /if\(!showUncertainty\)\{showUncertainty=true;\$\("showUncertainty"\)\.checked=true;\}/);
   assert.match(js, /scheduleDraw\(p,light&&!masterSweepActive\)/);
+  assert.match(html, /id="masterSweepStateDescription"/);
+  assert.match(js, /updateMasterSweepReadout\(p,gs\)/);
 });
 
 test("unweighted versus late-weighted significance is a prominent live sensitivity", () => {

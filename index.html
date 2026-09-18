@@ -214,6 +214,7 @@
     </div>
     <p class="test-weight-note">The published design specifies a stratified Cox model. The default score is a primary-like approximation; FH(0,1) is an exploratory sensitivity that gives later deaths more influence and can favor delayed separation.</p>
     <p class="master-sweep-note" id="masterSweepNote">Drag to update both survival curves in real time. Uncertainty bands turn on automatically. Some conservative ELN points do not fit all blinded event anchors and are reported as misses rather than forced to fit; this is a one-dimensional scenario tour, not a posterior percentile.</p>
+    <p class="master-sweep-note" id="masterSweepStateDescription" aria-live="polite">Current state: ELN-explicit · durable responders only. Projected final HR updates with the active model.</p>
   </section>
   <div class="methodpanel" id="m-gps" hidden>
     <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.

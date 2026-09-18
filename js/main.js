@@ -73,7 +73,7 @@ import {
   paramsFromPresetQ,
   isPlausible,
   MASTER_SWEEP_STOPS,
-  masterSweepScenario,
+  masterSweepFromBaseline,
   computeValuationMetrics as computeValuationMetricsPure,
   computeFrozenBestEst,
   DEFAULT_CASH_M,
@@ -440,6 +440,7 @@ let showUncertainty=false;
 let lastMcPwin=null,lastMcMeta=null,lastPointPwin=null;
 let chartLayout=null,chartPinMonth=null,chartParams=null;
 let masterSweepActive=true,masterSweepApplying=false,masterSweepRaf=null;
+let masterSweepBaseline=null,masterSweepLastValue=75;
 function fmtAsOf(iso){if(!iso)return'';const d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-US',{month:'short',year:'numeric',day:'numeric'});}
 function initFactsAsOf(){
   document.querySelectorAll('.facts .fgrid > div').forEach(el=>{
@@ -840,7 +841,7 @@ function update(full){
   const gs=hrGaugeState(p,cutoff,light?60:110,light?12:undefined);
   const{t80,Tan,Dan}=gs;
   const t10=t80Quantile(p,0.1,T4,light?60:110,light?12:undefined),t90=t80Quantile(p,0.9,T4,light?60:110,light?12:undefined),statusMode=p.assumeStatus?'Aug phrase interpreted as &lt;80':'confirmed 78 only';
-  if(masterSweepActive)updateMasterSweepReadout(p,gs);
+  updateMasterSweepReadout(p,gs);
   $("o80").innerHTML=(t80<=84?('~m'+t80.toFixed(1)):'&gt;m84')+' <small>'+monthLabel(t80)+'</small> <span class="tag m" style="font-size:9px;vertical-align:1px">predictive median · 80% interval '+fmtCalRange(t10,t90)+' · '+statusMode+'</span>';
   if(!light){
     const thIA=analyzeLR(46,p).z, th80=analyzeLR(Tan,p).z;
@@ -1032,11 +1033,18 @@ const INV=INVERSE_PRESETS;
 const ELN_INPUT_FIELDS=["mixFav","mixInt","mixAdv","batMosFav","batMosInt","batMosAdv","bat3Fav","bat3Int","bat3Adv","gpsDurFav","gpsDurInt","gpsDurAdv","gpsNonDurableGain","batXtx","gpsXtx"];
 function writeElnInputs(nameOrValues){
   const e=typeof nameOrValues==="string"?(ELN_PRESETS[nameOrValues]||DEFAULT_ELN):(nameOrValues||DEFAULT_ELN);
-  for(const id of ELN_INPUT_FIELDS)if($(id)&&e[id]!=null)$(id).value=e[id];
+  for(const id of ELN_INPUT_FIELDS){
+    const el=$(id);if(!el||e[id]==null)continue;
+    const minAttr=el.getAttribute("min"),maxAttr=el.getAttribute("max"),stepAttr=el.getAttribute("step");
+    const min=minAttr==null||minAttr===""?-Infinity:+minAttr,max=maxAttr==null||maxAttr===""?Infinity:+maxAttr,step=+stepAttr||0;
+    let value=Math.max(min,Math.min(max,+e[id]));
+    if(step&&Number.isFinite(min))value=min+Math.round((value-min)/step)*step;
+    el.value=String(Math.max(min,Math.min(max,Math.round(value*1e6)/1e6)));
+  }
   if($("benefitModel"))$("benefitModel").value=e.benefitModel==="leaky"?"leaky":"durable";
 }
 const MASTER_PRESET_POS={critique:25,moderate:50,best:75,bull:100};
-const MASTER_FIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k"];
+const MASTER_FIELDS=["bat","batc","gpsc","gpsu","delay","xtx","cens","mid","k","batk"];
 function masterSweepStage(value){
   const v=+value;
   const exact=MASTER_SWEEP_STOPS.find(point=>Math.abs(point.at-v)<0.01);
@@ -1045,34 +1053,47 @@ function masterSweepStage(value){
   return a.label+" → "+b.label;
 }
 function writeMasterSweepSliders(q){
-  const set=(id,value)=>{const el=$(id);if(el)el.value=String(Math.round(value*10000)/10000);};
+  const set=(id,value)=>{
+    const el=$(id);if(!el)return;
+    const minAttr=el.getAttribute("min"),maxAttr=el.getAttribute("max"),stepAttr=el.getAttribute("step");
+    const min=minAttr==null||minAttr===""?-Infinity:+minAttr,max=maxAttr==null||maxAttr===""?Infinity:+maxAttr,step=+stepAttr||0;
+    let next=Math.max(min,Math.min(max,+value));
+    if(step&&Number.isFinite(min))next=min+Math.round((next-min)/step)*step;
+    el.value=String(Math.max(min,Math.min(max,Math.round(next*10000)/10000)));
+  };
   set("bat",q.bat);set("batc",q.batc);set("gpsc",q.gpsc);set("gpsu",q.gpsu);
   set("delay",q.delay);set("xtx",q.xtx);set("cens",q.cens);set("mid",q.mid);set("k",q.k);
   if($("batk"))$("batk").value=String(q.batk!=null?q.batk:1);
-  $("autofit").checked=false;
+  if(q.auto!=null)$("autofit").checked=!!q.auto;
 }
 function updateMasterSweepReadout(p,gs){
   const value=+$("masterSweep").value;
-  $("masterSweepLabel").textContent=masterSweepStage(value);
+  $("masterSweepLabel").textContent=masterSweepActive?masterSweepStage(value):"Custom controls";
   $("masterSweepHr").textContent=Number.isFinite(gs.hrForFinal)?gs.hrForFinal.toFixed(2):"—";
   const hardFit=passesVerdict(p)&&isBiologicallyPlausible(p);
   $("masterSweepFit").textContent=hardFit?"60/72/78 fit ✓":"constraint edge exceeded";
   $("masterSweepFit").className=hardFit?"master-fit-ok":"master-fit-bad";
+  const desc=$("masterSweepStateDescription");
+  if(desc){
+    const family=p.modelFamily==="eln"?"ELN-explicit":"legacy pooled";
+    const effect=p.modelFamily==="eln"?(p.benefitModel==="leaky"?"leaky non-durable benefit":"durable responders only"):"homogeneous arm curves";
+    const mix=p.modelFamily==="eln"?" · ELN mix "+[p.elnMix.fav,p.elnMix.int,p.elnMix.adv].map(x=>(x*100).toFixed(0)+"%").join(" / "):"";
+    desc.textContent="Current state: "+family+" · "+effect+mix+" · projected final HR "+(Number.isFinite(gs.hrForFinal)?gs.hrForFinal.toFixed(2):"—")+".";
+  }
 }
 function setMasterSweepActive(active){
   masterSweepActive=!!active;
   const panel=$("masterSweepPanel");if(panel)panel.classList.toggle("is-inactive",!masterSweepActive);
   if(!masterSweepActive){
     if(masterSweepRaf){cancelAnimationFrame(masterSweepRaf);masterSweepRaf=null;}
-    $("masterSweepLabel").textContent="Custom controls";
-    $("masterSweepFit").textContent="master path inactive";
-    $("masterSweepFit").className="";
+    masterSweepBaseline=null;
   }
 }
 function syncMasterSweepToPreset(name){
   const position=MASTER_PRESET_POS[name];
   if(position==null){setMasterSweepActive(false);return;}
   $("masterSweep").value=String(position);
+  masterSweepLastValue=position;masterSweepBaseline=null;
   setMasterSweepActive(true);
 }
 function scheduleMasterSweepUpdate(){
@@ -1084,32 +1105,24 @@ function scheduleMasterSweepUpdate(){
     try{update(false);}finally{masterSweepApplying=false;}
   });
 }
-function masterElnScenario(v){
-  const stops=[
-    {at:0,e:ELN_PRESETS.bear},{at:25,e:ELN_PRESETS.critique},{at:50,e:ELN_PRESETS.moderate},
-    {at:75,e:ELN_PRESETS.best},{at:100,e:ELN_PRESETS.bull}
-  ];
-  let hi=stops.findIndex(x=>x.at>=v);if(hi<=0)return{...stops[0].e};if(hi<0)hi=stops.length-1;
-  const a=stops[hi-1],b=stops[hi],t=(v-a.at)/(b.at-a.at),out={};
-  for(const key of new Set([...Object.keys(a.e),...Object.keys(b.e)])){
-    const av=a.e[key],bv=b.e[key];out[key]=typeof av==="number"&&typeof bv==="number"?av+(bv-av)*t:(t<.5?av:bv);
-  }
-  return out;
-}
 function applyMasterSweep(value){
   if(regalMode!=="forward")setRegalMode("forward");
   clearTimeout(bandsSegTimer);bandsSegTimer=null;cancelBandSegmentsWorker();
   const v=Math.max(0,Math.min(100,+value));
-  let q=masterSweepScenario(v,P);
-  const candidate=paramsFromPresetPure("",q,"forward",P,INV);
-  if(!candidate||!isPlausible(candidate)){
-    const nearest=MASTER_SWEEP_STOPS.reduce((best,point)=>Math.abs(point.at-v)<Math.abs(best.at-v)?point:best);
-    q={...(nearest.q||P[nearest.preset])};
+  if(!masterSweepBaseline){
+    masterSweepBaseline={
+      q:{...Object.fromEntries(MASTER_FIELDS.map(id=>[id,+$(id).value])),auto:$("autofit").checked},
+      eln:readElnInputs(),
+      modelFamily:$("modelFamily").value,
+      anchorValue:masterSweepLastValue
+    };
   }
-  writeMasterSweepSliders(q);
-  writeElnInputs(masterElnScenario(v));
-  $("modelFamily").value="eln";
-  activeRegalPreset=Object.keys(MASTER_PRESET_POS).find(name=>MASTER_PRESET_POS[name]===v)||null;
+  const swept=masterSweepFromBaseline(v,masterSweepBaseline.anchorValue,masterSweepBaseline,P,ELN_PRESETS);
+  writeMasterSweepSliders(swept.q);
+  if(swept.modelFamily==="eln")writeElnInputs(swept.eln);
+  $("modelFamily").value=swept.modelFamily;
+  masterSweepLastValue=v;
+  activeRegalPreset=null;
   setMasterSweepActive(true);refreshRegalPresetHighlight();
   if(!showUncertainty){showUncertainty=true;$("showUncertainty").checked=true;}
   scheduleMasterSweepUpdate();

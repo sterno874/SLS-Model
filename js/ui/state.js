@@ -105,6 +105,70 @@ export function masterSweepScenario(value, presets = SHARE_P) {
   }
   return q;
 }
+
+/**
+ * Move the master sweep relative to the model that was active when dragging
+ * began. This makes the control reversible (returning to anchorValue returns
+ * the exact baseline) and avoids replacing custom ELN assumptions with preset
+ * defaults.
+ */
+export function masterSweepFromBaseline(
+  value,
+  anchorValue,
+  baseline,
+  presets = SHARE_P,
+  elnPresets = ELN_PRESETS
+) {
+  const at = Math.max(0, Math.min(100, Number(anchorValue)));
+  const to = Math.max(0, Math.min(100, Number(value)));
+  const q0 = masterSweepScenario(at, presets);
+  const q1 = masterSweepScenario(to, presets);
+  const out = {
+    modelFamily: baseline.modelFamily,
+    q: { ...baseline.q },
+    eln: { ...baseline.eln }
+  };
+  for (const key of new Set([...Object.keys(q0), ...Object.keys(q1)])) {
+    if (typeof q0[key] === "number" && typeof q1[key] === "number") {
+      out.q[key] = (+baseline.q[key] || 0) + q1[key] - q0[key];
+    }
+  }
+  if (baseline.modelFamily === "eln") {
+    const e0 = masterSweepElnScenario(at, elnPresets);
+    const e1 = masterSweepElnScenario(to, elnPresets);
+    for (const key of new Set([...Object.keys(e0), ...Object.keys(e1)])) {
+      if (typeof e0[key] === "number" && typeof e1[key] === "number") {
+        out.eln[key] = (+baseline.eln[key] || 0) + e1[key] - e0[key];
+      }
+    }
+    // Benefit-model selection is an explicit user choice, not a sweep axis.
+    out.eln.benefitModel = baseline.eln.benefitModel;
+  }
+  return out;
+}
+
+export function masterSweepElnScenario(value, elnPresets = ELN_PRESETS) {
+  const v = Math.max(0, Math.min(100, Number(value)));
+  const stops = [
+    { at: 0, e: elnPresets.bear },
+    { at: 25, e: elnPresets.critique },
+    { at: 50, e: elnPresets.moderate },
+    { at: 75, e: elnPresets.best },
+    { at: 100, e: elnPresets.bull }
+  ];
+  let hi = stops.findIndex((point) => point.at >= v);
+  if (hi <= 0) return { ...stops[0].e };
+  if (hi < 0) hi = stops.length - 1;
+  const a = stops[hi - 1], b = stops[hi];
+  const t = (v - a.at) / (b.at - a.at), out = {};
+  for (const key of new Set([...Object.keys(a.e), ...Object.keys(b.e)])) {
+    const av = a.e[key], bv = b.e[key];
+    out[key] = typeof av === "number" && typeof bv === "number"
+      ? av + (bv - av) * t
+      : (t < 0.5 ? av : bv);
+  }
+  return out;
+}
 export const SHARE_INV = INVERSE_PRESETS;
 export const SHARE_SLSP = SLS_PRESETS;
 export const SHARE_VALP = VALUATION_PRESETS;
