@@ -1,6 +1,6 @@
 # SELLAS Life Sciences ($SLS) — Due Diligence Memo
 
-**As of:** 16 Sep 2026
+**As of:** 18 Sep 2026
 **Ticker:** **SLS** — SELLAS Life Sciences Group, Inc. (NASDAQ)  
 **CIK:** [0001390478](https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001390478)  
 **Disclaimer:** Educational research for the SLS-Model app. Not investment, legal, or medical advice. Every material claim below is tagged **verified** / **partial** / **community** / **rejected** and linked where possible.
@@ -15,7 +15,7 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 
 **Bear case (verified elements):** Arm-level REGAL HR is **non-identifiable** from blinded pooled counts; no 80th-event announcement is a public-status signal, not a disclosed event count; Onureg had modest commercial uptake despite a positive trial; rapid dilution took basic shares to ~201.9M; SLS-009 r/r evidence is single-arm, and Fatima 2026 raises its central historical mOS comparator from ~2.5m to 4.0m.
 
-**Model framing:** Header strip uses a **biology-first (bullish)** scenario (42% GPS cure, cw42 inverse → readout HR ~0.25) with **live risk-adj equity $/sh** at default P(GPS)≈65% / P(SLS)≈55%. Neutral-ridge HR fits (~0.45–0.64) remain plausible under identifiability. Not a price target.
+**Model framing:** Header strip uses a **biology-first ELN prognostic mixture** (readout marginal-arm HR ~0.50; Z ~3.09) with **live risk-adj equity $/sh** at default P(GPS)≈65% / P(SLS)≈55%. ELN groups construct marginal survival curves; they are not REGAL efficacy-test strata. Not a price target.
 
 ---
 
@@ -52,7 +52,7 @@ SELLAS is a clinical-stage oncology company with two lead programs: **GPS (galin
 |------|--------|-----|
 | Trial | REGAL — GPS vs BAT in AML CR2, transplant-ineligible | verified |
 | NCT | [NCT04229979](https://clinicaltrials.gov/study/NCT04229979) | verified |
-| Design | Event-driven ITT OS, 126 randomized, 1:1, PH design alternative HR 0.636 at 80 deaths (one-sided α=0.025); primary stratified Cox | verified — [Jamy & Cicic, *Future Oncol* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/) and Aug 2025 company update |
+| Design | Event-driven ITT OS, 126 randomized, 1:1, PH design alternative HR 0.636 at 80 deaths (one-sided α=0.025); primary Cox stratified by CR1 duration, poor-vs-other cytogenetics, CR2/CRp2 and MRD | verified — [Jamy & Cicic, *Future Oncol* 2025](https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/) and Aug 2025 company update |
 | Interim | IDMC continued at 60 deaths (Jan 2025); HR ≈0.55 is a model translation of an assumed OBF boundary, not a disclosed result | verified continuation / model interpretation — [interim PR](https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html) |
 | Event anchors | **60** @ ~m46; **72** @ ~m58; **78** @ ~m63 (11 May 2026) | verified — PRs |
 | Final | 80 events — TBD | verified — protocol |
@@ -70,16 +70,34 @@ CT.gov currently lists GPS dosing "as follows, until disease relapse": injection
 | 72 | ~58 | Dec 2025 PR | verified |
 | 78 | ~63 (11 May 2026) | Q1 2026 PR | verified |
 | Optional 78–79 interpretation | ~66 (11 Aug 2026) | Model assumption from Q2 phrase “approaching” 80; no numeric count/cutoff disclosed | model assumption (default on; toggle available) |
-| No trigger/topline announcement found | ~67.2 (16 Sep 2026) | Official IR/SEC/registry search | partial — announcement status only; reporting can lag |
+| No trigger/topline announcement found | ~67.3 (18 Sep 2026) | Official IR/SEC/registry search | partial — announcement status only; reporting can lag |
 | 80 | TBD | protocol | verified |
 
-**Model implementation caveats:** the engine uses expected balanced allocation **63/arm** for 126 randomized; the actual arm split is withheld. Censoring is an independent censor-survival sensitivity used in expected observed deaths and risk sets; informative/differential censoring is not identified. The transplant sensitivity moves survivors at a stylized month 6; actual post-randomization transplant timing and outcomes are unavailable. Poisson increments approximate a finite 126-participant event process. The primary-like score approximates unavailable patient-level Cox strata. T80 is an event-time distribution; database lock and public announcement may occur later.
+**Model implementation caveats:** the engine uses expected balanced allocation **63/arm** for 126 randomized; the actual arm split is withheld. Independent WCLFU is used in expected observed deaths and risk sets; informative/differential loss is not identified. Patients alive and retained at cutoff are administrative censors, not biological losses, and treatment discontinuation/relapse does not end modeled OS follow-up. The transplant sensitivity moves survivors at a stylized month 6; actual post-randomization transplant timing and outcomes are unavailable. Poisson increments approximate a finite 126-participant event process. Because allocations and effects for the actual analysis factors are unavailable, the model uses an **unstratified marginal-arm score**. Poor cytogenetics is not equivalent to ELN adverse, and ELN labels are not score strata. The former unsourced 0.90 efficiency multiplier was removed. T80 is an event-time distribution; database lock and public announcement may occur later.
+
+### OS follow-up / censoring judgment and central recalibration
+
+- **REGAL-specific fact:** ClinicalTrials.gov says patients enter long-term recurrence and OS follow-up after treatment. Relapse terminates study treatment, not OS observation. The public 66-treatment-discontinuation count therefore cannot be used as 66 OS losses.
+- **Regulatory frame:** FDA defines AML OS from randomization to death from any cause and censors a living participant at the last documented survival date. FDA's current oncology OS guidance explicitly distinguishes treatment discontinuation from study withdrawal and calls for continued OS follow-up after discontinuation, subsequent therapy and other intercurrent events.
+- **External benchmark:** Parikh et al. (*JNCCN* 2021) found mean withdrawal/consent-loss or LTFU at final analysis of **5.8% experimental** and **8.5% control** among 13 reporting oncology registration trials (ranges **0.7–11.8%** and **1.1–19.2%**). The reporting subset was small and not AML-specific.
+- **Judgment:** Best Available Guess now uses **10% independent common-arm OS WCLFU by month 36**, sampled over **2–15%** with SD 3 percentage points. Ten percent intentionally sits above the balanced benchmark (~7.2%) to hedge REGAL's small, international, open-label setting; it is not selected to maximize PoS. Zero is too confident, while the former 26% implied roughly one quarter independently lost by 36 months without supporting evidence.
+- **Anchor tension and minimum recalibration:** Simply replacing 26% with 10% while freezing the prior ELN curves predicts about **62.6/78.3/82.2** deaths at m46/m58/m63, over the later anchors. Enrollment was not moved because midpoint 28 already reproduces the reported ~105 enrolled by m33. BAT inputs were not lifted because its modeled 3-year survival already presses historical no-HCT evidence. Instead, the central GPS durable allocations were moved within their predeclared ranges from **60/37/0%** to **74/51/0%** (favorable/intermediate/adverse), restoring the intended mix-weighted GPS durable mass from ~33% to **43.5%**. This one-axis recalibration produces **59.79/74.46/78.09** expected deaths and remains compatible with, but does not exactly hit, 60/72/78; the m58 expectation is high and the blinded arm split means the stronger GPS assignment is structural, not identified.
+- **Transplant review:** The central sensitivity is now equal at **12% in both arms**. Later HCT is possible because eligibility excludes only patients with an immediately planned transplant, and ITT OS continues through HCT. The 12% rate and stylized month-6 transition remain assumptions; no REGAL arm-level HCT rate is public.
+
+**Final central outputs (deterministic report, 1,000 draws, seed 85614317):**
+- Point scenario at conditional median T80: **HR 0.503593**, **Z 3.090389**, **T80 m68.032990** (approximately Oct 2026).
+- Modeled interim at m46: **HR 0.589562**, **Z 2.032229**—above the app's ~0.547 translated early-efficacy line and therefore compatible with the verified continuation; it is not the undisclosed interim result.
+- Expected observed deaths: **59.785761 @ m46**, **74.456976 @ m58**, **78.092768 @ m63**, **79.813572 @ m66**. This passes the app's prespecified strict windows but does not force exact anchor equality.
+- Continuation-conditioned uncertainty result: **P(significant) 74.4565%**, **P(failure) 25.5435%**; weighted median HR **0.545905**, 90% model interval **[0.477066, 0.634867]**.
+- At point T80, modeled biological alive is **11.6286 BAT / 30.3518 GPS**; without an observed death is **13.6672 / 31.5108**; independent-LTFU censored is **3.3647 / 4.7411**. Biological alive overlaps follow-up categories and must not be added to them.
+- The conditional T80 distribution is anchored to the disclosed 78-event history; the unanchored smooth point curve has **80.8220 expected observed deaths** at its median T80. That small mismatch is retained rather than forcing the curve through every count.
+- These are model outputs under the declared ELN survival-mixture, WCLFU, enrollment, HCT and interim assumptions—not the unavailable stratified Cox result or observed arm-level counts.
 
 ### Biology-first vs neutral ridge
 
 | Scenario | Readout HR (model) | Tag |
 |----------|-------------------|-----|
-| Biology-first (42% GPS cure, cw42 inverse) | ~**0.25** | model — structural prior |
+| Biology-first ELN mixture | ~**0.50** (Z ~3.09) | model — unstratified marginal-arm score |
 | Neutral-anchor ridge fits | ~**0.45–0.64** | model — identifiability ridge |
 | HR≈1 “null effect” ridge | Rejected on biology + event pace | rejected |
 
@@ -93,8 +111,8 @@ u/neo2551 reported a reply attributed to the Van der Maas study group giving **m
 
 The app therefore includes two named, explicitly non-central sensitivities:
 
-- **VDM email — literal pair:** Weibull BAT calibrated to 16.8m/18.6% plus GPS Phase 2 CR2 16.3m/no plateau. It implies roughly 75/97/103 pooled deaths at m46/m58/m63 and readout HR ~0.92, materially overpredicting the announced events.
-- **VDM BAT + anchor-fit GPS:** holds the reported BAT curve fixed and fits the app’s GPS family to 60/72/78 plus the optional Aug &lt;80 interpretation. The best grid point (~60/74/77 modeled events under the corrected engine) requires an extreme ~61% absolute GPS plateau with ~6.5m post-onset residual median and gives HR ~0.33. This demonstrates structural tension/non-identifiability; it does not validate the email statistics.
+- **VDM email — literal pair:** Weibull BAT calibrated to 16.8m/18.6% plus GPS Phase 2 CR2 16.3m/no plateau. It implies roughly 75/95/100 pooled deaths at m46/m58/m63 and marginal-arm readout HR ~0.99, materially overpredicting the announced events.
+- **VDM BAT + anchor-fit GPS:** holds the reported BAT curve fixed and fits the app’s GPS family to 60/72/78 plus the optional Aug &lt;80 interpretation. The grid point (~59/74/78 modeled events under the corrected engine) requires an extreme ~61% absolute GPS plateau with ~6.5m post-onset residual median and gives marginal-arm HR ~0.40. This demonstrates structural tension/non-identifiability; it does not validate the email statistics.
 
 Neither scenario changes the central BAT prior.
 
@@ -258,5 +276,7 @@ Only public/searchable material is covered; deleted/private comments and private
 22. [Dumas et al. 2026 — VEN-AZA vs cytarabine salvage](https://doi.org/10.1111/bjh.70815)
 23. [Zhao et al. 2026 — RMST versus HR stability](https://doi.org/10.1016/j.jclinepi.2026.112439)
 24. [Okumura et al. 2026 — piecewise Bayesian non-PH analysis](https://doi.org/10.1093/jjco/hyag133)
+25. [FDA — Approaches to Assessment of Overall Survival in Oncology Clinical Trials](https://www.fda.gov/media/188274/download)
+26. [Parikh et al. 2021 — withdrawal, LTFU, discontinuation and censoring in oncology trials](https://doi.org/10.6004/jnccn.2021.7015)
 
 Full clickable lists also live in each app tab’s **References** and the **Explain** tab (ELI5 → PhD).

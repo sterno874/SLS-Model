@@ -7,6 +7,7 @@ import {
   decodeShareHash,
   parseEmbedMode,
   DEFAULT_STATE,
+  SHARE_SCHEMA_VERSION,
   SHARE_P,
   SHARE_INV,
   SHARE_SLSP,
@@ -51,6 +52,17 @@ test("default (fresh-load) share link is tiny and round-trips exactly", () => {
   assert.match(hash, /^#s1=/);
   assert.ok(hashLen(hash) < 20, `default hash too long: ${hashLen(hash)} (${hash})`);
   assert.deepEqual(decodeShareHash(hash), s);
+  assert.equal(SHARE_SCHEMA_VERSION,4);
+});
+
+test("schema-v3 deltas retain the former central baseline", () => {
+  const hash="#s1="+b64urlEncode(JSON.stringify({sv:3}));
+  const decoded=decodeShareHash(hash);
+  assert.equal(decoded.v,3);
+  assert.equal(decoded.gps.cens,26);
+  assert.equal(decoded.gps.gpsDurFav,60);
+  assert.equal(decoded.gps.gpsDurInt,37);
+  assert.equal(decoded.gps.gpsXtx,13);
 });
 
 test("every forward REGAL preset encodes short and round-trips", () => {
@@ -140,7 +152,7 @@ test("arbitrary full state round-trips (all fields, tabs, modes, explain levels)
   s.activeInvPreset = "cw50";
   s.activeSlsPreset = "bear";
   s.activeValPreset = "cw";
-  s.gps.bat = 7.5; s.gps.k = 0.23; s.gps.stratF = 0.87; s.gps.zfut = 0.55;
+  s.gps.bat = 7.5; s.gps.k = 0.23; s.gps.zfut = 0.55;
   s.gps.autofit = true; s.gps.fhTest = true; s.gps.mcFloor = false; s.gps.cutoff = 80;
   s.sls.sls_flev = 320;
   s.val.v_riskadj = false; s.val.v_pgps = 80; s.val.v_psls = 40;
@@ -188,6 +200,14 @@ test("legacy #s= full-state hashes still decode (backward compat)", () => {
   assert.equal(decoded.regalMode, "inverse");
   assert.equal(decoded.gps.gpsc, 42);
   assert.equal(decoded.ui.explainLvl, "phd");
+});
+
+test("v2 share links ignore the retired stratF score artifact", () => {
+  const hash = "#s1=" + b64urlEncode(JSON.stringify({ sv: 2, sf: 0.87 }));
+  const decoded = decodeShareHash(hash);
+  assert.equal(decoded.v, 2);
+  assert.equal(decoded.gps.modelFamily, "eln");
+  assert.equal("stratF" in decoded.gps, false);
 });
 
 test("corrupt or unknown hashes decode to null (caller falls back)", () => {

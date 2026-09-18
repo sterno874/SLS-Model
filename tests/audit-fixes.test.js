@@ -15,6 +15,8 @@ import {
   isPlausible,
   MASTER_SWEEP_STOPS,
   masterSweepScenario,
+  masterSweepElnScenario,
+  withElnRuntime,
   masterSweepFromBaseline
 } from "../js/ui/state.js";
 import { DEFAULT_ELN } from "../js/data/model-config.js";
@@ -209,7 +211,10 @@ test("master sweep spans bearish through bullish scenarios and reports non-fitti
   assert.deepEqual(MASTER_SWEEP_STOPS.map((point) => point.at), [0, 25, 50, 75, 100]);
   const fits=[];
   for (let value = 0; value <= 100; value++) {
-    const p = paramsFromPreset("", masterSweepScenario(value, P), "forward", P, INV);
+    const p = withElnRuntime(
+      paramsFromPreset("", masterSweepScenario(value, P), "forward", P, INV),
+      masterSweepElnScenario(value)
+    );
     const hr = hrGaugeState(p, 72).hrForFinal;
     assert.ok(Number.isFinite(hr));
     fits.push(isPlausible(p));
@@ -265,7 +270,9 @@ test("unweighted versus late-weighted significance is a prominent live sensitivi
   assert.match(sweep, /Unweighted/);
   assert.match(sweep, /Late-weighted FH\(0,1\)/);
   assert.match(html, /published design specifies a stratified Cox model/);
-  assert.match(html, /full SAP is not public/);
+  assert.match(html, /unstratified marginal-arm log-rank score/);
+  assert.match(html, /ELN adverse is not interchangeable with poor cytogenetics/);
+  assert.doesNotMatch(html, /id="stratF"/);
   assert.equal((html.match(/id="fhTest"/g) || []).length, 1);
   assert.match(js, /testWeightStatus"\)\.textContent=p\.fh\?/);
 });
@@ -283,6 +290,14 @@ test("CW-style table report uses current model calculations and has a focused pr
   assert.match(js, /if\(panelOpen\("panelModelTables"\)\)renderModelTables\(\)/);
   assert.match(js, /function printModelTables\(\)/);
   assert.match(js, /classList\.add\("print-model-tables"\)/);
+});
+
+test("OS status labels separate survival, observation, and LTFU", () => {
+  assert.match(html,/Independent OS LTFU by month 36/);
+  assert.match(html,/administrative censoring and independent LTFU are labeled separately/);
+  assert.match(js,/BAT \/ GPS biologically alive @ T80/);
+  assert.match(js,/BAT \/ GPS without observed death @ T80/);
+  assert.match(js,/BAT \/ GPS independent-LTFU censored @ T80/);
 });
 
 // ---------- Finding 8: approx-fit warning references pooled-median floor ----------

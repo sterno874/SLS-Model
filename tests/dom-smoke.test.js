@@ -137,7 +137,9 @@ test("The Statistics tab explains core math with SVG and selected image visuals"
   assert.match(stats, /O'Brien-Fleming/);
   assert.match(stats, /Conditional Power/i);
   assert.match(stats, /Pike-style HR/i);
-  assert.match(stats, /stratF/);
+  assert.match(stats, /unstratified log-rank/i);
+  assert.match(stats, /poor-vs-other cytogenetics/i);
+  assert.doesNotMatch(stats, /stratF/);
   assert.match(stats, /risk-adjusted expected value/i);
   assert.match(stats, /Pooled Blinded Anchors/i);
   assert.ok(matchAll(/Math lesson/g, stats).length >= 8);
@@ -414,7 +416,7 @@ test("bind/nonbind are not separate forward preset buttons", () => {
   assert.ok(!forward.includes("nonbind"));
   assert.ok(forward.includes("moderate"));
   assert.match(html, /id="hdrHrCallout"/);
-  assert.match(html, /Biology-first ~0\.26 · Moderate DD ~0\.40 · Neutral ridge ~0\.45–0\.64/);
+  assert.match(html, /Biology-first ~0\.50 · Moderate DD ~0\.64 · Legacy pooled ridge ~0\.45–0\.64/);
   assert.match(html, /id="mcFloor"/);
   assert.match(html, /Binding interim IA/);
 });

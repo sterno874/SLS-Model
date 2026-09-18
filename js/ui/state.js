@@ -1,4 +1,4 @@
-import { STRATF, ZFUT, inverseSolve, passesVerdict, isBiologicallyPlausible, hrGaugeState } from "../math/survival.js";
+import { ZFUT, inverseSolve, passesVerdict, isBiologicallyPlausible, hrGaugeState } from "../math/survival.js";
 import {
   REGAL_PRESETS,
   INVERSE_PRESETS,
@@ -46,8 +46,9 @@ export function b64urlDecode(str) {
 
 /** Canonical default state — mirrors the initial slider `value=` attributes in
  *  index.html plus the module defaults in js/main.js. */
+export const SHARE_SCHEMA_VERSION = 4;
 export const DEFAULT_STATE = {
-  v: 2,
+  v: SHARE_SCHEMA_VERSION,
   tab: "gps",
   regalMode: "forward",
   activeRegalPreset: "best",
@@ -57,8 +58,8 @@ export const DEFAULT_STATE = {
   embed: false,
   gps: {
     bat: 13, batc: 0, batk: 1, gpsc: 42, gpsu: 42.5, delay: 3, xtx: 0,
-    cens: 26, mid: 28, k: 0.15, batcap: 14, autofit: false, fhTest: false,
-    stratF: 0.9, zfut: 0.4, mcFloor: true, assumeStatus: true, cutoff: 72,
+    cens: 10, mid: 28, k: 0.15, batcap: 14, autofit: false, fhTest: false,
+    zfut: 0.4, mcFloor: true, assumeStatus: true, cutoff: 72,
     modelFamily: "eln", ...DEFAULT_ELN
   },
   sls: {
@@ -201,7 +202,7 @@ export const SHARE_FIELD_DEFS = [
   ["ba", "gps", "bat"], ["bc", "gps", "batc"], ["bk", "gps", "batk"], ["gc", "gps", "gpsc"],
   ["gu", "gps", "gpsu"], ["dl", "gps", "delay"], ["xt", "gps", "xtx"], ["ce", "gps", "cens"],
   ["md", "gps", "mid"], ["kk", "gps", "k"], ["bp", "gps", "batcap"], ["af", "gps", "autofit"],
-  ["fh", "gps", "fhTest"], ["sf", "gps", "stratF"], ["zf", "gps", "zfut"], ["mf", "gps", "mcFloor"], ["as", "gps", "assumeStatus"],
+  ["fh", "gps", "fhTest"], ["zf", "gps", "zfut"], ["mf", "gps", "mcFloor"], ["as", "gps", "assumeStatus"],
   ["co", "gps", "cutoff"], ["fm", "gps", "modelFamily"],
   ["ef", "gps", "mixFav"], ["ei", "gps", "mixInt"], ["ea", "gps", "mixAdv"],
   ["mfv", "gps", "batMosFav"], ["mit", "gps", "batMosInt"], ["mad", "gps", "batMosAdv"],
@@ -225,6 +226,16 @@ function clone(o) {
   return JSON.parse(JSON.stringify(o));
 }
 
+// Schema-v3 deltas were encoded against the former 26% censoring central state.
+// Retain that baseline so omitted fields in old custom links do not silently
+// inherit the v4 recalibration.
+const LEGACY_V3_DEFAULT_STATE = clone(DEFAULT_STATE);
+LEGACY_V3_DEFAULT_STATE.v = 3;
+LEGACY_V3_DEFAULT_STATE.gps.cens = 26;
+LEGACY_V3_DEFAULT_STATE.gps.gpsDurFav = 60;
+LEGACY_V3_DEFAULT_STATE.gps.gpsDurInt = 37;
+LEGACY_V3_DEFAULT_STATE.gps.gpsXtx = 13;
+
 /** Strip float noise so sliders don't serialize as 12-decimal values. */
 function roundVal(v) {
   return typeof v === "number" && Number.isFinite(v)
@@ -246,16 +257,25 @@ function overlayInverse(g, q) {
 }
 
 /** Baseline for the *value* diff: defaults with the active presets overlaid. */
-function buildValueBaseline(markers) {
-  const b = clone(DEFAULT_STATE);
+function buildValueBaseline(markers, schemaVersion = SHARE_SCHEMA_VERSION) {
+  const legacyV3 = schemaVersion === 3;
+  const b = clone(legacyV3 ? LEGACY_V3_DEFAULT_STATE : DEFAULT_STATE);
   if ((markers.regalMode || "forward") === "inverse") {
     const q = SHARE_INV[markers.activeInvPreset];
     if (q) overlayInverse(b.gps, q);
   } else {
-    const q = SHARE_P[markers.activeRegalPreset];
+    const presetName = markers.activeRegalPreset;
+    const currentQ = SHARE_P[presetName];
+    const q = legacyV3 && currentQ && ["best", "bind", "nonbind"].includes(presetName)
+      ? { ...currentQ, cens: 26 }
+      : currentQ;
     if (q) {
       overlayForward(b.gps, q);
-      Object.assign(b.gps, ELN_PRESETS[markers.activeRegalPreset] || DEFAULT_ELN);
+      const currentEln = ELN_PRESETS[presetName] || DEFAULT_ELN;
+      const eln = legacyV3 && ["best", "bind", "nonbind"].includes(presetName)
+        ? { ...currentEln, gpsDurFav: 60, gpsDurInt: 37, gpsXtx: 13 }
+        : currentEln;
+      Object.assign(b.gps, eln);
     }
   }
   const sq = SHARE_SLSP[markers.activeSlsPreset];
@@ -292,7 +312,7 @@ export function parseEmbedMode(search = "", hash = "") {
 export function buildShareHash(state) {
   const src = state || {};
   const markers = markersFrom(src);
-  const baseline = buildValueBaseline(markers);
+  const baseline = buildValueBaseline(markers, SHARE_SCHEMA_VERSION);
   const payload = {};
   for (const [code, group, field] of SHARE_FIELD_DEFS) {
     const base = group ? baseline[group][field] : DEFAULT_STATE[field];
@@ -302,7 +322,7 @@ export function buildShareHash(state) {
     const val = roundVal(raw);
     if (val !== roundVal(base)) payload[code] = val;
   }
-  payload.sv = 2;
+  payload.sv = SHARE_SCHEMA_VERSION;
   return "#s1=" + b64urlEncode(JSON.stringify(payload));
 }
 
@@ -335,6 +355,7 @@ export function decodeShareHash(hash) {
 }
 
 function inflateDelta(payload) {
+  const schemaVersion = Number(payload.sv) || 1;
   const markers = {};
   const byCode = {};
   for (const d of SHARE_FIELD_DEFS) byCode[d[0]] = d;
@@ -342,10 +363,12 @@ function inflateDelta(payload) {
     const code = SHARE_FIELD_DEFS.find((d) => d[1] === "" && d[2] === f)[0];
     markers[f] = Object.prototype.hasOwnProperty.call(payload, code) ? payload[code] : DEFAULT_STATE[f];
   }
-  const state = buildValueBaseline(markers);
-  state.v = 2;
+  const state = buildValueBaseline(markers, schemaVersion);
+  state.v = schemaVersion >= 4 ? 4 : schemaVersion >= 3 ? 3 : 2;
   // Links written before model-family support represented the homogeneous model.
-  state.gps.modelFamily = payload.sv === 2 ? "eln" : "pooled";
+  // v2 ELN links remain compatible; their retired `sf` efficiency field is
+  // intentionally ignored because the score no longer applies that artifact.
+  state.gps.modelFamily = payload.sv >= 2 ? "eln" : "pooled";
   for (const f of MARKER_FIELDS) state[f] = markers[f];
   for (const code in payload) {
     const d = byCode[code];
@@ -385,7 +408,6 @@ export function paramsFromPresetQ(q) {
     k: q.k || 0.15,
     fh: false,
     assumeStatus: q.assumeStatus !== false,
-    stratF: STRATF,
     zfut: ZFUT,
     modelFamily: q.modelFamily || "eln"
   };
@@ -415,7 +437,7 @@ export function normalizeElnMix(fav, int, adv) {
 export function paramsFromPreset(name, q, mode, P, INV) {
   q = q || (mode === "inverse" ? INV[name] : P[name]);
   if (!q) return null;
-  const base = { osmode: "itt", batk: q.batk != null ? q.batk : 1, fh: false, assumeStatus: q.assumeStatus !== false, stratF: STRATF, zfut: ZFUT, modelFamily: mode === "inverse" ? "pooled" : (q.modelFamily || "eln") };
+  const base = { osmode: "itt", batk: q.batk != null ? q.batk : 1, fh: false, assumeStatus: q.assumeStatus !== false, zfut: ZFUT, modelFamily: mode === "inverse" ? "pooled" : (q.modelFamily || "eln") };
   if (mode === "inverse") {
     const ir = inverseSolve(
       Object.assign({}, base, {
@@ -433,7 +455,6 @@ export function paramsFromPreset(name, q, mode, P, INV) {
       ? Object.assign({}, ir.sol, {
           batk: 1,
           fh: false,
-          stratF: STRATF,
           zfut: ZFUT
         })
       : null;
@@ -518,7 +539,7 @@ export function computeValuationMetrics(v) {
 /** Biology-first header scenario — GPS/SLS clinical presets stay fixed; valuation may be live.
  *  Keep in sync with P / SLSP / VALP preset tables in js/main.js. */
 export const FROZEN_BEST_EST = {
-  label: "ELN-explicit central case · risk-adj @ P(GPS)=65%",
+  label: "ELN-explicit central · 10% OS LTFU · risk-adj @ P(GPS)=65%",
   gpsPreset: SHARE_P.best,
   slsPreset: SHARE_SLSP.best,
   valPreset: SHARE_VALP.best,
@@ -565,8 +586,8 @@ export function computeFrozenBestEst(valOverrides) {
   const ra = live.riskAdjusted;
   return {
     label: ra
-      ? "ELN-explicit central case · risk-adj @ P(GPS)="+inputs.pgps+"%"
-      : "ELN-explicit central case · gross",
+      ? "ELN-explicit central · 10% OS LTFU · risk-adj @ P(GPS)="+inputs.pgps+"%"
+      : "ELN-explicit central · 10% OS LTFU · gross",
     gpsHr,
     slsOsRatio,
     EV: live.EV,

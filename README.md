@@ -19,14 +19,14 @@ A primary-sourced, open-source interactive model of SELLAS's pipeline and valuat
 ## Methodology
 
 Click the **📐 Methodology** button on each tab. The statistical toolkit (all standard, primary-sourced in-app):
-- Stratified log-rank score test (Mantel 1966; Peto & Peto 1972); Cox PH (Cox 1972)
-- Schoenfeld events-for-power (1981/83) — verifies 0.636 is the ~50%-power *bar*, not the ~0.48 design alternative
+- Unstratified marginal-arm log-rank/Pike approximation in the app (Mantel 1966; Peto & Peto 1972); REGAL's actual primary method is a Cox model stratified by CR1 duration, poor-vs-other cytogenetics, CR2/CRp2 and MRD (Cox 1972)
+- Schoenfeld events-for-power (1981/83) — contextualizes the 0.636 proportional-hazards design reference
 - Lan-DeMets O'Brien-Fleming α-spending (1979/1983); group-sequential conditional power with √(t₁/t₂) correlation (Jennison & Turnbull 2000; Proschan & Hunsberger 1995)
 - RMST (Uno 2014); Fleming-Harrington weighted log-rank (1991) for late-effect penalty
 - Mixture-cure models (Boag 1949); left-truncation / immortal-time bias (Suissa 2008)
 - Approximate Bayesian Computation likelihood-weighting (Beaumont 2002)
 
-The event engine uses the expected balanced allocation of 127 participants (63.5 per arm), an independent censor-survival curve, and a stylized month-6 transplant-transition sensitivity. The actual arm split, censoring, and post-randomization transplant timing are undisclosed.
+The event engine uses the expected balanced allocation of 126 randomized participants (63 per arm), a 10% central independent OS WCLFU assumption by month 36 (2–15% sampled), and a stylized equal-arm month-6 transplant-transition sensitivity. Treatment discontinuation and administrative censoring of known-alive patients are not biological loss. ELN prognostic groups construct marginal arm curves but are not efficacy-test strata; poor cytogenetics is not equivalent to ELN adverse. Actual analysis-stratum allocations, arm split, WCLFU, and post-randomization transplant timing are undisclosed.
 
 ## Research memo
 
@@ -48,7 +48,7 @@ Confirmed PR milestones are **locked** where forward projection applies:
 | 72 | ~58 | Dec 2025 PR |
 | 78 | ~63 (11 May 2026) | Q1 2026 PR |
 | Optional <80 interpretation | ~66 (11 Aug 2026) | Model assumption based on Q2 phrase “approaching” 80; no numeric count/cutoff disclosed |
-| Announcement search | ~67.2 (16 Sep 2026) | No event-80/topline announcement found; not an event-count bound |
+| Announcement search | ~67.3 (18 Sep 2026) | No official event-80/topline announcement found; not an event-count bound |
 | 80 | TBD | protocol |
 
 - **Forward projection** (80th-event timing, readout power, MC conditional power): by default, conditionally models 78 or 79 events on Aug 11; the UI toggle provides a confirmed-only sensitivity based on 78 events in May.

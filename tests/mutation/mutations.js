@@ -132,13 +132,13 @@ export const MUTATION_TARGETS = [
       )
   },
   {
-    id: "surv-analyzeLR-stratF",
+    id: "surv-analyzeLR-efficiency",
     file: "js/math/survival.js",
-    description: "analyzeLR default STRATF 0.90 → 0.80",
+    description: "score applies unsupported 0.90 efficiency factor",
     apply: (s) =>
       s.replace(
-        "const sf=(p.stratF!=null?p.stratF:STRATF)",
-        "const sf=(p.stratF!=null?p.stratF:0.80)"
+        "z=(V<1e-9)?0:U/Math.sqrt(V)",
+        "z=(V<1e-9)?0:U/Math.sqrt(V)*Math.sqrt(0.9)"
       )
   },
   {

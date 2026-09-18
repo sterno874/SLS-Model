@@ -1,10 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  elnRiskBase, sBAT, sGPS, eventsAt, analyzeLR, hazardRatio, T80, t80Analysis, ZFINAL
+  elnRiskBase, sBAT, sGPS, eventsAt, analyzeLR, hazardRatio, T80, t80Analysis, ZFINAL,
+  armStatus
 } from "../js/math/survival.js";
 import {
-  REGAL_PRESETS, LEGACY_REGAL_PRESETS, ELN_PRESETS, ELN_UNCERTAINTY, DEFAULT_ELN
+  REGAL_PRESETS, LEGACY_REGAL_PRESETS, ELN_PRESETS, ELN_UNCERTAINTY, REGAL_UNCERTAINTY,
+  DEFAULT_ELN
 } from "../js/data/model-config.js";
 import {
   paramsFromPreset, normalizeElnMix, buildShareHash, decodeShareHash, DEFAULT_STATE
@@ -39,6 +41,60 @@ test("ELN no-effect case yields HR one with matched arm HCT",()=>{
 test("events and score share the same event kernel",()=>{
   const p=paramsFromPreset("best",REGAL_PRESETS.best,"forward");
   for(const t of [46,58,63])assert.ok(Math.abs(eventsAt(t,p)-analyzeLR(t,p).events)<1e-9);
+});
+
+test("golden: central ELN marginal-arm readout HR and Z",()=>{
+  const p=paramsFromPreset("best",REGAL_PRESETS.best,"forward");
+  const t=T80(p),a=analyzeLR(t,p);
+  assert.ok(Math.abs(t-68.032976)<0.001);
+  assert.ok(Math.abs(a.hr-0.503593)<0.0001);
+  assert.ok(Math.abs(a.z-3.090388)<0.0001);
+});
+
+test("central WCLFU is evidence-bounded and distinct from survival status",()=>{
+  assert.equal(REGAL_PRESETS.best.cens,10);
+  assert.equal(DEFAULT_ELN.gpsDurFav,74);
+  assert.equal(DEFAULT_ELN.gpsDurInt,51);
+  assert.equal(DEFAULT_ELN.batXtx,DEFAULT_ELN.gpsXtx);
+  assert.deepEqual(
+    [REGAL_UNCERTAINTY.cens.lo,REGAL_UNCERTAINTY.cens.hi,REGAL_UNCERTAINTY.cens.sd],
+    [.02,.15,.03]
+  );
+  const p=paramsFromPreset("best",REGAL_PRESETS.best,"forward");
+  for(const fn of [sBAT,sGPS]){
+    const status=armStatus(T80(p),p,fn);
+    assert.ok(status.alive>status.administrativelyCensored);
+    assert.ok(status.ltfuCensored>0);
+    assert.ok(Math.abs(status.withoutObservedDeath-status.administrativelyCensored-status.ltfuCensored)<1e-9);
+    assert.ok(Math.abs(status.enrolled-status.observedDeaths-status.withoutObservedDeath)<1e-9);
+  }
+});
+
+test("ELN relabeling cannot change a fixed pair of marginal arm curves",()=>{
+  const p=paramsFromPreset("best",REGAL_PRESETS.best,"forward");
+  const swapFavInt=o=>({fav:o.int,int:o.fav,adv:o.adv});
+  const relabeled={
+    ...p,
+    elnMix:swapFavInt(p.elnMix),
+    elnBatMos:swapFavInt(p.elnBatMos),
+    elnBat3:swapFavInt(p.elnBat3),
+    elnGpsDurable:swapFavInt(p.elnGpsDurable)
+  };
+  for(const t of [6,12,24,36,58]){
+    assert.ok(Math.abs(sBAT(t,p)-sBAT(t,relabeled))<1e-12);
+    assert.ok(Math.abs(sGPS(t,p)-sGPS(t,relabeled))<1e-12);
+  }
+  const a=analyzeLR(68,p),b=analyzeLR(68,relabeled);
+  assert.ok(Math.abs(a.hr-b.hr)<1e-12);
+  assert.ok(Math.abs(a.z-b.z)<1e-12);
+});
+
+test("ELN mix affects the score only through changed marginal curves",()=>{
+  const p=paramsFromPreset("best",REGAL_PRESETS.best,"forward");
+  const shifted={...p,elnMix:{fav:.60,int:.25,adv:.15}};
+  assert.notEqual(sBAT(36,p).toFixed(8),sBAT(36,shifted).toFixed(8));
+  assert.notEqual(sGPS(36,p).toFixed(8),sGPS(36,shifted).toFixed(8));
+  assert.notEqual(analyzeLR(68,p).hr.toFixed(8),analyzeLR(68,shifted).hr.toFixed(8));
 });
 
 test("final significance is eventual and endpoint reach remains separate",()=>{

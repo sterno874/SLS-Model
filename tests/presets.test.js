@@ -146,7 +146,6 @@ test("named preset wins over stale share-hash gps deltas", () => {
     batcap: 14,
     autofit: false,
     fhTest: false,
-    stratF: 0.9,
     zfut: 0.4,
     mcFloor: true,
     cutoff: 72
@@ -186,7 +185,6 @@ test("decodeShareHash with rp=best ignores conflicting survival deltas via resol
       batcap: 14,
       autofit: false,
       fhTest: false,
-      stratF: 0.9,
       zfut: 0.4,
       cutoff: 72,
       gpsu: 60,
@@ -218,7 +216,7 @@ for (const name of INVERSE_PRESET_NAMES) {
     });
     const ir = inverseSolve(base, q.batcap || 17);
     assert.ok(ir.sol, `inverse preset ${name} should solve: ${ir.reason || ""}`);
-    const p = Object.assign({}, ir.sol, { batk: 1, fh: false, stratF: 0.9, zfut: 0.4 });
+    const p = Object.assign({}, ir.sol, { batk: 1, fh: false, zfut: 0.4 });
     assert.ok(passesVerdict(p), `inverse preset ${name} should pass full trajectory verdict`);
     assert.ok(Math.abs(eventsAt(T1, p) - 60) <= 4, `e46 should be within ±4 of 60`);
     assert.ok(Math.abs(eventsAt(T2, p) - 72) <= 3, `e58 should be within ±3 of 72`);

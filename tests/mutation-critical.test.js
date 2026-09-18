@@ -23,10 +23,8 @@ test("formula-critical mutation sentinels", () => {
   close(hazardRatio(T2, best), 0.262507, 0.0002);
   const lr = analyzeLR(T2, best);
   close(lr.hr, 0.262507, 0.001);
-  close(lr.z, 5.335752, 0.01);
-  const implicitStrata = { ...best };
-  delete implicitStrata.stratF;
-  close(analyzeLR(T2, implicitStrata).z, lr.z, 1e-12);
+  close(lr.z, 5.624377, 0.01);
+  close(analyzeLR(T2, { ...best, stratF: 0.1 }).z, lr.z, 1e-12);
   close(eventsAt(T1, best), 59.814121, 0.001);
   close(eventsAtAnchored(63, best), 78, 1e-12);
   close(T80PrPace(), 64.666667, 0.001);

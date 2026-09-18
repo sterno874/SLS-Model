@@ -49,7 +49,6 @@ const PARAM_SHAPE_KEYS = [
   "mid",
   "k",
   "fh",
-  "stratF",
   "zfut"
 ];
 
@@ -243,10 +242,9 @@ test("inverseSolve cw42 preset yields finite BAT and GPS uncured medians", () =>
   assert.ok(Number.isFinite(ir.sol.gpsu));
 });
 
-test("computeFrozenBestEst: ELN-explicit risk-adj equity $/sh (default P(approval))", () => {
+test("computeFrozenBestEst: ELN-explicit marginal HR and risk-adj equity $/sh", () => {
   const f = computeFrozenBestEst();
-  // Readout HR (hrForFinal @ cutoff 72), not m58 snapshot (~0.270)
-  assert.ok(Math.abs(f.gpsHr - 0.631) < 0.01);
+  assert.ok(Math.abs(f.gpsHr - 0.503593) < 0.001);
   assert.ok(Math.abs(f.slsOsRatio - FROZEN_BEST_EST.slsPreset.sls_bench / FROZEN_BEST_EST.slsPreset.sls_os) < 1e-9);
   assert.match(f.label, /ELN-explicit/);
   assert.match(f.label, /risk-adj/i);

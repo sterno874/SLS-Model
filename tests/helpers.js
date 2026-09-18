@@ -7,7 +7,6 @@ import {
   E2,
   E3,
   ZFINAL,
-  STRATF,
   ZFUT,
   eventsAt,
   lpois,
@@ -32,7 +31,6 @@ export function mk(p = {}) {
       k: 0.15,
       fh: false,
       assumeStatus: true,
-      stratF: STRATF,
       zfut: ZFUT
     },
     p
@@ -55,7 +53,6 @@ export function paramsFromPresetQ(q) {
     k: q.k || 0.15,
     fh: false,
     assumeStatus: true,
-    stratF: STRATF,
     zfut: ZFUT
   };
 }

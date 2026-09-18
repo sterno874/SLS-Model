@@ -6,14 +6,14 @@ const T1=TRIAL.eventMonths.interim,T2=TRIAL.eventMonths.december2025,T3=TRIAL.ev
 const E1=TRIAL.eventCounts.interim,E2=TRIAL.eventCounts.december2025,E3=TRIAL.eventCounts.may2026, THRESH=TRIAL.designHr, IFLOOR=0.547; // IFLOOR is a modeled translation, not a disclosed interim result
 const CURRENT_EVENT_ANCHOR={count:78,date:'2026-05-11',month:63,src:'https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html',label:'Q1 2026 PR'};
 const CURRENT_EVENT_STATUS={countLower:78,countUpper:79,date:'2026-08-11',month:T4,src:'https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx',label:'model interpretation of “approaching” the 80th event',caveat:'SELLAS did not disclose a numeric count or data cutoff. Treating the phrase as 78–79 events on Aug 11 is an explicit, optional model assumption.'};
-const CURRENT_PUBLIC_SEARCH={date:'2026-09-16',month:67.2,label:'no 80th-event or topline announcement found',caveat:'Announcement-status observation only. It is not encoded as an event-count bound because database lock and reporting can lag the event.'};
+const CURRENT_PUBLIC_SEARCH={date:'2026-09-18',month:67.3,label:'no official 80th-event or topline announcement found',caveat:'Official IR/SEC announcement-status observation only. It is not encoded as an event-count bound because database lock and reporting can lag the event.'};
 const PR_SOURCES={60:{date:'2025-01-23',src:'https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html',label:'Jan 2025 interim'},
   72:{date:'2025-12-29',src:'https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html',label:'Dec 2025 72-event'},
   78:{date:'2026-05-11',src:CURRENT_EVENT_ANCHOR.src,label:'May 2026 78-event/Q1'}};
 const HRMAX=1.0; // gauge scale
 const ZFINAL=2.012;             // O'Brien-Fleming FINAL efficacy boundary (Z) ~ at 80 events
 function rmst(fn,p,tau){let s=0;const h=0.25;for(let t=0;t<tau;t+=h)s+=(fn(t,p)+fn(t+h,p))/2*h;return s;} // restricted mean survival time (area under S to tau)
-const ZEFF=2.34, ZFUT=0.4, STRATF=0.90; // interim efficacy boundary Z; mild futility Z; stratified log-rank efficiency
+const ZEFF=2.34, ZFUT=0.4; // interim efficacy boundary Z; mild futility Z
 function Phi(x){const s=x<0?-1:1;x=Math.abs(x)/Math.SQRT2;const t=1/(1+0.3275911*x);const y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);return 0.5*(1+s*y);}
 function phi(x){return Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);}
 function monthLabel(m){const d=new Date(2021,1,1);d.setMonth(d.getMonth()+Math.round(Math.min(m,120)));return "("+d.toLocaleString('en-US',{month:'short',year:'numeric'})+")";}
@@ -139,16 +139,25 @@ function armDeaths(T,p,baseFn,bins){
   }
   return total;
 }
-function armAlive(T,p,survivalFn,bins){
+function armStatus(T,p,survivalFn,bins){
   bins=bins||180;let alive=0;
+  let administrativelyCensored=0;
   for(let i=0;i<bins;i++){
     const e0=LMAX*i/bins,e1=LMAX*(i+1)/bins,em=(e0+e1)/2,w=enrollCDF(e1,p.mid,p.k)-enrollCDF(e0,p.mid,p.k);
     if(em>=T)continue;
     const follow=T-em;
-    alive+=N_ARM*w*survivalFn(follow,p)*censorSurvival(follow,p)*hctRetention(follow,p);
+    const trueAlive=N_ARM*w*survivalFn(follow,p);
+    alive+=trueAlive;
+    administrativelyCensored+=trueAlive*censorSurvival(follow,p)*hctRetention(follow,p);
   }
-  return alive;
+  const enrolled=N_ARM*enrollCDF(T,p.mid,p.k);
+  const baseFn=survivalFn===sGPS?sGPSbase:sBATbase;
+  const observedDeaths=armDeaths(T,p,baseFn,bins);
+  const withoutObservedDeath=Math.max(0,enrolled-observedDeaths);
+  const ltfuCensored=Math.max(0,withoutObservedDeath-administrativelyCensored);
+  return{enrolled,alive,observedDeaths,withoutObservedDeath,administrativelyCensored,ltfuCensored};
 }
+function armAlive(T,p,survivalFn,bins){return armStatus(T,p,survivalFn,bins).alive;}
 function eventsAt(T,p,bins){return armDeaths(T,p,sBATbase,bins)+armDeaths(T,p,sGPSbase,bins);}
 // Forward projection locked to confirmed PR anchors (78 @ m63); model increments only beyond anchor
 function eventsAtAnchored(T,p,bins){bins=bins||110;if(T<T3)return eventsAt(T,p,bins);const modelAtAnchor=eventsAt(T3,p,bins);return E3+(eventsAt(T,p,bins)-modelAtAnchor);}
@@ -231,29 +240,29 @@ function mcPathToT80(q,bins,u,iterations){return t80Quantile(q,u==null?0.5:u,T4,
 // ---------- HR (Pike) ----------
 function scoreParts(T,p,h){
   h=h||1;let Ob=0,Og=0,Eb=0,Eg=0,U=0,V=0;
-  const sf=(p.stratF!=null?p.stratF:STRATF),fh=!!p.fh,e=isElnModel(p)?elnRuntime(p):null;
-  const strata=e?ELN_KEYS:[null];
-  for(const key of strata){
-    const nScale=key?N_ARM*e.mix[key]:N_ARM;
-    for(let t=0;t<T;t+=h){
-      const b=armStep(T,p,"bat",t,h,nScale,key),g=armStep(T,p,"gps",t,h,nScale,key),nt=b.risk+g.risk;
-      if(nt<1e-9)continue;
-      const dt=b.deaths+g.deaths;
-      Ob+=b.deaths;Og+=g.deaths;Eb+=dt*b.risk/nt;Eg+=dt*g.risk/nt;
-      const pooled=key?0.5*(elnStratumSurvival(t,p,key,"bat")+elnStratumSurvival(t,p,key,"gps")):poolS(t,p);
-      const wt=fh?(1-pooled):1;
-      U+=wt*(b.deaths-dt*b.risk/nt);
-      V+=wt*wt*dt*(b.risk/nt)*(g.risk/nt);
-    }
+  const fh=!!p.fh;
+  // ELN groups construct each arm's marginal survival curve; they are not
+  // REGAL primary-analysis strata. The published analysis used other baseline
+  // factors, including poor-vs-other cytogenetics, whose joint allocations and
+  // arm effects are unavailable. Score only the marginal arm risk sets rather
+  // than inventing those data or stratifying on ELN labels.
+  for(let t=0;t<T;t+=h){
+    const b=armStep(T,p,"bat",t,h,N_ARM,null),g=armStep(T,p,"gps",t,h,N_ARM,null),nt=b.risk+g.risk;
+    if(nt<1e-9)continue;
+    const dt=b.deaths+g.deaths;
+    Ob+=b.deaths;Og+=g.deaths;Eb+=dt*b.risk/nt;Eg+=dt*g.risk/nt;
+    const wt=fh?(1-poolS(t,p)):1;
+    U+=wt*(b.deaths-dt*b.risk/nt);
+    V+=wt*wt*dt*(b.risk/nt)*(g.risk/nt);
   }
-  const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb),z=(V<1e-9)?0:(U/Math.sqrt(V))*Math.sqrt(sf);
+  const hr=(Eb<1e-9||Eg<1e-9)?NaN:(Og/Eg)/(Ob/Eb),z=(V<1e-9)?0:U/Math.sqrt(V);
   return{hr,z,events:Ob+Og,Ob,Og,Eb,Eg,U,V};
 }
 function hazardRatio(T,p){return scoreParts(T,p,0.5).hr;}
 // HR gauge display state: separates interim IA floor (@ m46) from final readout threshold
 function hrGaugeState(p,cutoff,bins,iterations){bins=bins||110;const hrInterim=hazardRatio(T1,p),hrM58=hazardRatio(T2,p);const{t80,Tan,Dan}=t80Analysis(p,cutoff,bins,null,iterations);const aFin=analyzeLR(Tan,p);const hrReadout=isNaN(aFin.hr)?null:aFin.hr,hrForFinal=hrReadout!=null?hrReadout:hrM58;return{hrInterim,hrM58,hrReadout,zReadout:aFin.z,Tan,Dan,t80,readoutSameAsM58:Tan===T2,interimClearsFloor:!isNaN(hrInterim)&&hrInterim>IFLOOR,interimWouldStop:!isNaN(hrInterim)&&hrInterim<=IFLOOR,hrForFinal,finalClears:Number.isFinite(aFin.z)&&aFin.z>ZFINAL};}
-// Expected unstratified score with an information-efficiency multiplier.
-// Actual REGAL strata are unavailable, so this is not a patient-level stratified analysis.
+// Expected unstratified score from marginal arm curves. Actual REGAL strata
+// cannot be reconstructed from the available aggregate inputs.
 function analyzeLR(T,p){return scoreParts(T,p,0.5);}
 // conditional power given the interim landed in the CONTINUE zone [zfut,ZEFF]; returns P(continue) & conditional power
 function condPow(thIA,th80,Dan,zfut){const zf=(zfut!=null?zfut:ZFUT),finalInfo=Math.max(60,Dan||80);const rho=Math.sqrt(60/finalInfo),s=Math.sqrt(Math.max(1e-6,1-rho*rho));let num=0,den=0;const M=24,lo=zf,hi=ZEFF,h=(hi-lo)/M;for(let i=0;i<=M;i++){const z=lo+i*h,wt=(i===0||i===M)?1:(i%2?4:2),f=phi(z-thIA);den+=wt*f;num+=wt*f*Phi((th80+rho*(z-thIA)-ZFINAL)/s);}den*=h/3;num*=h/3;return{Pc:den, cp:den>1e-12?num/den:0};}
@@ -347,11 +356,11 @@ function inverseSolve(base, cap3){
 
 export {
   LN2, N_TOTAL, N_ARM, LMAX, T1, T2, T3, T4, E1, E2, E3, THRESH, IFLOOR, TX_MONTH,
-  CURRENT_EVENT_ANCHOR, CURRENT_EVENT_STATUS, CURRENT_PUBLIC_SEARCH, PR_SOURCES, HRMAX, ZFINAL, rmst, ZEFF, ZFUT, STRATF,
+  CURRENT_EVENT_ANCHOR, CURRENT_EVENT_STATUS, CURRENT_PUBLIC_SEARCH, PR_SOURCES, HRMAX, ZFINAL, rmst, ZEFF, ZFUT,
   Phi, phi, monthLabel, monthToDate, fmtCalMonth, fmtCalRange,
   lpois, pois, poisLE, rawC, enrollCDF, Stx, sBATbase, sGPSbase, txMix, censorSurvival, hctRetention, armEventSurvival,
   isElnModel, normalizeMix, elnRuntime, elnRiskBase, elnBATBase, elnGPSBase, elnStratumSurvival, elnArmSurvival,
-  sBAT, sGPS, poolS, armStep, armDeaths, armAlive, eventsAt, eventsAtAnchored, eventsAtStatusConditioned,
+  sBAT, sGPS, poolS, armStep, armDeaths, armStatus, armAlive, eventsAt, eventsAtAnchored, eventsAtStatusConditioned,
   T80PrPace, T80, t80Analysis, mcPathToT80, t80ConditionalCdf, t80Quantile, eventsBeforeT80, usesStatusAssumption, statusLogLikelihood,
   hazardRatio, analyzeLR, hrGaugeState, condPow, interimContribution, Tfor, medianOf, consistent, passesVerdict, BAT_MED_CAP, isBiologicallyPlausible, autofitCure,
   eventErr, bisectField, batcFor3yrCap, inverseSolve,

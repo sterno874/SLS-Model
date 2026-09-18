@@ -10,7 +10,6 @@ import {
   ZFINAL,
   ZEFF,
   ZFUT,
-  STRATF,
   T1,
   T2,
   T3,
@@ -68,10 +67,10 @@ test("golden: hazardRatio @ m46 for best preset ≈ 0.299", () => {
   assert.ok(Math.abs(hazardRatio(T1, best) - 0.299050) < 0.0002);
 });
 
-test("golden: unified score @ m58 HR ≈ 0.263, z ≈ 5.34", () => {
+test("golden: unified score @ m58 HR ≈ 0.263, z ≈ 5.62", () => {
   const lr = analyzeLR(T2, best);
   assert.ok(Math.abs(lr.hr - 0.262507) < 0.001);
-  assert.ok(Math.abs(lr.z - 5.335752) < 0.01);
+  assert.ok(Math.abs(lr.z - 5.624377) < 0.01);
   assert.ok(lr.z > 0, "GPS should beat BAT (positive z)");
 });
 
@@ -237,7 +236,7 @@ test("golden: inverseSolve cw42 yields bat≈13, gpsu≈40.75", () => {
   assert.ok(Math.abs(ir.sol.bat - 13) < 0.01);
   assert.ok(Math.abs(ir.sol.gpsu - 40.75) < 0.01);
   assert.ok(ir.sol.batc < 0.001);
-  assert.ok(passesVerdict(Object.assign({}, ir.sol, { batk: 1, fh: false, stratF: 0.9, zfut: 0.4 })));
+  assert.ok(passesVerdict(Object.assign({}, ir.sol, { batk: 1, fh: false, zfut: 0.4 })));
 });
 
 // ---------- verdict / median ----------
@@ -305,13 +304,11 @@ test("monthLabel returns parenthetical calendar string", () => {
   assert.match(monthLabel(63), /^\([A-Z][a-z]{2} \d{4}\)$/);
 });
 
-test("analyzeLR z uses default STRATF=0.9 when stratF omitted", () => {
-  const p = mk({});
-  delete p.stratF;
-  const lr = analyzeLR(T2, p);
-  const withExplicit = analyzeLR(T2, mk({ stratF: 0.9 }));
-  assert.ok(Math.abs(lr.z - withExplicit.z) < 1e-12);
-  assert.ok(Math.abs(lr.z - 5.335752) < 0.001);
+test("retired stratF input cannot alter the marginal score", () => {
+  const lr = analyzeLR(T2, mk({}));
+  const withLegacyField = analyzeLR(T2, mk({ stratF: 0.1 }));
+  assert.ok(Math.abs(lr.z - withLegacyField.z) < 1e-12);
+  assert.ok(Math.abs(lr.z - 5.624377) < 0.001);
 });
 
 test("eventsAt applies dropout censoring: critique preset", () => {
@@ -379,9 +376,8 @@ for (const name of Object.keys(INV)) {
 }
 
 // ---------- exported statistical constants ----------
-test("stat constants: ZFINAL, ZEFF, ZFUT, STRATF", () => {
+test("stat constants: ZFINAL, ZEFF, ZFUT", () => {
   assert.equal(ZFINAL, 2.012);
   assert.equal(ZEFF, 2.34);
   assert.equal(ZFUT, 0.4);
-  assert.equal(STRATF, 0.9);
 });

@@ -116,7 +116,7 @@ function runInverse(data) {
     const cap = truncatedNormal(baseCap, 1.5, 12, 22, rn, Math.random);
     const p = {
       osmode: "itt", batk: ctr.batk, fh: ctr.fh, assumeStatus: ctr.assumeStatus,
-      stratF: ctr.stratF, zfut: ctr.zfut, delay: ctr.delay, xtx: ctr.xtx,
+      zfut: ctr.zfut, delay: ctr.delay, xtx: ctr.xtx,
       cens: ctr.cens, mid: ctr.mid, k: ctr.k,
       gpsc: truncatedNormal(ctr.gpsc, gpscSd, 0.05, 0.75, rn, Math.random), bat: 8
     };

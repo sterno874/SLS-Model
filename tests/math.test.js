@@ -238,8 +238,8 @@ test("bear preset fits anchors and HR near threshold", () => {
   assert.ok(hr >= 0.52 && hr < 0.636);
 });
 
-test("header best-est defaults: ELN-explicit GPS readout HR ~0.631", () => {
-  assert.ok(Math.abs(computeFrozenBestEst().gpsHr - 0.631) < 0.02);
+test("header best-est defaults: recalibrated ELN marginal GPS readout HR ~0.504", () => {
+  assert.ok(Math.abs(computeFrozenBestEst().gpsHr - 0.503593) < 0.002);
 });
 
 test("fmtCalMonth and monthToDate agree", () => {

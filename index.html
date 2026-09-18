@@ -29,11 +29,11 @@
 </div>
 <header>
   <div id="bestEstStrip" class="best-est-strip embed-hide" role="region" aria-label="Biology-first risk-adjusted equity per share">
-    <div class="best-est-item best-est-item--scenario" title="Biology-first (bullish) clinical scenario: 42% absolute GPS plateau, cw42 inverse. Risk-adj equity $/sh uses separate user priors P(GPS)/P(SLS-009), not Tab 1 clinical P(win).">
+    <div class="best-est-item best-est-item--scenario" title="Biology-first clinical scenario: ELN prognostic mixture with risk-specific durable-response assumptions. Risk-adj equity $/sh uses separate user priors P(GPS)/P(SLS-009), not Tab 1 clinical P(win).">
       <span class="best-est-label">Scenario</span>
-      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">Biology-first (bullish) · risk-adj @ P(GPS)=65%</span>
+      <span class="best-est-val best-est-val--scenario" id="bePresetLabel">ELN central · 10% OS LTFU · risk-adj @ P(GPS)=65%</span>
     </div>
-    <div class="best-est-item" title="Projected readout HR from biology-first Best Available Guess (42% cure, cw42 inverse) @ ~80 events — matches the final HR gauge. Neutral-ridge HR ~0.45–0.64 remains plausible under identifiability. Separate from valuation P(GPS).">
+    <div class="best-est-item" title="Projected marginal-arm readout HR from the biology-first Best Available Guess @ ~80 events — matches the final HR gauge. ELN groups construct the curves but are not test strata. Separate from valuation P(GPS).">
       <span class="best-est-label">GPS readout HR <span class="tag m">model</span></span>
       <span class="best-est-val" id="beGpsHr">—</span>
       <span class="best-est-sub" id="beRidgeNote">Neutral-ridge HR ~0.45–0.64</span>
@@ -64,7 +64,7 @@
   <div class="hdr-top">
     <div class="hdr-title-block">
       <h1>SELLAS Life Sciences ($SLS) — Interactive Model</h1>
-      <p class="hdr-hr-callout embed-hide" id="hdrHrCallout" title="Model-implied readout HR anchors — not disclosed trial data"><span class="tag m">HR anchors</span> Biology-first ~0.26 · Moderate DD ~0.40 · Neutral ridge ~0.45–0.64</p>
+      <p class="hdr-hr-callout embed-hide" id="hdrHrCallout" title="Unstratified marginal-arm readout HR anchors — not disclosed trial data"><span class="tag m">HR anchors</span> Biology-first ~0.50 · Moderate DD ~0.64 · Legacy pooled ridge ~0.45–0.64</p>
       <div class="sub hdr-disclaimer">Primary-sourced models; adjustable sliders = undisclosed assumptions. <a href="#explain" class="hdr-link" aria-label="Go to Explain tab for methodology" onclick="document.querySelector('.tabbtn[data-tab=explain]').click();return false;">Go to Explain tab for methodology</a> &amp; full disclaimers. Not investment advice.</div>
     </div>
     <div class="readout-estimate no-embed" id="readoutEstimate" aria-live="polite" hidden>
@@ -114,17 +114,17 @@
     <details class="howworks howworks-inline">
       <summary>How this works</summary>
       <div class="howworks-body">
-      <p><span class="tag f">Fact</span> SELLAS reports <b>pooled</b> death counts (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60</a> → <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72</a> → <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78</a>) from an ITT trial (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>) — not which arm each death belongs to. The <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">Aug 11 Q2 update</a> officially said “approaching” 80, so the model conditions on 78 or 79 events through that date. No announcement was found through Sep 16, but that later silence is <b>not</b> treated as an event-count bound because database lock and reporting can lag the event.</p>
+      <p><span class="tag f">Fact</span> SELLAS reports <b>pooled</b> death counts (<a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">60</a> → <a href="https://www.globenewswire.com/news-release/2025/12/29/3210926/0/en/SELLAS-Life-Sciences-Provides-Update-on-Pivotal-Phase-3-REGAL-Trial-of-Galinpepimut-S-GPS-in-Acute-Myeloid-Leukemia-AML.html" target="_blank" rel="noopener">72</a> → <a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">78</a>) from an ITT trial (<a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">NCT04229979</a>) — not which arm each death belongs to. The <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">Aug 11 Q2 update</a> officially said “approaching” 80; interpreting that as 78 or 79 events is an explicit model assumption. No official announcement was found through Sep 18, but that later silence is <b>not</b> treated as an event-count bound because database lock and reporting can lag the event.</p>
       <p><b>What the chart shows:</b> Model overall-survival curves from randomization—not patient-level Kaplan–Meier estimates. Default curves mix favorable/intermediate/adverse prognostic assumptions within each arm; legacy mode uses one homogeneous curve per arm.</p>
-      <p><b>Hazard ratio (HR):</b> Pike/O–E descriptive ratio from expected risk sets. The published primary analysis is a Cox model stratified by CR1 duration, poor-vs-other cytogenetics, CR2/CRp2 and MRD. Patient-level factors are unavailable, so the score and modeled OBF boundaries are approximations; HR 0.636 is the design alternative, not the formal win rule (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>).</p>
+      <p><b>Hazard ratio (HR):</b> Pike/O–E descriptive ratio from pooled marginal-arm risk sets. The published primary analysis is a Cox model stratified by CR1 duration, poor-vs-other cytogenetics, CR2/CRp2 and MRD. Poor cytogenetics is not the same category as ELN adverse. Because patient-level analysis factors are unavailable, the app does not reconstruct REGAL stratification or use ELN labels as test strata; HR 0.636 is the design alternative, not the formal win rule (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>).</p>
       <p><b>Monte Carlo P(significant):</b> Sample documented input uncertainty → weight draws by an approximate Poisson event-increment likelihood → score the final analysis at 80 deaths. Endpoint reach by a selected date is reported separately. Percentile ribbons are model intervals, not observed confidence intervals.</p>
       <p><b>Anchor-constrained inversion:</b> Mandatory constraint = reproduce event anchors (60/72/78). GPS cure fraction is the swept structural assumption (cw35/cw42/cw50 + inversion MC); least-squares solver derives implied BAT median/tail and GPS uncured mOS. HR and mOS are outputs — still non-identifiable along the GPS-cure ↔ BAT-heterogeneity ridge (<a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">critique thread</a>).</p>
       <details class="math-detail">
         <summary>Show math</summary>
         <div class="math-detail-body">
-          <div class="formula">Expected deaths @ T = Σ<sub>enrollment</sub> N<sub>arm</sub> · w<sub>enroll</sub> · (1 − S(T − enroll)) · (1 − censor/2)</div>
-          <div class="formula">HR ≈ (O<sub>GPS</sub>/E<sub>GPS</sub>) ÷ (O<sub>BAT</sub>/E<sub>BAT</sub>) &nbsp;·&nbsp; Z = (Σ w(O−E)) / √(Σ w²V) · √η<sub>strat</sub></div>
-          <div class="formula">MC weight ∝ Pois(60|λ<sub>46</sub>) · Pois(12|λ<sub>58</sub>−λ<sub>46</sub>) · Pois(6|λ<sub>63</sub>−λ<sub>58</sub>) · P(Δ≤1 through official m66 Q2 status)</div>
+          <div class="formula">Expected observed deaths @ T = Σ<sub>enrollment</sub> N<sub>arm</sub> · w<sub>enroll</sub> · ∫ C(u)·[−dS(u)], where C(u)=(1−LTFU<sub>36</sub>)<sup>u/36</sup></div>
+          <div class="formula">HR ≈ (O<sub>GPS</sub>/E<sub>GPS</sub>) ÷ (O<sub>BAT</sub>/E<sub>BAT</sub>) &nbsp;·&nbsp; Z = (Σ w(O−E)) / √(Σ w²V), using pooled marginal-arm risk sets</div>
+          <div class="formula">MC weight ∝ Pois(60|λ<sub>46</sub>) · Pois(12|λ<sub>58</sub>−λ<sub>46</sub>) · Pois(6|λ<sub>63</sub>−λ<sub>58</sub>) · P(Δ≤1 through optional m66 wording interpretation)</div>
           <div class="formula">Binding interim: weight × P(continue) · win = conditional power with ρ = √(60/80)</div>
         </div>
       </details>
@@ -135,7 +135,7 @@
     <button type="button" class="methodlink" onclick="toggleMethod('m-gps')">Methodology</button>
   </div>
   <div class="regal-limitations no-print" role="note">
-    <b>Limitations</b> <span class="tag u">caveats</span> — Blinded pooled death counts fix the timeline but <b>not the arm split</b> (GPS vs BAT): many parameter sets fit 60/72/78, including HR ≈ 1 null-effect worlds. The Sep 16 no-announcement status is weaker than an announced count and can be affected by reporting lag. HR gauges and curves are <span class="tag m">model outputs</span> (Pike/stratified log-rank approximations), not the SAP stratified Cox. Calendar months assume trial month 0 = 8 Feb 2021.
+    <b>Limitations</b> <span class="tag u">caveats</span> — Blinded pooled death counts fix the timeline but <b>not the arm split</b> (GPS vs BAT): many parameter sets fit 60/72/78, including HR ≈ 1 null-effect worlds. The Sep 18 no-official-announcement status is weaker than an announced count and can be affected by reporting lag. HR gauges and curves are <span class="tag m">model outputs</span> from an unstratified marginal-arm score, not the SAP stratified Cox. Calendar months assume trial month 0 = 8 Feb 2021.
   </div>
   <section class="eln-model-panel no-print" aria-labelledby="elnModelTitle">
     <div class="eln-model-head">
@@ -156,7 +156,7 @@
         </select>
       </label>
     </div>
-    <p class="field-note"><span class="tag a">assumption ranges</span> REGAL has not disclosed its ELN mix or arm-level ELN outcomes. These are prognostic strata, not a reconstruction of all randomization factors. Published 95% CIs are shown only where a source reported them; simulation ribbons are 90% model intervals.</p>
+    <p class="field-note"><span class="tag a">assumption ranges</span> REGAL has not disclosed its ELN mix or arm-level ELN outcomes. ELN groups are used only to build each arm's marginal survival curve; they are not primary-analysis strata, and ELN adverse is not interchangeable with poor cytogenetics. Published 95% CIs are shown only where a source reported them; simulation ribbons are 90% model intervals.</p>
     <details id="elnInputs">
       <summary>ELN values and uncertainty inputs</summary>
       <div class="eln-input-grid">
@@ -169,12 +169,12 @@
         <label>BAT 3y OS favorable %<input id="bat3Fav" type="number" min="0.1" max="79" step="0.1" value="33"></label>
         <label>BAT 3y OS intermediate %<input id="bat3Int" type="number" min="0.1" max="79" step="0.1" value="20"></label>
         <label>BAT 3y OS adverse %<input id="bat3Adv" type="number" min="0.1" max="79" step="0.1" value="4"></label>
-        <label>GPS durable favorable %<input id="gpsDurFav" type="number" min="0" max="85" step="1" value="60"></label>
-        <label>GPS durable intermediate %<input id="gpsDurInt" type="number" min="0" max="85" step="1" value="37"></label>
+        <label>GPS durable favorable %<input id="gpsDurFav" type="number" min="0" max="85" step="1" value="74"></label>
+        <label>GPS durable intermediate %<input id="gpsDurInt" type="number" min="0" max="85" step="1" value="51"></label>
         <label>GPS durable adverse %<input id="gpsDurAdv" type="number" min="0" max="85" step="1" value="0"></label>
         <label>Non-durable survival multiplier<input id="gpsNonDurableGain" type="number" min="1" max="2" step="0.05" value="1"></label>
         <label>BAT post-randomization HCT %<input id="batXtx" type="number" min="0" max="30" step="1" value="12"></label>
-        <label>GPS post-randomization HCT %<input id="gpsXtx" type="number" min="0" max="30" step="1" value="13"></label>
+        <label>GPS post-randomization HCT %<input id="gpsXtx" type="number" min="0" max="30" step="1" value="12"></label>
       </div>
       <p id="elnUncertaintySummary" class="field-note">Preset ranges: mix 15–32 / 42–62 / 16–35%; BAT subgroup mOS 16–25 / 13.5–20.2 / 9–16m; subgroup 3y OS 25–42 / 14–25 / 1–9%. All are assumption ranges.</p>
     </details>
@@ -187,18 +187,18 @@
       </div>
       <div class="master-sweep-readout" aria-live="polite">
         <b id="masterSweepLabel">Biology-first</b>
-        <span>HR <b id="masterSweepHr">~0.25</b></span>
+        <span>HR <b id="masterSweepHr">~0.50</b></span>
         <span id="masterSweepFit">60/72/78 fit ✓</span>
       </div>
     </div>
     <label class="sr-only" for="masterSweep">Sweep from constrained bearish to bullish REGAL outcomes</label>
     <input type="range" id="masterSweep" min="0" max="100" step="1" value="75" aria-describedby="masterSweepNote"/>
     <div class="master-sweep-axis" aria-hidden="true">
-      <span>Constrained bear<br><small>HR ~0.68 · miss</small></span>
-      <span>Critique<br><small>HR ~0.48</small></span>
-      <span>Moderate<br><small>HR ~0.39</small></span>
-      <span>Biology-first<br><small>HR ~0.25</small></span>
-      <span>Bull<br><small>HR ~0.18</small></span>
+      <span>Constrained bear<br><small>HR ~0.83 · miss</small></span>
+      <span>Critique<br><small>HR ~0.74</small></span>
+      <span>Moderate<br><small>HR ~0.64</small></span>
+      <span>Biology-first<br><small>HR ~0.50</small></span>
+      <span>Bull<br><small>HR ~0.42</small></span>
     </div>
     <div class="test-weight-control">
       <div class="test-weight-copy">
@@ -212,23 +212,23 @@
         <span class="test-weight-option test-weight-weighted">Late-weighted FH(0,1)</span>
       </label>
     </div>
-    <p class="test-weight-note">The published design specifies a stratified Cox model. The default score is a primary-like approximation; FH(0,1) is an exploratory sensitivity that gives later deaths more influence and can favor delayed separation.</p>
+    <p class="test-weight-note">The published design specifies a stratified Cox model, but the required patient-level factors are unavailable. The default is therefore an unstratified marginal-arm log-rank score; FH(0,1) is an exploratory sensitivity that gives later deaths more influence and can favor delayed separation.</p>
     <p class="master-sweep-note" id="masterSweepNote">Drag to update both survival curves in real time. Uncertainty bands turn on automatically. Some conservative ELN points do not fit all blinded event anchors and are reported as misses rather than forced to fit; this is a one-dimensional scenario tour, not a posterior percentile.</p>
     <p class="master-sweep-note" id="masterSweepStateDescription" aria-live="polite">Current state: ELN-explicit · durable responders only. Projected final HR updates with the active model.</p>
   </section>
   <div class="methodpanel" id="m-gps" hidden>
     <b>What this tab computes.</b> Given arm-level survival curves you set, it (1) checks them against the announced blinded event counts, (2) estimates the hazard ratio and its statistical significance, and (3) runs a Bayesian Monte-Carlo posterior over the final HR.
     <h4>1 · Survival &amp; events</h4>
-    Default ELN mode builds favorable/intermediate/adverse BAT curves from subgroup mOS and 3-year OS assumptions, then allocates GPS durable responders within each risk group. Non-durable GPS patients follow their ELN baseline unless leaky benefit is selected. Legacy mode retains the homogeneous Weibull/mixture-cure family. Expected deaths use 63 patients per arm (126 randomized).
+    Default ELN mode builds favorable/intermediate/adverse BAT curves from subgroup mOS and 3-year OS assumptions, then allocates GPS durable responders within each risk group. Those subgroup curves are mixed first to form marginal BAT and GPS curves; ELN labels do not define the efficacy-test strata. Non-durable GPS patients follow their ELN baseline unless leaky benefit is selected. Legacy mode retains the homogeneous Weibull/mixture-cure family. Expected deaths use 63 patients per arm (126 randomized).
     <h4>2 · Hazard ratio &amp; significance</h4>
-    HR is descriptive via the Pike/O–E estimator. The implemented verdict uses the expected <b>log-rank score</b> <code>Z = (Σ w·(O−E))/√(Σ w²·V) · √(information-efficiency)</code> computed from censor-adjusted risk sets (unweighted <code>w=1</code>; optional Fleming-Harrington <code>w=1−S_pool</code>). The efficiency slider is an approximation because patient-level REGAL strata are unavailable. Win = <code>Z ≥ 2.01</code> (the O'Brien-Fleming final boundary, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>); HR 0.636 is the proportional-hazards design reference, not a second verdict rule. The interim HR ≈0.547 is likewise a model translation of the assumed OBF boundary—not a disclosed result.
+    HR is descriptive via the Pike/O–E estimator. The implemented verdict uses the expected <b>unstratified marginal-arm log-rank score</b> <code>Z = (Σ w·(O−E))/√(Σ w²·V)</code> computed from censor-adjusted marginal risk sets (unweighted <code>w=1</code>; optional Fleming-Harrington <code>w=1−S_pool</code>). REGAL's primary factors include poor-vs-other cytogenetics, but subgroup allocations, joint strata and arm effects are unavailable; the app does not invent them or substitute ELN adverse. The former unsourced 0.90 information-efficiency multiplier has been removed. Win = <code>Z ≥ 2.01</code> (the modeled O'Brien-Fleming final boundary, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>); HR 0.636 is the proportional-hazards design reference, not a second verdict rule. The interim HR ≈0.547 is likewise a model translation of the assumed OBF boundary—not a disclosed result.
     <h4>3 · Monte-Carlo posterior</h4>
     Sample priors with truncated-normal draws (slider = center, 1σ band = spread) → weight continuously by the <b>Poisson likelihood</b> of 60, +12, and +6 observed event increments. The optional Aug interpretation adds P(≤1 event after the May anchor); confirmed-only mode omits it. Binding interim mode weights by P(continue) and reports conditional power. Informational mode applies neither continuation nor futility selection. Every draw samples a T80 path, so event-time uncertainty is integrated rather than replaced by a median trigger.
     <h4>4 · Anchor-constrained inversion (inverse mixture-cure fit)</h4>
     <b>Direct parameterization</b> sets arm curves and checks announced pooled counts. <b>Anchor-constrained inversion</b> optimizes against 60 @ m46, 72 @ m58, and 78 @ m63 while sweeping the <b>GPS absolute plateau</b>. The optional Aug &lt;80 interpretation is separately toggleable. With BAT constrained by biology, the solver derives BAT median/tail and GPS post-onset residual median; all fitted quantities remain non-identifiable without the arm split. Practitioner framing: <a href="https://www.reddit.com/r/ValueInvesting/comments/1ri8rrb/sls_deepest_due_diligence_for_regal_trial_from_a/" target="_blank" rel="noopener">u/Confident-Web-7118 Part 1</a> · critique: <a href="https://www.reddit.com/r/pennystocks/comments/1h8v0zv/critique_of_confident_webs_sls_dd/" target="_blank" rel="noopener">u/uhdisj41</a>.
-    <div class="callout-note">Poke holes: the arm split is unidentifiable (blinded); priors do heavy lifting; the log-rank z is an expectation, not a patient-level resimulation; stratification/futility/test-weighting are undisclosed (adjustable). External public models (Vola Corvidae, MoAlbaek) are useful comparators, not model truth. Full citations in References below.</div>
+    <div class="callout-note">Poke holes: the arm split is unidentifiable (blinded); priors do heavy lifting; the log-rank z is an expectation, not a patient-level resimulation; actual within-stratum data, futility details and test weighting are unavailable. External public models (Vola Corvidae, MoAlbaek) are useful comparators, not model truth. Full citations in References below.</div>
     <h4 class="mt-md">Math verification (Jul 2026)</h4>
-    <div class="prose-sm">Audited inline functions against the formulas above: mixture-cure / Weibull survival (<code>S<sub>BAT</sub>=c+(1−c)·exp(−(t/λ)<sup>k</sup>)</code>, median scale <code>λ=bat/ln2<sup>1/k</sup></code>); ITT transplant mix; enrollment-weighted expected deaths; Pike HR <code>(O/E)<sub>GPS</sub>/(O/E)<sub>BAT</sub></code> at m58; stratified log-rank Z + OBF conditional power (<code>ρ=√(60/D)</code>); Poisson increment likelihood; inverse least-squares fit; SLS-009 fold/HR-equiv <code>bench/arm</code> under exponential assumption; valuation <code>peak=starts×pen×years×price</code>, EV=peak×multiple+platform. Spot checks: “No effect” preset HR≈1.000; CW cure preset HR≈0.19; inverse solver hits 72 events @ m58. Regression harness: <code>node verify_math.js</code>.</div>
+    <div class="prose-sm">Audited inline functions against the formulas above: mixture-cure / Weibull survival (<code>S<sub>BAT</sub>=c+(1−c)·exp(−(t/λ)<sup>k</sup>)</code>, median scale <code>λ=bat/ln2<sup>1/k</sup></code>); ITT transplant mix; enrollment-weighted expected deaths; marginal-arm Pike HR <code>(O/E)<sub>GPS</sub>/(O/E)<sub>BAT</sub></code>; unstratified log-rank Z + OBF conditional power (<code>ρ=√(60/D)</code>); Poisson increment likelihood; inverse least-squares fit; SLS-009 fold/HR-equiv <code>bench/arm</code> under exponential assumption; valuation <code>peak=starts×pen×years×price</code>, EV=peak×multiple+platform. Regression tests verify that ELN relabeling cannot alter a fixed pair of marginal curves.</div>
   </div>
 
 <div class="wrap">
@@ -239,8 +239,8 @@
     <div class="preset-start" id="presetStart" data-regal-mode="forward">
       <div class="pgrp">Start here</div>
       <div class="presets presets-best">
-        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 42% absolute GPS plateau. Kurosawa BAT 3-yr OS cap (~14%), 3-mo GPS onset delay, recalibrated 42.5-mo post-onset residual median. Binding interim is a modeling choice; the actual SAP stopping decision is not public.">Best Available Guess ★<span class="p-sub">42% plateau · binding-IA model · fits event likelihood</span></button>
-        <button type="button" class="p" data-preset="moderate" data-regal-mode="forward" title="CW compromise readout: ~28% GPS cure, moderate BAT tail — readout HR ~0.40 at ~80 events. Fits 60/72/78 anchors within tolerance; biologically plausible BAT cap.">Moderate DD (~0.40 HR)<span class="p-sub">CW compromise · readout HR ~0.40 · fits anchors</span></button>
+        <button type="button" class="p p-def p-best" data-preset="best" data-regal-mode="forward" title="Biology-first central case: 43.5% mix-weighted GPS durable allocation, 10% independent OS WCLFU by month 36, equal 12% post-randomization HCT sensitivity, and fixed ELN BAT assumptions. The durability allocation was minimally recalibrated to restore anchor compatibility after removing unsupported 26% censoring. Binding interim remains a modeling choice.">Best Available Guess ★<span class="p-sub">10% OS LTFU · 43.5% weighted durability · anchor-compatible</span></button>
+        <button type="button" class="p" data-preset="moderate" data-regal-mode="forward" title="Moderate durable-response assumptions with a marginal-arm readout HR ~0.64 at ~80 events. This fixed point overpredicts the blinded event anchors and is an assumption sensitivity, not an anchor fit.">Moderate DD (~0.64 HR)<span class="p-sub">Moderate ELN mixture · 69/85/89 event miss</span></button>
       </div>
       <div class="pgrp-hint callout-note" data-regal-mode="forward" id="bestIaCallout">The model-implied interim effect can cross the translated OBF boundary even though IDMC continued. That indicates tension between this structural scenario and the unknown stopping implementation; it is not evidence that the disclosed interim HR was above or below 0.547.</div>
       <label class="ia-toggle callout-note" data-regal-mode="forward" for="mcFloor" title="Binding IA soft-conditions Monte Carlo on no early stop (registrational default). Uncheck for informational/non-binding IA only — survival sliders unchanged.">
@@ -278,10 +278,10 @@
     <div class="pgrp" id="presetLabel" data-regal-mode="forward">Core CW stress tests</div>
     <div class="pgrp-hint" data-regal-mode="forward">Each preset stress-tests one specific concern from u/Confident-Web-7118 or u/uhdisj41 DD — not arbitrary slider positions.</div>
     <div class="presets" data-regal-mode="forward">
-      <button class="p" data-preset="bear" data-regal-mode="forward" title="Bear case: heterogeneous BAT long-tail (16%) plus 18% censoring keeps pooled events compatible while the modeled log-rank result is near the final boundary.">BAT tail holds survivors<span class="p-sub">Strong BAT tail · HR ~0.56 · boundary stress</span></button>
-      <button class="p" data-preset="bull" data-regal-mode="forward" title="CW bull case: high GPS cure (~40%), low BAT tail, immediate onset — optimistic DD read with readout HR ~0.19.">Bull: strong GPS cure<span class="p-sub">40% cure · low BAT tail · readout HR ~0.19</span></button>
-      <button class="p" data-preset="critique" data-regal-mode="forward" title="u/uhdisj41 critique: modest GPS benefit + biological BAT-tail ceiling — P(win) ~⅔, not CW's ~90%. Tests whether moderate efficacy still fits anchors.">Critique: ~⅔ coin flip<span class="p-sub">uhdisj41 moderate GPS · P(win) ~66%</span></button>
-      <button class="p" data-preset="cw" data-regal-mode="forward" title="CW Part 1 published forward parameters: BAT 9m, GPS cure ~41%, uncured ~36m, non-binding interim — P(win) ~85%. Source: u/Confident-Web-7118.">CW published point (~85%)<span class="p-sub">CW Part 1 params · 41% cure · non-binding IA</span></button>
+      <button class="p" data-preset="bear" data-regal-mode="forward" title="Bear case: heterogeneous BAT long-tail plus censoring produces a marginal-arm readout HR ~0.83 and materially overpredicts the blinded event anchors.">BAT tail holds survivors<span class="p-sub">HR ~0.83 · 70/86/90 event miss</span></button>
+      <button class="p" data-preset="bull" data-regal-mode="forward" title="Bull case: high risk-specific GPS durable fractions, low BAT tail and immediate onset — optimistic marginal-arm readout HR ~0.42; near the anchors but outside the fixed fit tolerance at month 58.">Bull: strong GPS durability<span class="p-sub">HR ~0.42 · 61/76/80 near-miss</span></button>
+      <button class="p" data-preset="critique" data-regal-mode="forward" title="u/uhdisj41-style stress: modest GPS benefit plus biological BAT-tail ceiling. Corrected marginal-arm readout HR ~0.74; the fixed point overpredicts blinded events.">Critique: modest GPS effect<span class="p-sub">HR ~0.74 · 68/82/86 event miss</span></button>
+      <button class="p" data-preset="cw" data-regal-mode="forward" title="CW-inspired forward assumptions represented in the ELN mixture; corrected marginal-arm readout HR ~0.50. This fixed point overpredicts blinded events.">CW-inspired point<span class="p-sub">HR ~0.50 · 64/80/84 event miss</span></button>
     </div>
     <div class="pgrp" id="presetInvGrp" data-regal-mode="inverse" hidden>Inverse anchor-locked</div>
     <div class="pgrp-hint" id="presetInvHint" data-regal-mode="inverse" hidden>Mandatory: fit 60/72/78. Sweep GPS cure fraction (cw35/cw42/cw50); implied medians and HR are derived — CW inverse methodology.</div>
@@ -294,8 +294,8 @@
     <div class="pgrp" id="presetEdgeLabel" data-regal-mode="forward">Identifiability edge cases</div>
     <div class="pgrp-hint" data-regal-mode="forward">Identifiability ridge demo: passes strict event-fit diagnostics but fails biological BAT caps—pedagogical, not a live scenario.</div>
     <div class="presets" id="presetEdge" data-regal-mode="forward">
-      <button class="p" data-preset="noeffect" data-regal-mode="forward" title="Identifiability ridge demo: HR ≈ 1 with ~28% shared long-survivor tail fits 60/72/78 but requires BAT mOS ~24 m (>>15 m biological cap). Structurally possible on pooled counts; biologically rejected — not a credible null-effect clinical scenario.">Ridge: null effect (biology rejected)<span class="p-sub">HR ≈ 1 · fits anchors · BAT mOS ~24 m</span></button>
-      <button class="p" data-preset="capbreach" data-regal-mode="forward" title="Implausible biology stress: elevated BAT survival plus 15% censoring fits event anchors but produces readout HR ~0.70 and misses the modeled Z boundary. Red-hatched sliders expected.">Implausible BAT cap (stress)<span class="p-sub">BAT exceeds biology cap · readout HR ~0.70 miss</span></button>
+      <button class="p" data-preset="noeffect" data-regal-mode="forward" title="ELN no-effect stress: matched marginal arms give HR 1, but this fixed survival mixture overpredicts the blinded event anchors and fails the biological screen. It proves score neutrality, not event compatibility.">ELN null effect (event miss)<span class="p-sub">HR 1.00 · 77/95/100 event miss</span></button>
+      <button class="p" data-preset="capbreach" data-regal-mode="forward" title="Implausible biology stress: elevated BAT survival plus 15% censoring overpredicts event anchors, produces marginal-arm readout HR ~0.83 and misses the modeled Z boundary. Red-hatched sliders expected.">Implausible BAT cap (stress)<span class="p-sub">HR ~0.83 · 66/84/89 event miss</span></button>
     </div>
     <div class="pgrp" data-regal-mode="forward">Van der Maas email sensitivity</div>
     <div class="pgrp-hint" data-regal-mode="forward">u/neo2551 reported private correspondence giving median OS 16.8m (95% CI 12.3–27.4) and 3-year OS 18.6% (10.7–32.2) for a REGAL-like cohort. The underlying patient table, survival clock and transplant mix are not public, so these are external sensitivities—not verified anchors. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1w0lasw/aml_cr2_non_transplant_survival_data_over_bbq_van/" target="_blank" rel="noopener">Reddit thread</a></div>
@@ -382,10 +382,10 @@
     </div>
 
     <div class="ctrl">
-      <label for="cens">Censoring / dropout <span id="vCens">0%</span></label>
-      <input type="range" id="cens" min="0" max="50" step="1" value="26"/>
+      <label for="cens">Independent OS LTFU by month 36 <span id="vCens">10%</span></label>
+      <input type="range" id="cens" min="0" max="50" step="1" value="10"/>
       <div class="bands" id="band-cens"></div>
-      <small class="source-line">Lost-to-follow-up before death. Phase 2 GPS ~15% (<a href="https://www.onclive.com/view/maintenance-galinpepimut-s-appears-effective-and-safe-in-aml-in-second-cr" target="_blank" rel="noopener">Brayer/OncLive</a>). Differential dropout by arm not modeled.</small>
+      <small class="source-line"><b>True withdrawal/loss to OS follow-up only.</b> Not treatment discontinuation, relapse, transplant, or administrative censoring of a known-alive patient at data cutoff. Central 10% deliberately exceeds the ~7.2% pooled mean from oncology registration trials (5.8% experimental / 8.5% control at final analysis) to hedge REGAL's small, international, open-label design; sampled range 2–15%. REGAL-specific WCLFU and any arm imbalance are undisclosed. <a href="https://doi.org/10.6004/jnccn.2021.7015" target="_blank" rel="noopener">Parikh et al. 2021</a> · <a href="https://www.fda.gov/media/188274/download" target="_blank" rel="noopener">FDA OS guidance</a></small>
     </div>
     </div>
 
@@ -418,16 +418,11 @@
         <small>1.0 = constant hazard (exponential). &lt;1 = declining hazard (biologically favored for AML; fattens the BAT tail).</small>
       </div>
       <div class="ctrl">
-        <label for="stratF">Information-efficiency approximation <span id="vStratF">0.90</span></label>
-        <input type="range" id="stratF" min="0.80" max="1.00" step="0.01" value="0.90"/>
-        <small>Approximate information retained relative to an unstratified expected-score calculation. Patient-level strata are unavailable; this is not a reconstruction of the actual stratified test. 1.0 = no assumed loss.</small>
-      </div>
-      <div class="ctrl">
         <label for="zfut">Interim futility strictness (z) <span id="vZfut">0.40</span></label>
         <input type="range" id="zfut" min="0" max="1.2" step="0.05" value="0.4"/>
         <small>How clearly the interim had to beat futility. 0 = essentially none; higher = the interim ruled out weaker worlds. REGAL's exact futility rule is not public.</small>
       </div>
-      <small style="color:var(--muted)">Binding-vs-informational conditioning is toggled above. N=126 randomized, announced event counts, 80-event trigger, one-sided α=0.025, and PH design alternative HR 0.636 are sourced facts. Exact Z boundaries, futility and information efficiency are model implementations because the full SAP is not public (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
+      <small style="color:var(--muted)">Binding-vs-informational conditioning is toggled above. N=126 randomized, announced event counts, 80-event trigger, one-sided α=0.025, and PH design alternative HR 0.636 are sourced facts. Exact Z boundaries and futility are model implementations because the full SAP is not public; the displayed score is unstratified because actual within-stratum data are unavailable (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a>).</small>
     </details>
     </div>
   </div>
@@ -464,7 +459,7 @@
           </div>
           <div class="labels"><span>0.0</span><span>Early-stop floor 0.547 (@ 60 events, Z=2.34)</span><span>1.0</span></div>
         </div>
-        <p class="hr-metric-note">At the <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 interim</a>, IDMC continued — so the <em>actual</em> stratified interim cleared the OBF boundary (Z=2.34, HR≲0.547; <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>). The gauge below shows a <span class="tag m">model-implied</span> Pike HR at m46, which can differ. This is a <em>different</em> bar than the final win threshold below.</p>
+        <p class="hr-metric-note">At the <a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">Jan 2025 interim</a>, IDMC continued — the actual stratified analysis did not trigger early efficacy and cleared futility. Z=2.34 / HR≈0.547 is only the app's modeled proportional-hazards translation of an OBF efficacy boundary (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">Jamy &amp; Cicic 2025</a>). The gauge shows an <span class="tag m">unstratified model-implied</span> Pike HR at m46, which can differ.</p>
       </div>
 
       <div class="hr-metric hr-metric-final">
@@ -507,7 +502,7 @@
 <div class="mc-section">
   <div class="card mc-panel">
     <h2 id="mcPanelTitle">Monte Carlo — final-HR distribution</h2>
-    <div id="mcPanelHint" class="panel-lead">Samples truncated-normal priors and <b>weights every draw continuously by the Poisson likelihood</b> of 60 @ m46, +12 to m58, and +6 to m63. When enabled, the explicit Aug sensitivity also weights P(≤1 additional event by m66). Win uses modeled log-rank Z &gt; 2.01; HR 0.636 from the <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a> is the PH reference. September announcement silence is not converted into a count.</div>
+    <div id="mcPanelHint" class="panel-lead">Samples truncated-normal priors and <b>weights every draw continuously by the Poisson likelihood</b> of 60 @ m46, +12 to m58, and +6 to m63. When enabled, the explicit Aug sensitivity also weights P(≤1 additional event by m66). Each draw mixes ELN components into marginal arm curves before applying the unstratified modeled log-rank Z &gt; 2.01; this is not uncertainty over the unavailable SAP strata. HR 0.636 from the <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">design paper</a> is the PH reference. September announcement silence is not converted into a count.</div>
     <div class="mc-toolbar">
       <button class="p p-run" id="mcRun">▶ Run simulation (~4s)</button>
       <button class="p" id="mcNeutral" data-regal-mode="forward">Set Best Available Guess priors</button>
@@ -521,7 +516,7 @@
 <details class="feat-panel model-tables-panel" id="panelModelTables">
   <summary>Table view — CW-style layout using our calculations <span class="tag m">model</span></summary>
   <div class="panel-body">
-    <p class="cw-note">Uses familiar columns from u/Confident-Web-7118’s posts and replies—BAT/GPS medians, cure fraction, survival, event fit, alive split, HR and significance—but every value below is recomputed from <b>this app’s current sliders and methods</b>. It does not import CW’s fitted values or probabilities. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tpcgsn/request_for_confidentweb/" target="_blank" rel="noopener">Example format</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM format</a></p>
+    <p class="cw-note">Uses familiar columns from u/Confident-Web-7118’s posts and replies—BAT/GPS medians, cure fraction, survival, event fit, status split, HR and significance—but every value below is recomputed from <b>this app’s current sliders and methods</b>. Biological alive, without observed death, administrative censoring and independent LTFU are labeled separately. It does not import CW’s fitted values or probabilities. <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tpcgsn/request_for_confidentweb/" target="_blank" rel="noopener">Example format</a> · <a href="https://www.reddit.com/r/sellaslifesciences/comments/1tnh66g/why_the_randomization_window_leads_to_an/" target="_blank" rel="noopener">IRM format</a></p>
     <div class="model-table-toolbar no-print">
       <button class="p p-run" id="modelTablesRefresh">↻ Refresh tables</button>
       <button class="p p-run" id="modelTablesPrint">🖨 Print table report</button>
@@ -551,7 +546,7 @@
         <thead><tr><th>Trial month / calendar</th><th>Public reference</th><th>Our pooled deaths</th><th>BAT / GPS deaths</th><th>HR</th><th>Log-rank Z</th><th>Explanation</th></tr></thead>
         <tbody id="modelEventsBody"></tbody>
       </table></div>
-      <p class="model-table-footnote">Arm-level deaths, survivor split, HR and Z are model-derived because SELLAS remains blinded. Public numbers constrain only pooled deaths. HR is descriptive; the app’s significance verdict uses Z against the selected test boundary.</p>
+      <p class="model-table-footnote">Arm-level deaths, biological survival, follow-up status, HR and Z are model-derived because SELLAS remains blinded. “Without observed death” equals administrative censors still alive/retained plus independent-LTFU censors; biological alive overlaps both categories and is not added to them. Public numbers constrain only pooled deaths. HR is descriptive; the app’s significance verdict uses Z against the selected test boundary.</p>
     </div>
   </div>
 </details>
@@ -604,7 +599,7 @@
 <details class="feat-panel" id="panelT80">
   <summary>Time-to-80th-event simulator <span class="tag m">model</span></summary>
   <div class="panel-body">
-    <p class="cw-note">Conditional Poisson waiting-time simulation from confirmed <b>78 @ m63</b> and official <b>&lt;80 @ m66</b> on Aug 11. The hidden Aug 11 count is modeled as 78 or 79, then each path waits for two or one deaths. Runs 2,000 reduced-precision paths in a background worker. No announcement was found through Sep 16, but event time may precede announcement after database lock and review.</p>
+    <p class="cw-note">Conditional Poisson waiting-time simulation from confirmed <b>78 @ m63</b> and the optional interpretation of Aug 11 “approaching” as <b>&lt;80 @ m66</b>. The hidden Aug 11 count is modeled as 78 or 79, then each path waits for two or one deaths. Runs 2,000 reduced-precision paths in a background worker. No official announcement was found through Sep 18, but event time may precede announcement after database lock and review.</p>
     <button class="p p-run" id="t80Run">▶ Simulate 2k paths</button>
     <span id="t80Status" class="run-status"></span>
     <div id="t80Stats" class="stats-line"></div>
@@ -771,11 +766,11 @@
       <div><b>Trial:</b> REGAL Phase 3, N=126 randomized (expected 63/arm), AML CR2/CRp2, transplant-ineligible at entry, <b>open-label</b>, start 8 Feb 2021 <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT]</a></span></div>
       <div><b>Primary endpoint:</b> OS = death from ANY cause since randomization → <b>ITT, transplant NOT censored</b>; final analysis at 80 events <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>BAT arm (weak by design):</b> investigator's choice of observation/HMA/venetoclax/LDAC; FLT3- &amp; IDH-maintainable patients EXCLUDED <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT]</a></span></div>
-      <div><b>Design:</b> HR &lt; 0.636 = significance BAR (~50% power), NOT the design alternative (~0.48–0.53 for 90% power). 80 deaths, 1-sided α=0.025 <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
-      <div><b>Test:</b> Primary stratified Cox model; one-sided α=0.025 with Lan-DeMets O'Brien-Fleming spending. Displayed Z boundaries are model approximations, not published constants <span class="tag v">verified design</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
+      <div><b>Design:</b> HR 0.636 is the proportional-hazards design alternative/reference and approximately maps to the modeled final boundary at 80 deaths; it is not a standalone observed-HR win rule. One-sided α=0.025 <span class="tag v">verified design / modeled translation</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
+      <div><b>Test:</b> Primary Cox model stratified by CR1 duration, poor-vs-other cytogenetics, CR2/CRp2 and MRD; one-sided α=0.025 with Lan-DeMets O'Brien-Fleming spending. ELN adverse is not the poor-cytogenetics stratum. Displayed Z boundaries are model approximations, not published constants <span class="tag v">verified design</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Interim design:</b> O'Brien-Fleming, reviewed efficacy + futility + safety <span class="tag v">verified</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Enrollment:</b> first patient Feb 2021; completed Apr 2024; 127 described as enrolled then, 126 later confirmed randomized <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2024/04/29/2871255/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank" rel="noopener">[PR]</a></span></div>
-      <div><b>Event timeline:</b> 60 (Jan'25) · 72 (26 Dec'25) · 78 (11 May'26) · “approaching” 80 (11 Aug'26) · no 80th-event announcement found through 16 Sep'26 <span class="tag v">primary + public status</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[May]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">[Aug]</a></span></div>
+      <div><b>Event timeline:</b> 60 (Jan'25) · 72 (26 Dec'25) · 78 (11 May'26) · “approaching” 80 (11 Aug'26) · no official 80th-event announcement found through 18 Sep'26 <span class="tag v">primary + public status</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2026/05/12/3293399/0/en/sellas-life-sciences-reports-first-quarter-2026-financial-results-and-provides-corporate-update.html" target="_blank" rel="noopener">[May]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2026/SELLAS-Life-Sciences-Reports-Second-Quarter-2026-Financial-Results-and-Provides-Corporate-Update/default.aspx" target="_blank" rel="noopener">[Aug]</a></span></div>
       <div><b>Interim (60 deaths):</b> OBF efficacy boundary NOT crossed → not stopped early ⇒ actual interim HR &gt;≈0.547; futility cleared. "Continue w/o modification" Jan'25 &amp; Aug'25 <span class="tag v">verified</span> <span class="cite"><a href="https://www.globenewswire.com/news-release/2025/01/23/3014244/0/en/SELLAS-Life-Sciences-Announces-Positive-Outcome-of-Interim-Analysis-for-its-Pivotal-Phase-3-REGAL-Trial-of-GPS-in-Acute-Myeloid-Leukemia.html" target="_blank" rel="noopener">[Jan'25]</a> · <a href="https://ir.sellaslifesciences.com/news/News-Details/2025/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Interim-Analysis-of-REGAL-Phase-3-Study/default.aspx" target="_blank" rel="noopener">[Aug'25]</a></span></div>
       <div><b>Computed OBF boundaries:</b> interim Z=2.34 → HR≤0.547 to stop early; final Z=2.01 → win needs HR≤0.636 <span class="tag d">derived</span> <span class="cite"><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11760237/" target="_blank" rel="noopener">[design]</a></span></div>
       <div><b>Blinding:</b> open-label at sites; sponsor blinded to aggregate results <span class="tag v">verified</span> <span class="cite"><a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">[NCT]</a></span></div>
@@ -792,7 +787,7 @@
       <div><b>Cash:</b> $138.3M (Jun 30, 2026); H1 operating cash use $16.4M <span class="tag v">verified</span> <span class="cite"><a href="https://www.sec.gov/Archives/edgar/data/1390478/000139047826000012/sls-20260630.htm" target="_blank" rel="noopener">[Q2 10-Q]</a></span></div>
       <div><b>WT1 platform value:</b> modeled in Tab 3 — GPS (WT1 vaccine) + SLS-009 (separate CDK9 asset); shared sponsor only <span class="tag d">see Tab 3</span></div>
       <div><b>Arm-level split of the 72–78 deaths:</b> unknown (blinded) — the crux <span class="tag u">unknown</span></div>
-      <div><b>% censored / differential dropout:</b> not disclosed (Phase 2 GPS CR2 was ~15%); could bias KM/HR <span class="tag u">unknown</span></div>
+      <div><b>Independent OS WCLFU:</b> not disclosed. Model default 10% by month 36 (2–15% sampled); treatment discontinuation and administrative cutoff censoring are separate. Differential/informative loss could bias HR <span class="tag u">unknown + model</span></div>
       <div><b>Actual BAT median in-trial:</b> unknown; could exceed historical if enrolled population is healthier <span class="tag u">unknown</span></div>
       <div><b>Real stratified Cox HR &amp; p-value:</b> unknown until 80th event + unblinding <span class="tag u">unknown</span></div>
     </div>
@@ -814,6 +809,7 @@
       <li><b>Kurosawa S et al. <i>Haematologica</i> 2010</b> — 158 AML in CR2 <i>ineligible</i> for transplant: 3-yr OS 14% overall for the whole cohort (all relapsed, no-HCT, survived ≥2 mo — <em>not</em> a pure CR2 figure); CR2/no-HCT subgroups run higher (intermediate ~19%, unfavorable ~35%, favorable CBF ~50–78%). Conservative BAT anchor. <a href="https://haematologica.org/article/view/5781" target="_blank">Haematologica 2010</a> (PMID 20634493)</li>
       <li><b>Stahl M et al. — venetoclax-era R/R AML salvage</b> — modern CR2/salvage OS medians ~8–12m by mutation (NPM1/FLT3/TP53); durable survival still gated on transplant. <a href="https://pubmed.ncbi.nlm.nih.gov/33661271/" target="_blank">Blood Adv 2021</a></li>
       <li><b>REGAL enrollment &amp; discontinuation milestones</b> — first patient Feb 2021; 105 pts (ex-China) by Nov 2023; enrollment completed Apr 2024; 66 patients had discontinued <i>treatment</i> by Mar 2024 for an undisclosed mix of protocol-defined reasons. This is not an OS-censoring count. <a href="https://www.globenewswire.com/news-release/2024/04/29/2871255/0/en/SELLAS-Life-Sciences-Announces-Positive-Recommendation-of-Independent-Data-Monitoring-Committee-Following-Completion-of-Enrollment-in-REGAL-Phase-3-Study.html" target="_blank">Apr 2024 IDMC/enrollment PR</a></li>
+      <li><b>OS follow-up and censoring</b> — REGAL sends patients into long-term leukemia/OS follow-up after treatment; FDA says treatment discontinuation, subsequent therapy and intercurrent events should not ordinarily end OS follow-up. Parikh et al. found mean WCLFU at final analysis of 5.8% experimental and 8.5% control (ranges 0.7–11.8% / 1.1–19.2%) in the reporting subset of oncology registration trials. This supports the model's conservative common-arm 10% central value and 2–15% range, not a REGAL-specific estimate. <a href="https://clinicaltrials.gov/study/NCT04229979" target="_blank" rel="noopener">REGAL registry</a> · <a href="https://www.fda.gov/media/188274/download" target="_blank" rel="noopener">FDA OS guidance</a> · <a href="https://doi.org/10.6004/jnccn.2021.7015" target="_blank" rel="noopener">Parikh et al., JNCCN 2021</a></li>
       <li><b>SELLAS Nov 14, 2022 update</b> — blinded pooled mOS "approximately two-fold longer than originally anticipated" (design pooled 10.3m → ~20m). <a href="https://www.globenewswire.com/news-release/2022/11/14/2554907/0/en/SELLAS-Life-Sciences-Announces-Update-on-Phase-3-REGAL-Clinical-Trial-Evaluating-Lead-Asset-Galinpepimut-S-in-Acute-Myeloid-Leukemia.html" target="_blank">globenewswire.com (Nov 2022)</a></li>
       <li><b>AVALON — Todisco et al. <i>Cancer</i> 2023</b> — Italian real-world Ven+HMA cohort (190 pts incl. relapsed/refractory AML); R/R median OS in the single digits, durable survival gated on transplant. <a href="https://acsjournals.onlinelibrary.wiley.com/doi/10.1002/cncr.34608" target="_blank">Cancer 2023</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/41224500/" target="_blank">2025 transplant-bridge subanalysis</a></li>
       <li><b>2026 salvage/transplant calibration</b> — Fatima post-Ven-HMA failure supports heterogeneous 2m supportive/4m overall/6m active-salvage outcomes; Berdel HAM-VEN, Warraich post-HCT and Dumas first-relapse cohorts show that durable modern-salvage tails are heavily transplant/fitness-conditioned and should not lift no-HCT REGAL BAT directly. <a href="https://doi.org/10.1038/s41408-026-01612-w" target="_blank" rel="noopener">Fatima</a> · <a href="https://doi.org/10.3324/haematol.2026.301102" target="_blank" rel="noopener">Berdel</a> · <a href="https://doi.org/10.1002/ajh.70480" target="_blank" rel="noopener">Warraich</a> · <a href="https://doi.org/10.1111/bjh.70815" target="_blank" rel="noopener">Dumas</a></li>
@@ -828,7 +824,7 @@
       <li><b>External model — MoAlbaek Regal_modeling V2</b> — Aug 26 production bundle reports 91.97% under balanced priors (91.53–92.33% across named priors), with joint-history and interim-continuation conditioning. Cure-family concentration is model-structural; no HR/T80 posterior is serialized. <a href="https://github.com/moalbaek/Regal_modeling" target="_blank" rel="noopener">GitHub</a> · <a href="https://github.com/moalbaek/Regal_modeling/blob/main/data/regal_v2_result_bundle.json" target="_blank" rel="noopener">Result bundle</a></li>
       <li><b>External model — David Pham browser fork</b> — Aug 2026 changed interim floor and BAT/GPS grids, but no versioned result bundle exists under the new defaults. <a href="https://github.com/davidpham87/regal-fitter" target="_blank" rel="noopener">GitHub</a></li>
       <li><b>Control-arm overperformance meta-analysis</b> — Nalin et al., <i>Cancer</i> 2026 (<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12882696/" target="_blank" rel="noopener">PMC12882696</a>): 385 phase 3 oncology RCTs; 43% with &gt;10% control-arm overperformance; OS-primary trials higher. Cited by Thetamancer for BAT-cap argument.</li>
-      <li><b>Interim &amp; design-power computation (this analysis)</b> — Lan–DeMets O'Brien-Fleming, one-sided α=0.025, looks at t=0.75 &amp; 1.0: interim Z=2.34 (HR≤0.547), final Z=2.01 (HR≤0.636 to win). Schoenfeld check: 90% power at HR 0.636 needs ~205 events, so 80 events at 0.636 ≈ 50% power ⇒ 0.636 is the significance BAR, the ~90%-power alternative is ~0.48.</li>
+      <li><b>Interim &amp; boundary computation (this analysis)</b> — Lan–DeMets O'Brien-Fleming, one-sided α=0.025, looks at t=0.75 &amp; 1.0: modeled interim Z=2.34 (PH translation HR≈0.547), final Z=2.01 (PH translation HR≈0.636). These HR translations are approximations, not the formal SAP rule or disclosed results.</li>
     </ol>
     <h2 class="mt-lg">Statistical methods (primary sources)</h2>
     <ol class="ref-list">
@@ -1579,9 +1575,9 @@
         </article>
         <article class="stats-card stats-application">
           <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Primary framing and optional FH toggle</h3>
-          <p>The REGAL design paper frames the primary analysis as stratified Cox / unweighted log-rank at the 80-event final analysis, with HR &lt; 0.636 as the design win bar. <span class="tag v">public anchor</span></p>
-          <p>The app approximates the log-rank score from modeled curves. The optional Fleming-Harrington late-weighted toggle gives later event times more influence and is a sensitivity for delayed effects; it is not presented as the confirmed primary SAP weighting.</p>
-          <p>Stratification in the real trial uses pre-specified baseline factors. The app's scalar <code>stratF</code> is an efficiency approximation, not a replacement for the actual stratified Cox model.</p>
+          <p>The REGAL design paper frames the primary analysis as a stratified Cox model at the 80-event final analysis, with HR &lt; 0.636 as the proportional-hazards design reference. <span class="tag v">public anchor</span></p>
+          <p>The app approximates an unstratified log-rank score from modeled marginal curves. The optional Fleming-Harrington late-weighted toggle gives later event times more influence and is a sensitivity for delayed effects; it is not presented as the confirmed primary SAP weighting.</p>
+          <p>REGAL's real analysis factors include poor-vs-other cytogenetics plus CR1 duration, response status and MRD. Poor cytogenetics is not equivalent to ELN adverse. Because joint subgroup allocations and effects are unavailable, the app neither substitutes ELN labels nor applies an unsupported scalar efficiency adjustment.</p>
         </article>
       </div>
       <div class="stats-grid">
@@ -1725,7 +1721,7 @@
           <h3><span class="stats-pill stats-pill-regal">REGAL application</span> Why scalar HR differs from sliders</h3>
           <p>A Khela-style scalar HR simulation can apply one risk multiplier across patients. That is clean and fast, but it compresses curve shape into one number.</p>
           <p>The SLS-Model sliders can separately change GPS cure fraction, uncured median, delay, BAT median, BAT Weibull <code>k</code>, and long-tail behavior. Those are richer assumptions, so the final Pike/log-rank HR approximation may not match a single scalar HR setup.</p>
-          <p>The <code>stratF</code> slider is also an approximation: it scales statistical efficiency to mimic stratification effects without knowing the true within-stratum risk sets from the final dataset.</p>
+          <p>The app first mixes ELN prognostic components into one survival curve per arm, then computes the Pike/log-rank approximation from those two marginal risk sets. ELN mix can affect HR only through the resulting marginal curves, not by changing the test's strata.</p>
         </article>
       </div>
       <p class="stats-note"><b>Lesson checkpoint:</b> HR is not a physical constant. It is a summary of survival differences under a testing framework. When hazards are non-proportional, always look at the curves and event timing, not just one HR label.</p>

@@ -6,7 +6,7 @@ import { paramsFromPreset, withElnRuntime } from "../js/ui/state.js";
 import { truncatedNormal, weightedQuantile } from "../js/math/stats.js";
 import {
   eventsAt, lpois, statusLogLikelihood, analyzeLR, hazardRatio, t80Quantile,
-  interimContribution, consistent, fmtCalMonth, T4
+  interimContribution, consistent, fmtCalMonth, T4, armStatus, sBAT, sGPS
 } from "../js/math/survival.js";
 
 function randomFactory(seed){
@@ -61,10 +61,12 @@ function run(label,center,{draws=350,seed=0x51A5EED,binding=true}={}){
   rows.sort((a,b)=>a.hr-b.hr);
   const tRows=[...rows].sort((a,b)=>a.t80-b.t80);
   const pointT=t80Quantile(center,.5,T4,110,20),point=analyzeLR(pointT,center);
-  const pointAnchors={m46:eventsAt(46,center,110),m58:eventsAt(58,center,110),m63:eventsAt(63,center,110)};
+  const pointAnchors={m46:eventsAt(46,center,110),m58:eventsAt(58,center,110),m63:eventsAt(63,center,110),m66:eventsAt(66,center,110)};
+  const batStatus=armStatus(pointT,center,sBAT,110),gpsStatus=armStatus(pointT,center,sGPS,110);
   return{
     label,model:center.modelFamily,pointHR:point.hr,pointZ:point.z,pointT80:pointT,
-    pointAnchors,
+    pointAnchors,censoring36:center.cens,pointRawExpectedDeathsAtT80:point.events,
+    pointStatusAtT80:{bat:batStatus,gps:gpsStatus},
     anchorFit:Math.abs(pointAnchors.m46-60)<=4&&Math.abs(pointAnchors.m58-72)<=3&&Math.abs(pointAnchors.m63-78)<=3,
     augustStatusCompatible:Math.exp(statusLogLikelihood(center,110))>=0.05,
     pSignificant:WP/W,pFailure:1-WP/W,
@@ -95,6 +97,6 @@ const results=[
 ];
 console.log(JSON.stringify({
   generated:new Date().toISOString(),
-  method:`${REPORT_DRAWS} deterministic prior draws (seed ${REPORT_SEED}); Poisson pseudo-likelihood; 90% model intervals; continuation-conditioned`,
+  method:`${REPORT_DRAWS} deterministic prior draws (seed ${REPORT_SEED}); Poisson pseudo-likelihood; ELN-built marginal curves; independent OS WCLFU (central 10% by month 36, sampled 2–15%); unstratified marginal-arm score; 90% model intervals; continuation-conditioned`,
   results
 },null,2));
